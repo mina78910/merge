@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>リスキRPG</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <style>
+    html,body { margin:0; padding:0; background: #e5e7ea;}
+    #container { display:flex; flex-direction:column; align-items:center; width:100vw;}
+    #game { background:#e3e7ed; border:4px solid #888; box-shadow:0 6px 32px #8884; image-rendering:pixelated; width:min(98vw,704px); height:auto;}
+    #message { position:absolute; left:50%; top:55%; transform:translate(-50%,-50%); min-width:220px; background:#fff; color:#222; border-radius:12px; border:2px solid #777; padding:12px 22px; font-size:18px; display:none; text-align:center; z-index:10; max-width:90vw;}
+    #ice-badge { background:#f3fff8; border:2px solid #47cfb2; color:#118878; border-radius:12px; padding:3px 11px; margin:3px 0 0 0; font-size:16px; font-weight:bold; letter-spacing:1px; display:none; min-width:72px; text-align:center;}
+    #pad { margin:12px 0 0 0; display:flex; flex-direction:column; align-items:center; gap:24px;}
+    .pad-row { display:flex; justify-content:center; gap:28px;}
+    .pad-btn { width:64px; height:64px; margin:0 12px; background:#fff; border:2px solid #aaa; border-radius:12px; font-size:30px; color:#256be5; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #bbb4; cursor:pointer; transition:background 0.13s, box-shadow 0.13s;}
+    .pad-btn:active { background:#e2e6ec; box-shadow:0 2px 4px #bbb8;}
+    @media (max-width:700px){
+      #game{width:99vw !important; max-width:99vw;}
+      #message{font-size:14px; padding:8px 8px;}
+      .pad-btn{width:60px; height:60px; font-size:24px;}
+      #container{max-width:100vw;}
+      #ice-badge{font-size:13px; min-width:50px;}
+      #pad{gap:26px;}
+      .pad-row{gap:34px;}
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <canvas id="game" width="704" height="352"></canvas>
+    <div id="message"></div>
+    <div id="ice-badge">🍦 アイス: 1</div>
+    <div id="pad">
+      <div class="pad-row"><div></div><div class="pad-btn" id="btn-up">▲</div><div></div></div>
+      <div class="pad-row"><div class="pad-btn" id="btn-left">◀️</div><div class="pad-btn" id="btn-action">●</div><div class="pad-btn" id="btn-right">▶️</div></div>
+      <div class="pad-row"><div></div><div class="pad-btn" id="btn-down">▼</div><div></div></div>
+    </div>
+  </div>
+  <script>
+    // ========== 切替判定タイル座標一覧 ==========
+    const OFFICE_EXIT = {x:9, y:7};
+    const OUTSIDE_OFFICE = {x:2, y:7};
+    const OUTSIDE_TRAIN = {x:19, y:2};
+
+    // ========== NPC・セリフ・色 ==========
+    const NPC_DATA = [
+      {x:3, y:1, name:"栗山",    color:"#2bb6f6", hair:"#519be3", msg:"こんにちは。栗山です。困ったことがあれば何でも言ってください。"},
+      {x:19, y:1, name:"齋藤",   color:"#fd924c", hair:"#ecab57", msg:"やあ！齋藤です。最近暑いですね。"},
+      {x:8, y:3, name:"李",    color:"#8b6ef7", hair:"#ab78ef", msg:"どうも李です。今日のランチは何にしようかな？"},
+      {x:1, y:3, name:"惟文",    color:"#38c377", hair:"#1b7b55", msg:"惟文です。やっぱりコーヒーがいいですね。"},
+      {x:17, y:3, name:"高津",   color:"#fcd74a", hair:"#efc73e", msg:"高津です。困ったらなんでも相談してください。"},
+      {x:4, y:5, name:"新倉",    color:"#fe8ba9", hair:"#e37c97", msg:"新倉です。今週は出張多めです。"},
+      {x:11, y:3, name:"野中",   color:"#bc66fc", hair:"#7e4ef5", msg:"野中です。コーヒー飲み過ぎ注意！"},
+      {x:15, y:1, name:"彰太",   color:"#ff964f", hair:"#e0824a", msg:"彰太です。最近ジム通い始めました。"},
+      {x:9, y:2, name:"藤野",  color:"#00aaa7", hair:"#268f8c", msg:"藤野です。今日はとても良い天気ですね！"}
+    ];
+    const TRAIN_NPCS = [
+      {x:10, y:2, name:"サラリーマン", color:"#727fae", hair:"#2a355b", msg:"（寝ている...）"},
+      {x:14, y:2, name:"OL", color:"#f0c7b4", hair:"#efc8b8", msg:"今日もお仕事、がんばろう。"},
+      {x:5, y:3, name:"学生", color:"#49b55d", hair:"#3e673a", msg:"電車で勉強中..."}
+    ];
+    // ======= マップデータ =======
+    const officeMap = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,2,0,0,2,0,0,2,0,0,2,0,0,2,0,0,2,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,2,0,0,2,0,0,2,0,0,2,0,0,2,0,0,2,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,6,0,0,7,0,0,0,3,0,8,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,5,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+    const outsideMap = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,2,2,2,2,2,2,3,2,2,2,2,2,2,2,2,2,2,3,2,2,1],
+      [1,2,7,0,0,8,2,4,5,4,5,4,5,4,5,4,0,0,0,7,2,1],
+      [1,2,0,0,10,0,2,4,5,4,5,4,5,4,5,4,0,9,0,0,2,1],
+      [1,2,0,0,0,0,2,4,5,4,5,4,5,4,5,4,0,0,0,0,2,1],
+      [1,2,8,0,0,8,2,4,4,4,4,4,4,4,4,4,0,8,0,0,2,1],
+      [1,2,2,2,2,2,2,3,2,2,2,2,2,2,2,2,2,2,3,2,2,1],
+      [1,14,0,0,0,0,2,1,1,1,1,1,1,1,1,1,0,0,0,0,2,1],
+      [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+    const trainMap = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,2,0,2,0,2,0,2,0,2,0,2,0,2,0,2,0,2,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,14,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+
+    function randTick(){ return 3000+Math.random()*5000;}
+    let npcs = NPC_DATA.map(x=>Object.assign({},x,{moveTick: randTick()}));
+    let trainNpcs = TRAIN_NPCS;
+    let items = [
+      {x:1, y:5, type:"冷蔵庫", msg:"業務用冷蔵庫：お茶、ペットボトル、アイスも入ってる。"},
+      {x:3, y:5, type:"アイス冷蔵庫", msg:"アイス冷蔵庫：色とりどりのアイスがぎっしり！🍦\n→[スペース/●]でアイスを1つ持てます"},
+      {x:4, y:5, type:"コーヒーマシン", msg:"コーヒーマシン：香ばしい匂いが漂う。"},
+      {x:8, y:5, type:"棚", msg:"棚：文房具や書類が並んでいる。"},
+      {x:10, y:5, type:"自動販売機", msg:"自動販売機：最近ラインナップが増えたらしい。"}
+    ];
+    let iceCarrys = 0; let icePlaced = [];
+    let cars = [
+      {x:-2, y:4, vx:0.07, color:"#3ca5ff", w:34, h:15},
+      {x:24, y:2, vx:-0.055, color:"#e34b3b", w:30, h:12}
+    ];
+    let player = {x:9, y:7, dir:"down"};
+    let map = officeMap;
+    let isOffice = true, isOutside = false, isTrain = false;
+    let tileSize = 32;
+    let msgOpen = false;
+    let nowMapName = "office";
+
+    function fitCanvas() {
+      const canvas = document.getElementById('game');
+      let ww = Math.min(window.innerWidth, 704);
+      let wh = Math.min(window.innerHeight-120, 352);
+      if(window.innerWidth < 600 || window.innerHeight < 430){
+        wh = Math.min(window.innerHeight-80, 352);
+      }
+      let scale = Math.min(ww/704, wh/352, 1);
+      canvas.style.width = (704*scale) + "px";
+      canvas.style.height = (352*scale) + "px";
+    }
+    window.addEventListener('resize', fitCanvas);
+    fitCanvas();
+
+    // ========== 描画 ==========
+    const ctx = document.getElementById('game').getContext('2d');
+    function draw() {
+      ctx.clearRect(0,0,704,352);
+      // マップ描画
+      for(let y=0; y<map.length; y++){
+        for(let x=0; x<map[0].length; x++){
+          const t=map[y][x];
+          // タイル描画（省略なし）
+          if(isOffice){
+            if(t===0){ ctx.fillStyle=((x+y)%2===0)?"#e6ebf0":"#f5f6f7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);}
+            if(t===1){ ctx.fillStyle="#adb5bd"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);}
+            if(t===2){
+              ctx.fillStyle="#faf9f6"; ctx.fillRect(x*tileSize+8, y*tileSize+10, tileSize-16, tileSize-17);
+              ctx.fillStyle="#d3cab2"; ctx.fillRect(x*tileSize+12, y*tileSize+26, tileSize-24, 4);
+              ctx.strokeStyle="#bdb49d"; ctx.strokeRect(x*tileSize+8, y*tileSize+10, tileSize-16, tileSize-17);
+            }
+            if(t===3){
+              ctx.fillStyle="#d2f1fc"; ctx.fillRect(x*tileSize+7, y*tileSize+15, 18, 14);
+              ctx.strokeStyle="#72c5ee"; ctx.strokeRect(x*tileSize+7, y*tileSize+15, 18, 14);
+            }
+            if(t===4){
+              ctx.fillStyle="#c22323"; ctx.fillRect(x*tileSize+8, y*tileSize+6, 16, 20);
+              ctx.fillStyle="#fff"; ctx.fillRect(x*tileSize+20, y*tileSize+16, 4, 8);
+              ctx.strokeStyle="#911a1a"; ctx.strokeRect(x*tileSize+8, y*tileSize+6, 16, 20);
+            }
+            if(t===5){
+              ctx.fillStyle="#f8dbdb"; ctx.fillRect(x*tileSize+8, y*tileSize+6, 16, 20);
+              ctx.strokeStyle="#c22323"; ctx.strokeRect(x*tileSize+8, y*tileSize+6, 16, 20);
+            }
+            if(t===6){ ctx.fillStyle="#7bc5f9"; ctx.fillRect(x*tileSize+10, y*tileSize+13, 14, 10);}
+            if(t===7){ ctx.fillStyle="#cbbf79"; ctx.fillRect(x*tileSize+10, y*tileSize+13, 14, 10);}
+            if(t===8){ ctx.fillStyle="#bcffcb"; ctx.fillRect(x*tileSize+8, y*tileSize+12, 16, 12);}
+            if(t===9){ ctx.fillStyle="#e8e5cd"; ctx.fillRect(x*tileSize+10, y*tileSize+9, 12, 14);}
+            // === マーカー ===
+            if(x===OFFICE_EXIT.x && y===OFFICE_EXIT.y){
+              drawExitRect(x, y);
+            }
+          }
+          if(isOutside){
+            if(t===1){ ctx.fillStyle="#999"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);}
+            if(t===2){ ctx.fillStyle="#f7f7f2"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);}
+            if(t===3){ ctx.fillStyle="#2a7d3a"; ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+14, 11, 0, Math.PI*2); ctx.fill(); }
+            if(t===4){ ctx.fillStyle="#888"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);}
+            if(t===5){ ctx.fillStyle="#fefefe"; ctx.fillRect(x*tileSize+10, y*tileSize+7, 12, 18);}
+            if(t===7){ ctx.fillStyle="#406db3"; ctx.fillRect(x*tileSize+4, y*tileSize+2, 24, 28);}
+            if(t===8){ ctx.fillStyle="#ffe4bc"; ctx.fillRect(x*tileSize+10, y*tileSize+8, 12, 16);}
+            if(t===9){ ctx.fillStyle="#27b0ff"; ctx.fillRect(x*tileSize+13, y*tileSize+10, 6, 16);}
+            if(t===10){ ctx.fillStyle="#a77f54"; ctx.fillRect(x*tileSize+9, y*tileSize+6, 14, 22);}
+            if(t===11){ ctx.fillStyle="#f2e363"; ctx.fillRect(x*tileSize+8, y*tileSize+6, 16, 18);}
+            if(t===12){ ctx.fillStyle="#fddef5"; ctx.fillRect(x*tileSize+11, y*tileSize+9, 10, 18);}
+            if(t===13){ ctx.fillStyle="#195fb3"; ctx.fillRect(x*tileSize+6, y*tileSize+4, 20, 24);}
+            if(t===14){ ctx.fillStyle="#e5a200"; ctx.fillRect(x*tileSize+10, y*tileSize+6, 12, 20);}
+            // === マーカー ===
+            if((x===OUTSIDE_OFFICE.x && y===OUTSIDE_OFFICE.y) || (x===OUTSIDE_TRAIN.x && y===OUTSIDE_TRAIN.y)){
+              drawExitRect(x, y);
+            }
+          }
+          if(isTrain){
+            if(t===0){ ctx.fillStyle="#f4f6fa"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);}
+            if(t===14){ ctx.fillStyle="#195fb3"; ctx.fillRect(x*tileSize+7, y*tileSize+6, tileSize-14, tileSize-12);}
+            // === マーカー ===
+            if(t===14){
+              drawExitRect(x, y);
+            }
+          }
+        }
+      }
+      // ===== 車 =====
+      if(isOutside){
+        for(let c of cars){
+          let cx = c.x*tileSize, cy = c.y*tileSize+11;
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.fillStyle = c.color;
+          ctx.fillRect(0,0,c.w,c.h);
+          ctx.fillStyle = "#333";
+          ctx.fillRect(4,2,6,7); ctx.fillRect(c.w-10,2,6,7);
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(11,2,12,4);
+          ctx.restore();
+        }
+      }
+      // ===== アイス =====
+      for(let i of icePlaced){
+        if(i.mapName===nowMapName){
+          ctx.save();
+          ctx.globalAlpha=0.93;
+          ctx.beginPath();
+          ctx.arc(i.x*tileSize+16, i.y*tileSize+24, 8, 0, Math.PI*2);
+          ctx.fillStyle=i.color||"#f8e44c";
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+      // ===== NPC =====
+      let nlist = isTrain ? trainNpcs : (isOffice?npcs:[]);
+      for(let n of nlist){
+        drawHuman(n.x, n.y, n.color, n.hair, n.dir||"down", n.name);
+      }
+      // ===== プレイヤー =====
+      drawHuman(player.x, player.y, "#3a6e33", "#767d38", player.dir, "", true);
+      document.getElementById('ice-badge').style.display = (iceCarrys>0)?"block":"none";
+      if(iceCarrys>0){
+        document.getElementById('ice-badge').innerText = `🍦 アイス: ${iceCarrys}`;
+      }
+    }
+    // ========== マップ切替点の赤枠 ==========
+    function drawExitRect(x, y) {
+      ctx.save();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#f22";
+      ctx.strokeRect(x*tileSize+2, y*tileSize+2, tileSize-4, tileSize-4);
+      ctx.restore();
+    }
+
+    function drawHuman(x, y, color, hair, dir, name, isSelf){
+      const cx=x*tileSize+16, cy=y*tileSize+24;
+      ctx.globalAlpha=0.18;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy+14, 10, 4, 0, 0, Math.PI*2);
+      ctx.fillStyle="#000"; ctx.fill();
+      ctx.globalAlpha=1.0;
+      ctx.save(); ctx.translate(cx, cy);
+      ctx.fillStyle=color; ctx.fillRect(-5,2,10,15);
+      ctx.fillStyle="#7c6a57"; ctx.fillRect(-5,17,5,8); ctx.fillRect(0,17,5,8);
+      ctx.fillStyle="#d6b49b"; ctx.fillRect(-8,5,5,6); ctx.fillRect(3,5,5,6);
+      ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fillStyle=hair||color; ctx.fill();
+      ctx.strokeStyle="#444"; ctx.lineWidth=1.5; ctx.stroke();
+      if(dir!=="up"){
+        ctx.beginPath(); ctx.arc(-3,-2,1.7,0,Math.PI*2); ctx.arc(3,-2,1.7,0,Math.PI*2);
+        ctx.fillStyle="#222"; ctx.fill();
+        ctx.beginPath(); ctx.arc(0,3,3,0,Math.PI); ctx.strokeStyle="#666"; ctx.lineWidth=1; ctx.stroke();
+      }
+      ctx.restore();
+      if(!isSelf && name){
+        ctx.font="12px sans-serif"; ctx.fillStyle="#333";
+        ctx.fillText(name, x*tileSize-4, y*tileSize+42);
+      }
+    }
+    // ========== ロジック ==========
+    function npcAt(x,y){
+      for(let n of npcs) if(n.x===x&&n.y===y) return true;
+      for(let i of icePlaced) if(i.x===x&&i.y===y&&i.mapName===nowMapName) return true;
+      return false;
+    }
+    function isWalkable(x, y){
+      if(x<0||y<0||y>=map.length||x>=map[0].length) return false;
+      let t=map[y][x];
+      if(isOffice){
+        if(npcAt(x,y)) return false;
+        return (t===0 || t===2 || t===5 || t===9);
+      }
+      if(isTrain){
+        if(trainNpcs.some(n=>n.x===x&&n.y===y)) return false;
+        return (t===0 || t===2 || t===14);
+      }
+      if(isOutside){
+        return true;
+      }
+    }
+    function move(dx,dy,dir){
+      if(msgOpen){ hideMsg(); return; }
+      let nx=player.x+dx, ny=player.y+dy;
+      player.dir = dir || player.dir;
+      if(isWalkable(nx,ny)){
+        player.x=nx; player.y=ny;
+        if(checkMapTransition()) return;
+      }
+      draw();
+    }
+    function checkMapTransition() {
+      if(isOffice && player.x===9 && player.y===7 && map[7][9]===9){
+        isOffice=false; isOutside=true; isTrain=false;
+        map=outsideMap; nowMapName="outside";
+        player={x:2,y:7,dir:"up"}; draw(); showMsg("外に出ました。"); return true;
+      }
+      if(isOutside && player.x===19 && player.y===2){
+        isOffice=false; isOutside=false; isTrain=true;
+        map=trainMap; nowMapName="train";
+        player={x:10,y:4,dir:"up"}; draw(); showMsg("電車に乗りました！"); return true;
+      }
+      if(isOutside && player.x===2 && player.y===7){
+        isOffice=true; isOutside=false; isTrain=false;
+        map=officeMap; nowMapName="office";
+        player={x:9,y:7,dir:"up"}; draw(); showMsg("オフィスに戻りました。"); return true;
+      }
+      if(isTrain && map[player.y][player.x]===14){
+        isOffice=false; isOutside=true; isTrain=false;
+        map=outsideMap; nowMapName="outside";
+        player={x:19,y:2,dir:"down"}; draw(); showMsg("日本橋駅に戻りました！"); return true;
+      }
+      return false;
+    }
+    // パッド・キー設定
+    document.getElementById('btn-up').onclick = ()=>move(0,-1,"up");
+    document.getElementById('btn-down').onclick = ()=>move(0,1,"down");
+    document.getElementById('btn-left').onclick = ()=>move(-1,0,"left");
+    document.getElementById('btn-right').onclick = ()=>move(1,0,"right");
+    document.getElementById('btn-action').onclick = ()=>action();
+    document.addEventListener('keydown', e=>{
+      if(msgOpen && (e.key===" "||e.key==="Enter")){ hideMsg(); return; }
+      let nx=player.x, ny=player.y, dir=player.dir;
+      if(e.key==="ArrowUp"){ ny--; dir="up"; }
+      if(e.key==="ArrowDown"){ ny++; dir="down"; }
+      if(e.key==="ArrowLeft"){ nx--; dir="left"; }
+      if(e.key==="ArrowRight"){ nx++; dir="right"; }
+      player.dir=dir;
+      if((nx!==player.x||ny!==player.y)&&isWalkable(nx,ny)){
+        player.x=nx; player.y=ny;
+        if(checkMapTransition()) return;
+      }
+      draw();
+      if(e.key===" "||e.key==="Enter"){ action(); }
+    });
+    function showMsg(msg){
+      const m=document.getElementById("message");
+      m.innerText=msg; m.style.display="block"; msgOpen=true;
+    }
+    function hideMsg(){
+      document.getElementById("message").style.display="none"; msgOpen=false;
+    }
+    document.getElementById("message").onclick=hideMsg;
+    // アクション
+    function action(){
+      if(msgOpen){ hideMsg(); return; }
+      if(isOffice){
+        for(let n of npcs){
+          if(Math.abs(player.x-n.x)+Math.abs(player.y-n.y)===1){
+            showMsg(n.msg); return;
+          }
+        }
+        for(let i of items){
+          if(Math.abs(player.x-i.x)+Math.abs(player.y-i.y)===1){
+            if(i.type==="アイス冷蔵庫"){
+              iceCarrys++; draw(); showMsg("アイスをゲット！"); return;
+            } else {
+              showMsg(i.msg); return;
+            }
+          }
+        }
+        if(iceCarrys>0 && !npcAt(player.x,player.y) && !icePlaced.some(j=>j.x===player.x&&j.y===player.y&&j.mapName==="office") && (map[player.y][player.x]===0||map[player.y][player.x]===2)){
+          icePlaced.push({x:player.x,y:player.y,mapName:"office",color:randIceColor()});
+          iceCarrys--; draw(); showMsg("アイスを設置！"); return;
+        }
+        if(Math.abs(player.x-9)+Math.abs(player.y-6)===1){
+          let t=map[6][9];
+          map[6][9] = (t===4?5:4);
+          draw(); return;
+        }
+      }
+      else if(isOutside){
+        if(map[player.y][player.x]===12){
+          showMsg("屋外の自販機：冷たいドリンク！"); return;
+        }
+        if(iceCarrys>0 && !npcAt(player.x,player.y) && !icePlaced.some(j=>j.x===player.x&&j.y===player.y&&j.mapName==="outside") && map[player.y][player.x]===2){
+          icePlaced.push({x:player.x,y:player.y,mapName:"outside",color:randIceColor()});
+          iceCarrys--; draw(); showMsg("アイスを設置！"); return;
+        }
+      }
+      else if(isTrain){
+        for(let n of trainNpcs){
+          if(Math.abs(player.x-n.x)+Math.abs(player.y-n.y)===1){
+            showMsg(n.msg); return;
+          }
+        }
+      }
+    }
+    function randIceColor(){
+      const arr=["#f55","#3cf","#fff700","#8ad431","#a184db","#ffaacc","#ffae49","#b2e6f8"];
+      return arr[Math.floor(Math.random()*arr.length)];
+    }
+    // NPC＆車 更新
+    function updateAll(){
+      if(isOffice){
+        for(let n of npcs){
+          n.moveTick-=130;
+          if(n.moveTick<=0){
+            const dirs=[{dx:0,dy:-1,dir:"up"},{dx:0,dy:1,dir:"down"},{dx:-1,dy:0,dir:"left"},{dx:1,dy:0,dir:"right"}].sort(()=>Math.random()-0.5);
+            for(let d of dirs){
+              if(isWalkable(n.x+d.dx,n.y+d.dy) && !npcAt(n.x+d.dx,n.y+d.dy) && !(n.x+d.dx===player.x&&n.y+d.dy===player.y)){
+                n.x+=d.dx; n.y+=d.dy; n.dir=d.dir; break;
+              }
+            }
+            n.moveTick=randTick();
+          }
+        }
+      }
+      if(isOutside){
+        for(let c of cars){
+          c.x+=c.vx*3;
+          if(c.vx>0&&c.x>22) c.x=-2;
+          if(c.vx<0&&c.x<-2) c.x=22;
+        }
+      }
+      draw();
+    }
+    setInterval(updateAll,130);
+    draw();
+  </script>
+</body>
+</html>
