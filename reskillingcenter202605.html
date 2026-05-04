@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>リスキRPG - Real World Edition 5.1 (UI & Map Refined)</title>
+  <title>リスキRPG - Real World Edition 8.0 (Nihonbashi Update)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <style>
     html,
@@ -153,7 +153,6 @@
     // ========== データ定義 ==========
     function randTick(){ return 3000+Math.random()*5000;}
 
-    // 各マップのNPC設定
     const officeNpcs = [
       {x:3, y:1, name:"栗山", color:"#2bb6f6", hair:"#519be3", msg:"栗山です。ぜひフットサルにご参加ください。"},
       {x:19, y:1, name:"齋藤", color:"#fd924c", hair:"#ecab57", msg:"齋藤です。リスキ来ると頭痛くなるんですよ"},
@@ -168,46 +167,79 @@
 
     const hqNpcs = [
       {x:7, y:3, name:"役員", color:"#34495e", hair:"#2c3e50", msg:"お疲れ様です。本社の居心地はどうですか？"},
-      {x:14, y:4, name:"本社社員", color:"#9b59b6", hair:"#8e44ad", msg:"第一三木ビルから来たの？遠かったでしょ！"}
+      {x:14, y:4, name:"本社社員", color:"#9b59b6", hair:"#8e44ad", msg:"第一三木ビルから来たの？遠かったでしょ！"},
+      {x:10, y:2, name:"受付", color:"#e74c3c", hair:"#c0392b", msg:"いらっしゃいませ。テラスカイ本社へようこそ。"},
+      {x:18, y:3, name:"エンジニア", color:"#3498db", hair:"#2980b9", msg:"新しいアーキテクチャの設計をしています。"}
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const loungeNpcs = [
       {x:11, y:3, name:"社員A", color:"#e67e22", hair:"#d35400", msg:"食後の卓球、最高！🏓"},
-      {x:5, y:4, name:"社員B", color:"#1abc9c", hair:"#16a085", msg:"ここの社食美味しいから食べすぎちゃう。"}
+      {x:5, y:4, name:"社員B", color:"#1abc9c", hair:"#16a085", msg:"ここの社食美味しいから食べすぎちゃう. "},
+      {x:14, y:5, name:"社員C", color:"#9b59b6", hair:"#8e44ad", msg:"コーヒーブレイク中です. ふぅ."},
+      {x:8, y:2, name:"社員D", color:"#f1c40f", hair:"#f39c12", msg:"今日のランチメニュー、当たりでした！"}
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const dormitoryNpcs = [
-      {x:4, y:4, name:"寮生A", color:"#3498db", hair:"#2980b9", msg:"社員寮のラウンジは広くて快適だよ。"},
-      {x:12, y:3, name:"寮生B", color:"#e74c3c", hair:"#c0392b", msg:"隣にコンビニがあるから深夜でも安心！"}
+      {x:4, y:4, name:"寮生A", color:"#3498db", hair:"#2980b9", msg:"社員寮のラウンジは広くて快適だよ. "},
+      {x:12, y:3, name:"寮生B", color:"#e74c3c", hair:"#c0392b", msg:"隣にコンビニがあるから深夜でも安心！"},
+      {x:8, y:5, name:"管理人", color:"#7f8c8d", hair:"#2c3e50", msg:"戸締まりはしっかりね. "},
+      {x:18, y:5, name:"寮生C", color:"#2ecc71", hair:"#27ae60", msg:"休日はラウンジでゲームして過ごしてます. "}
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const trainNpcs = [
-      {x:10, y:3, name:"工藤", color:"#727fae", hair:"#2a355b", msg:"工藤です。あれ？こんなところで"},
-      {x:14, y:3, name:"古屋", color:"#f0c7b4", hair:"#efc8b8", msg:"古屋です。君も午後出社？"},
-      {x:5, y:4, name:"安藤", color:"#49b55d", hair:"#3e673a", msg:"安藤です。最近仕事忙しいよ"}
+      {x:10, y:3, name:"工藤", color:"#727fae", hair:"#2a355b", msg:"工藤です. あれ？こんなところで"},
+      {x:14, y:3, name:"古屋", color:"#f0c7b4", hair:"#efc8b8", msg:"古屋です. 君も午後出社？"},
+      {x:5, y:4, name:"安藤", color:"#49b55d", hair:"#3e673a", msg:"安藤です. 最近仕事忙しいよ"},
+      {x:8, y:4, name:"乗客A", color:"#bdc3c7", hair:"#7f8c8d", msg:"（スマホを熱心に見ている…）"},
+      {x:18, y:4, name:"乗客B", color:"#e67e22", hair:"#d35400", msg:"ふぁぁ…ちょっと眠いな."},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
+    // ★ 日本橋NPC (修正後)
     const outsideNpcs = [
-      {x:6, y:2, name:"通行人A", color:"#95a5a6", hair:"#34495e", msg:"いい天気ですね。西へ行けば東京駅ですよ。"},
-      {x:18, y:5, name:"通行人B", color:"#e74c3c", hair:"#c0392b", msg:"急がないと！日本橋駅はどっちだ…"}
+      {x:6, y:2, name:"通行人A", color:"#95a5a6", hair:"#34495e", msg:"高島屋でのお買い物、楽しいわね！"},
+      {x:18, y:5, name:"通行人B", color:"#e74c3c", hair:"#c0392b", msg:"この重厚な建物、国の重要文化財なんだって."},
+      {x:2, y:4, name:"サラリーマン", color:"#34495e", hair:"#2c3e50", msg:"日本橋の老舗でお昼ご飯を食べよう！"},
+      {x:12, y:2, name:"おばあさん", color:"#ffb8b8", hair:"#ecf0f1", msg:"この辺りもだいぶ変わりましたねぇ."},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const outside2Npcs = [
-      {x:14, y:2, name:"観光客", color:"#e84393", hair:"#fd79a8", msg:"東京駅のレンガ造り、写真撮ろっと！📸"}
+      {x:14, y:2, name:"観光客", color:"#e84393", hair:"#fd79a8", msg:"東京駅のレンガ造り、写真撮ろっと！📸"},
+      {x:5, y:5, name:"道に迷った人", color:"#1abc9c", hair:"#16a085", msg:"えっと、大手町はどっちだ…？スマホの地図が…"},
+      {x:18, y:3, name:"自転車の人", color:"#f39c12", hair:"#e67e22", msg:"チリンチリン！すみません、通りますよ〜"},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const outside3Npcs = [
-      {x:15, y:2, name:"ランナー", color:"#00cec9", hair:"#81ecec", msg:"皇居ラン最高！風が気持ちいい〜🏃‍♂️"}
+      {x:20, y:5, name:"ランナーA", color:"#00cec9", hair:"#81ecec", msg:"皇居ラン最高！風が気持ちいい〜🏃‍♂️"},
+      {x:19, y:6, name:"警備員", color:"#2c3e50", hair:"#1a252f", msg:"立ち入り禁止区域にはご注意ください. "},
+    ].map(x=>Object.assign({},x,{moveTick: randTick()}));
+    
+    const outside4Npcs = [
+      {x:10, y:1, name:"ランナーB", color:"#ffeaa7", hair:"#fdcb6e", msg:"北の丸公園のほうも走るよ！"},
+      {x:16, y:2, name:"観光ガイド", color:"#f1c40f", hair:"#d35400", msg:"こちらが有名な江戸城の跡地でございます！"},
+    ].map(x=>Object.assign({},x,{moveTick: randTick()}));
+    
+    const outside5Npcs = [
+      {x:1, y:5, name:"ランナーC", color:"#55efc4", hair:"#00b894", msg:"半蔵門のあたりは坂がきつい！"},
+      {x:2, y:5, name:"休憩中の人", color:"#8e44ad", hair:"#9b59b6", msg:"お堀を眺めながら一休みするの、最高です. "},
+    ].map(x=>Object.assign({},x,{moveTick: randTick()}));
+    
+    const outside6Npcs = [
+      {x:12, y:9, name:"ランナーD", color:"#fab1a0", hair:"#e17055", msg:"桜田門が見えてきたぞ！ラストスパート！"},
+      {x:15, y:9, name:"カメラマン", color:"#27ae60", hair:"#2ecc71", msg:"いいアングルだ…カシャッ！📸"},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const stationNpcs = [
-      {x:4, y:5, name:"駅員", color:"#3498db", hair:"#2980b9", msg:"日本橋駅へようこそ。白線の内側にお下がりください。"},
-      {x:14, y:7, name:"乗客", color:"#2ecc71", hair:"#27ae60", msg:"電車、まだ来ないなぁ。"}
+      {x:4, y:5, name:"駅員", color:"#3498db", hair:"#2980b9", msg:"日本橋駅へようこそ. 白線の内側にお下がりください."},
+      {x:14, y:7, name:"乗客", color:"#2ecc71", hair:"#27ae60", msg:"電車、まだ来ないなぁ."},
+      {x:8, y:7, name:"急ぐ人", color:"#e74c3c", hair:"#c0392b", msg:"やばい！次の電車行っちゃう！"},
+      {x:18, y:4, name:"待ち合わせの人", color:"#9b59b6", hair:"#8e44ad", msg:"全然来ないなぁ…ホーム間違えたかな？"},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const stationTokyoNpcs = [
-      {x:4, y:5, name:"駅員", color:"#2980b9", hair:"#1a5276", msg:"東京駅へようこそ！新幹線はお乗り換えです。"},
-      {x:14, y:7, name:"旅行客", color:"#f1c40f", hair:"#d4ac0d", msg:"東京駅広すぎ！お土産どこで買おうかな〜"}
+      {x:4, y:5, name:"駅員", color:"#2980b9", hair:"#1a5276", msg:"東京駅へようこそ！新幹線はお乗り換えです."},
+      {x:14, y:7, name:"旅行客", color:"#f1c40f", hair:"#d4ac0d", msg:"東京駅広すぎ！お土産どこで買おうかな〜"},
+      {x:10, y:4, name:"外国人観光客", color:"#f39c12", hair:"#f1c40f", msg:"Excuse me, where is the Shinkansen?"},
+      {x:18, y:7, name:"出張帰りの人", color:"#7f8c8d", hair:"#95a5a6", msg:"やっと東京に着いた…疲れたー."},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     function getNpcList() {
@@ -219,24 +251,58 @@
       if(currentMapName === "outside") return outsideNpcs;
       if(currentMapName === "outside2") return outside2Npcs;
       if(currentMapName === "outside3") return outside3Npcs;
+      if(currentMapName === "outside4") return outside4Npcs;
+      if(currentMapName === "outside5") return outside5Npcs;
+      if(currentMapName === "outside6") return outside6Npcs;
       if(currentMapName === "station") return stationNpcs;
       if(currentMapName === "station_tokyo") return stationTokyoNpcs;
       return [];
     }
 
     let items = [
-      {x:1, y:5, type:"冷蔵庫", msg:"業務用冷蔵庫：お茶などが入っている。"},
+      {x:1, y:5, type:"冷蔵庫", msg:"業務用冷蔵庫：お茶などが入っている. "},
       {x:3, y:5, type:"アイス冷蔵庫", msg:"アイス冷蔵庫：色とりどりのアイスがぎっしり！🍦\n→[アクション]でアイスを持てます"},
-      {x:4, y:5, type:"コーヒーマシン", msg:"コーヒーマシン：香ばしい匂いが漂う。"},
-      {x:8, y:5, type:"棚", msg:"棚：文房具や書類が並んでいる。"},
-      {x:10, y:5, type:"自動販売機", msg:"自動販売機：最近ラインナップが増えたらしい。"}
+      {x:4, y:5, type:"コーヒーマシン", msg:"コーヒーマシン：香ばしい匂いが漂う. "},
+      {x:8, y:5, type:"棚", msg:"棚：文房具や書類が並んでいる. "},
+      {x:10, y:5, type:"自動販売機", msg:"自動販売機：最近ラインナップが増えたらしい. "},
     ];
     let iceCarrys = 0; let icePlaced = [];
-    
-    let cars = [
-      {x:-2, y:4, vx:0.005, color:"#3ca5ff", w:34, h:15},
-      {x:24, y:5, vx:-0.004, color:"#e34b3b", w:30, h:12}
-    ];
+
+    // ★ マップごとに車線を独立管理
+    let allCars = {
+      outside: [
+        {x:-2, y:4, vx:0.005, color:"#3ca5ff", w:34, h:15},
+        {x:8, y:4, vx:0.006, color:"#f1c40f", w:32, h:14},
+        {x:24, y:3, vx:-0.005, color:"#e34b3b", w:30, h:12},
+        {x:12, y:3, vx:-0.004, color:"#2ecc71", w:34, h:15},
+        {x:-10, y:4, vx:0.005, color:"#ffffff", w:32, h:13},
+        {x:35, y:3, vx:-0.005, color:"#000000", w:30, h:14},
+      ],
+      outside2: [
+        {x:-5, y:4, vx:0.005, color:"#9b59b6", w:34, h:15},
+        {x:15, y:4, vx:0.004, color:"#34495e", w:32, h:14},
+        {x:24, y:3, vx:-0.006, color:"#e67e22", w:30, h:12},
+        {x:8, y:3, vx:-0.005, color:"#1abc9c", w:34, h:15},
+      ],
+      outside3: [], // 東側は縦道路なので今回は車なし
+      outside4: [ // 北側(y=1,2)
+        {x:-2, y:2, vx:0.005, color:"#9b59b6", w:34, h:15},
+        {x:15, y:2, vx:0.005, color:"#34495e", w:32, h:14},
+        {x:24, y:1, vx:-0.005, color:"#e67e22", w:30, h:12},
+        {x:8, y:1, vx:-0.005, color:"#1abc9c", w:34, h:15},
+      ],
+      outside5: [], // 西側は縦道路なので今回は車なし
+      outside6: [ // 南側(y=8,9)
+        {x:-2, y:9, vx:0.005, color:"#e34b3b", w:34, h:15},
+        {x:12, y:9, vx:0.005, color:"#f1c40f", w:32, h:14},
+        {x:24, y:8, vx:-0.005, color:"#3ca5ff", w:30, h:12},
+        {x:6, y:8, vx:-0.005, color:"#2ecc71", w:34, h:15},
+      ],
+    };
+
+    // 信号機のステート
+    let trafficLight = "green";
+    let trafficTimer = 5000;
 
     // ========== マップ定義 (22 x 11) ==========
     const officeMap = [
@@ -250,7 +316,7 @@
       [1,0,0,0,0,0,0,0,0,28,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
     const hqMap = [
@@ -264,7 +330,7 @@
       [1,0,0,0,0,0,0,0,0,28,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
     const loungeMap = [
@@ -278,7 +344,7 @@
       [1,0,0,0,0,0,0,0,0,28,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
     const dormitoryMap = [
@@ -292,7 +358,7 @@
       [1,1,1,1,1,1,1,1,1,40,1,1,1,1,1,1,1,1,1,1,1,1], 
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
     const elevatorMap = [
@@ -306,70 +372,80 @@
       [1,1,1,1,1,1,1,1,1,1,28,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
-    // 外のマップ１（日本橋）
+    // ★ 日本橋マップ (修正後)
     const outsideMap = [
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,18,1,1,1,1,1,1,1,19,1,1,1,1,1,1,1,1],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // 左(東京駅)へ開通
+      [1,1,51,51,52,51,51,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,1,51,51,52,51,51,1,1,18,1,1,1,19,1,1,1,1,1,1,1,1],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
       [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,1], 
       [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,1],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // 左(東京駅)へ開通
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
       [1,1,1,36,36,36,1,37,1,1,1,1,1,1,1,1,1,22,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
-    // 外のマップ２（東京駅周辺）
     const outside2Map = [
-      [42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42], // レンガ
-      [42,42,42,42,42,42,42,42,43,43,43,43,42,42,42,42,42,42,42,42,42,42], // 43: 東京駅入口
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // 左右開通
+      [42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42],
+      [42,42,42,42,42,42,42,42,43,43,43,43,42,42,42,42,42,42,42,42,42,42], 
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
       [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,20], 
       [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,20],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // 左右開通
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
-    // 外のマップ３（皇居周辺）
+    // ★ 皇居の周回コース (3,4,5,6) 22x11 を動的生成 (お城タイル50を配置)
+    const rowE = [46,46,46,46,46,46,46,46,46,46,46,46,46,46,44,44,44,44,20,20,20,20];
     const outside3Map = [
-      [46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46], // 緑
-      [44,44,44,44,44,44,44,44,48,48,44,44,44,44,44,44,44,44,44,44,44,44], // お堀と石橋(48)
-      [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // 左端は壁(行き止まり)
-      [1,1,1,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20], 
-      [1,1,1,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20], 
-      [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [46,46,46,46,50,46,46,46,46,46,46,46,46,46,44,44,44,44,20,20,20,20], // 50: お城の櫓
+      [...rowE],[...rowE],[...rowE],[...rowE],[...rowE],[...rowE],[...rowE],[...rowE],[...rowE],[...rowE]
     ];
 
-    // 日本橋駅
+    const rowN1 = [20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20];
+    const rowN2 = [44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44];
+    const rowN3 = [46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46];
+    const outside4Map = [
+      [...rowN1],[...rowN1],[...rowN1],[...rowN1],
+      [...rowN2],[...rowN2],[...rowN2],
+      [...rowN3],[...rowN3],[...rowN3],[...rowN3]
+    ];
+    outside4Map[8][10] = 50; // 中央にお城
+
+    const rowW = [20,20,20,20,44,44,44,44,46,46,46,46,46,46,46,46,46,46,46,46,46,46];
+    const outside5Map = Array.from({length:11}, () => [...rowW]);
+    outside5Map[5][12] = 50; // 中央にお城
+
+    const outside6Map = [
+      [...rowN3],[...rowN3],[...rowN3],[...rowN3],
+      [...rowN2],[...rowN2],[...rowN2],
+      [...rowN1],[...rowN1],[...rowN1],[...rowN1]
+    ];
+    outside6Map[2][10] = 50; // 中央にお城
+
     const stationMap = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,1], 
-      [1,23,23,23,23,23,14,14,23,23,23,23,23,23,23,23,23,23,23,23,23,1], // 14: 電車ドア
+      [1,23,23,23,23,23,14,14,23,23,23,23,23,23,23,23,23,23,23,23,23,1], 
       [1,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,1], 
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
       [1,1,1,1,1,1,1,25,25,25,25,1,1,1,1,1,1,1,1,1,1,1], 
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
-      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,26,0,0,0,1], // 26: 日本橋駅出口
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,26,0,0,0,1], 
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
-    // 東京駅
     const stationTokyoMap = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,1], 
@@ -379,9 +455,9 @@
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
       [1,1,1,1,1,1,1,25,25,25,25,1,1,1,1,1,1,1,1,1,1,1], 
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
-      [1,0,0,0,0,0,0,0,0,49,49,0,0,0,0,0,0,0,0,0,0,1], // 49: 東京駅出口
+      [1,0,0,0,0,0,0,0,0,49,49,0,0,0,0,0,0,0,0,0,0,1], 
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
     const trainMap = [
@@ -395,7 +471,7 @@
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
     const MAPS = {
@@ -407,6 +483,9 @@
       outside: outsideMap,
       outside2: outside2Map,
       outside3: outside3Map,
+      outside4: outside4Map,
+      outside5: outside5Map,
+      outside6: outside6Map,
       station: stationMap,
       station_tokyo: stationTokyoMap,
       train: trainMap
@@ -423,16 +502,13 @@
     let tileSize = 32;
     let msgOpen = false;
 
-    // ========== レンダリング ==========
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
 
     function fitCanvas() {
       let ww = Math.min(window.innerWidth, 704);
       let wh = Math.min(window.innerHeight-120, 352);
-      if(window.innerWidth < 600 || window.innerHeight < 430){
-        wh = Math.min(window.innerHeight-80, 352);
-      }
+      if(window.innerWidth < 600 || window.innerHeight < 430){ wh = Math.min(window.innerHeight-80, 352); }
       let scale = Math.min(ww/704, wh/352, 1);
       canvas.style.width = (704*scale) + "px";
       canvas.style.height = (352*scale) + "px";
@@ -443,7 +519,6 @@
     function draw(time) {
       ctx.clearRect(0,0,704,352);
 
-      // --- マップタイルの描画 ---
       for(let y=0; y<map.length; y++){
         for(let x=0; x<map[0].length; x++){
           const t = map[y][x];
@@ -455,17 +530,13 @@
             else if(currentMapName==="dormitory") { ctx.fillStyle=((x+y)%2===0)?"#dcb17f":"#d4a670"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); } 
             else if(currentMapName.startsWith("outside")) { ctx.fillStyle="#c4c8cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="station") { ctx.fillStyle="#c4c8cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
-            else if(currentMapName==="station_tokyo") { 
-              // 東京駅はレンガ調・石畳風の床色にして差別化
-              ctx.fillStyle=((x+y)%2===0)?"#d4b8a3":"#c9ac95"; 
-              ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); 
-            }
+            else if(currentMapName==="station_tokyo") { ctx.fillStyle=((x+y)%2===0)?"#d4b8a3":"#c9ac95"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="train") { ctx.fillStyle="#dbe1eb"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="elevator") { ctx.fillStyle="#bcc4cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
           }
           if(t===1) {
             if(currentMapName.startsWith("outside")) { ctx.fillStyle="#444851"; } 
-            else if(currentMapName==="station_tokyo") { ctx.fillStyle="#8e4a3b"; } // 東京駅の壁も赤レンガ色に
+            else if(currentMapName==="station_tokyo") { ctx.fillStyle="#8e4a3b"; } 
             else { ctx.fillStyle="#adb5bd"; }
             ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
           }
@@ -482,78 +553,106 @@
           if(t===34){ ctx.fillStyle="#1b5e20"; ctx.fillRect(x*tileSize, y*tileSize+4, tileSize, tileSize-8); ctx.fillStyle="#fff"; ctx.fillRect(x*tileSize, y*tileSize+tileSize/2-1, tileSize, 2); }
           if(t===35){ ctx.fillStyle="#e67e22"; ctx.fillRect(x*tileSize, y*tileSize+6, tileSize, tileSize-12); ctx.fillStyle="#ecf0f1"; ctx.fillRect(x*tileSize+8, y*tileSize+10, 16, 8); }
 
-          // 外観（ビル、コンビニ、駅など）
-          if(t===18) { ctx.fillStyle="#444851"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#87cefa"; ctx.fillRect(x*tileSize+4, y*tileSize+8, 24, 24); }
-          if(t===19) { ctx.fillStyle="#444851"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#e67e22"; ctx.fillRect(x*tileSize+4, y*tileSize+8, 24, 24); }
+         if(t===18) { 
+            // 第一三木ビル (ガラス窓の表現を追加)
+            ctx.fillStyle="#444851"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#95a5a6"; ctx.fillRect(x*tileSize+2, y*tileSize+4, 28, 28);
+            ctx.fillStyle="#87cefa"; ctx.fillRect(x*tileSize+6, y*tileSize+8, 20, 24);
+            ctx.fillStyle="#ecf0f1"; ctx.fillRect(x*tileSize+15, y*tileSize+8, 2, 24); ctx.fillRect(x*tileSize+6, y*tileSize+20, 20, 2);
+          }
+          if(t===19) { 
+            // 本社 (重厚感と自動ドアの表現を追加)
+            ctx.fillStyle="#444851"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#e67e22"; ctx.fillRect(x*tileSize+2, y*tileSize+2, 28, 30);
+            ctx.fillStyle="#34495e"; ctx.fillRect(x*tileSize+6, y*tileSize+12, 20, 20);
+            ctx.fillStyle="#87cefa"; ctx.fillRect(x*tileSize+8, y*tileSize+14, 16, 18);
+            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize+15, y*tileSize+14, 2, 18);
+          }
           if(t===20) { ctx.fillStyle="#5c6066"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
           if(t===21) { 
             ctx.fillStyle="#4b4e54"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
             ctx.fillStyle="#fff"; ctx.fillRect(x*tileSize+4, y*tileSize+2, tileSize-8, 6); ctx.fillRect(x*tileSize+4, y*tileSize+12, tileSize-8, 6); ctx.fillRect(x*tileSize+4, y*tileSize+22, tileSize-8, 6);
           }
-          if(t===22) { ctx.fillStyle="#2d3436"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#ffb142"; ctx.fillRect(x*tileSize+4, y*tileSize+8, 24, 24); }
+          if(t===22) { 
+            // 日本橋駅 (看板と地下へ続く階段を追加)
+            ctx.fillStyle="#2d3436"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#ffb142"; ctx.fillRect(x*tileSize+2, y*tileSize+6, 28, 6);
+            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize+4, y*tileSize+12, 24, 20);
+            ctx.fillStyle="#34495e"; ctx.fillRect(x*tileSize+8, y*tileSize+12, 16, 20);
+            ctx.fillStyle="#7f8c8d"; ctx.fillRect(x*tileSize+8, y*tileSize+16, 16, 2); ctx.fillRect(x*tileSize+8, y*tileSize+22, 16, 2); ctx.fillRect(x*tileSize+8, y*tileSize+28, 16, 2);
+          }
           
           if(t===36){ 
             ctx.fillStyle="#ecf0f1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#3498db"; ctx.fillRect(x*tileSize, y*tileSize+2, tileSize, 4);
             ctx.fillStyle="#2ecc71"; ctx.fillRect(x*tileSize, y*tileSize+6, tileSize, 4); ctx.fillStyle="#87cefa"; ctx.fillRect(x*tileSize+2, y*tileSize+12, tileSize-4, tileSize-12); 
           }
-          if(t===37){ ctx.fillStyle="#444851"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#8d6e63"; ctx.fillRect(x*tileSize+4, y*tileSize+8, 24, 24); }
-          
-          // 皇居・東京駅の追加タイル
-          if(t===42) { // 東京駅 赤レンガ
-            ctx.fillStyle="#c0392b"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
-            ctx.fillStyle="#e74c3c"; ctx.fillRect(x*tileSize+2, y*tileSize+2, tileSize-4, tileSize-4);
-            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize+tileSize-4, tileSize, 4); 
+          if(t===37){ 
+            // 社員寮 (三角屋根と木製ドアを追加)
+            ctx.fillStyle="#444851"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#8d6e63"; ctx.fillRect(x*tileSize+2, y*tileSize+8, 28, 24);
+            ctx.fillStyle="#5d4037"; ctx.beginPath(); ctx.moveTo(x*tileSize+16, y*tileSize); ctx.lineTo(x*tileSize+30, y*tileSize+8); ctx.lineTo(x*tileSize+2, y*tileSize+8); ctx.fill();
+            ctx.fillStyle="#f5f6f7"; ctx.fillRect(x*tileSize+10, y*tileSize+14, 12, 18);
+            ctx.fillStyle="#f1c40f"; ctx.beginPath(); ctx.arc(x*tileSize+20, y*tileSize+24, 1.5, 0, Math.PI*2); ctx.fill();
           }
-          if(t===43) { // 東京駅入口
-            ctx.fillStyle="#c0392b"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
-            ctx.fillStyle="#2c3e50"; ctx.fillRect(x*tileSize+4, y*tileSize+8, 24, 24); 
-            ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+8, 12, Math.PI, 0); ctx.fill();
-          }
-          if(t===44) { // お堀 (水)
-            ctx.fillStyle="#2980b9"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
-            ctx.fillStyle="rgba(255,255,255,0.2)"; 
+          if(t===42) { ctx.fillStyle="#c0392b"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#e74c3c"; ctx.fillRect(x*tileSize+2, y*tileSize+2, tileSize-4, tileSize-4); ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize+tileSize-4, tileSize, 4); }
+          if(t===43) { ctx.fillStyle="#c0392b"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#2c3e50"; ctx.fillRect(x*tileSize+4, y*tileSize+8, 24, 24); ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+8, 12, Math.PI, 0); ctx.fill(); }
+          if(t===44) { 
+            ctx.fillStyle="#2980b9"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="rgba(255,255,255,0.2)"; 
             let offset = (time * 0.05 + x*10) % tileSize;
-            ctx.fillRect(x*tileSize + offset, y*tileSize+4, 8, 2);
-            ctx.fillRect(x*tileSize + (offset+16)%tileSize, y*tileSize+16, 12, 2);
+            ctx.fillRect(x*tileSize + offset, y*tileSize+4, 8, 2); ctx.fillRect(x*tileSize + (offset+16)%tileSize, y*tileSize+16, 12, 2);
           }
-          if(t===46) { // 緑
-            ctx.fillStyle="#27ae60"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
-            ctx.fillStyle="#2ecc71"; ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+16, 10, 0, Math.PI*2); ctx.fill();
-          }
-          if(t===48) { // 石橋
-            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
-            ctx.fillStyle="#95a5a6"; ctx.fillRect(x*tileSize, y*tileSize+2, 4, tileSize-4); ctx.fillRect(x*tileSize+tileSize-4, y*tileSize+2, 4, tileSize-4); 
-          }
-          if(t===49) { // 東京駅階段
-            ctx.fillStyle="#2d3436"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); 
-            ctx.fillStyle="#c0392b"; ctx.fillRect(x*tileSize+4, y*tileSize+10, 24, 16); 
+          if(t===46) { ctx.fillStyle="#27ae60"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#2ecc71"; ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+16, 10, 0, Math.PI*2); ctx.fill(); }
+          if(t===48) { ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#95a5a6"; ctx.fillRect(x*tileSize, y*tileSize+2, 4, tileSize-4); ctx.fillRect(x*tileSize+tileSize-4, y*tileSize+2, 4, tileSize-4); }
+          if(t===49) { ctx.fillStyle="#2d3436"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#c0392b"; ctx.fillRect(x*tileSize+4, y*tileSize+10, 24, 16); }
+
+          // ★ 新規: 皇居のお城（櫓）
+          if(t===50) { 
+            ctx.fillStyle="#27ae60"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); // 背景の緑
+            ctx.fillStyle="#7f8c8d"; ctx.beginPath(); ctx.moveTo(x*tileSize+4, y*tileSize+32); ctx.lineTo(x*tileSize+28, y*tileSize+32); ctx.lineTo(x*tileSize+24, y*tileSize+16); ctx.lineTo(x*tileSize+8, y*tileSize+16); ctx.fill(); // 石垣
+            ctx.fillStyle="#ecf0f1"; ctx.fillRect(x*tileSize+10, y*tileSize+8, 12, 8); // 白壁
+            ctx.fillStyle="#2c3e50"; ctx.beginPath(); ctx.moveTo(x*tileSize+4, y*tileSize+8); ctx.lineTo(x*tileSize+16, y*tileSize); ctx.lineTo(x*tileSize+28, y*tileSize+8); ctx.fill(); // 屋根
           }
 
-          // 寮内家具など
+          // ★ 新規: 日本橋 百貨店 (高島屋風)
+          if(t===51){
+            // 重厚な石造りの壁
+            ctx.fillStyle="#dcdde1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize+2, y*tileSize+2, tileSize-4, tileSize-4);
+            // アーチ窓
+            ctx.fillStyle="#34495e"; ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+12, 10, Math.PI, 0); ctx.fill();
+            ctx.fillRect(x*tileSize+6, y*tileSize+12, 20, 14);
+            ctx.fillStyle="#87cefa"; ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+12, 8, Math.PI, 0); ctx.fill();
+            ctx.fillRect(x*tileSize+8, y*tileSize+12, 16, 12);
+            // 装飾
+            ctx.fillStyle="#f1c40f"; ctx.fillRect(x*tileSize+15, y*tileSize, 2, tileSize);
+          }
+          if(t===52){
+            // 入口 (提灯とのれん)
+            ctx.fillStyle="#dcdde1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize+2, y*tileSize+2, tileSize-4, tileSize-4);
+            // 赤い提灯
+            ctx.fillStyle="#e74c3c"; ctx.beginPath(); ctx.arc(x*tileSize+8, y*tileSize+10, 6, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x*tileSize+24, y*tileSize+10, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle="#fff"; ctx.font="bold 8px sans-serif"; ctx.fillText("高", x*tileSize+4, y*tileSize+12); ctx.fillText("島", x*tileSize+20, y*tileSize+12);
+            // のれん
+            ctx.fillStyle="#c0392b"; ctx.fillRect(x*tileSize+2, y*tileSize+20, tileSize-4, 12);
+            ctx.fillStyle="#fff"; ctx.font="bold 10px sans-serif"; ctx.fillText("高島屋", x*tileSize+4, y*tileSize+30);
+          }
+
           if(t===38){ ctx.fillStyle="#e74c3c"; ctx.beginPath(); ctx.roundRect(x*tileSize+4, y*tileSize+8, 24, 16, 4); ctx.fill(); }
           if(t===39){ ctx.fillStyle="#2c3e50"; ctx.fillRect(x*tileSize+4, y*tileSize+8, 24, 16); ctx.fillStyle="#fff"; ctx.fillRect(x*tileSize+6, y*tileSize+10, 20, 12); }
           if(t===40){ ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.strokeStyle="#7f8c8d"; ctx.lineWidth=2; ctx.strokeRect(x*tileSize+4, y*tileSize+4, 24, 28); ctx.beginPath(); ctx.moveTo(x*tileSize+16, y*tileSize+4); ctx.lineTo(x*tileSize+16, y*tileSize+32); ctx.stroke(); }
           if(t===41){ ctx.fillStyle="#adb5bd"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#6d4c41"; ctx.fillRect(x*tileSize+6, y*tileSize+8, 20, 24); ctx.fillStyle="#f1c40f"; ctx.beginPath(); ctx.arc(x*tileSize+22, y*tileSize+20, 2, 0, Math.PI*2); ctx.fill();  }
 
-          // 電車・線路関係
-          if(t===23) { 
-            ctx.fillStyle="#7a7065"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
-            ctx.fillStyle="#555"; ctx.fillRect(x*tileSize+4, y*tileSize, 4, tileSize); ctx.fillRect(x*tileSize+14, y*tileSize, 4, tileSize); ctx.fillRect(x*tileSize+24, y*tileSize, 4, tileSize); 
-            ctx.fillStyle="#dcdde1"; ctx.fillRect(x*tileSize, y*tileSize+8, tileSize, 3); ctx.fillRect(x*tileSize, y*tileSize+20, tileSize, 3); 
-          }
+          if(t===23) { ctx.fillStyle="#7a7065"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#555"; ctx.fillRect(x*tileSize+4, y*tileSize, 4, tileSize); ctx.fillRect(x*tileSize+14, y*tileSize, 4, tileSize); ctx.fillRect(x*tileSize+24, y*tileSize, 4, tileSize); ctx.fillStyle="#dcdde1"; ctx.fillRect(x*tileSize, y*tileSize+8, tileSize, 3); ctx.fillRect(x*tileSize, y*tileSize+20, tileSize, 3); }
           if(t===24) { ctx.fillStyle="#dcdde1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#f39c12"; ctx.fillRect(x*tileSize, y*tileSize+tileSize-6, tileSize, 6); }
-          if(t===25) { 
-            ctx.fillStyle="#dcdde1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
-            ctx.fillStyle="#e74c3c"; ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+16, 4, 0, Math.PI*2); ctx.fill(); 
-            ctx.fillStyle = (currentMapName==="station_tokyo") ? "#2c3e50" : "#34495e"; // 東京駅の改札機は色を変える
-            ctx.fillRect(x*tileSize+2, y*tileSize+4, 6, 24); 
-          }
+          if(t===25) { ctx.fillStyle="#dcdde1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#e74c3c"; ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+16, 4, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = (currentMapName==="station_tokyo") ? "#2c3e50" : "#34495e"; ctx.fillRect(x*tileSize+2, y*tileSize+4, 6, 24); }
           if(t===26) { ctx.fillStyle="#2d3436"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#dfe6e9"; ctx.fillRect(x*tileSize+4, y*tileSize+10, 24, 16); }
           
           if(t===27) { ctx.fillStyle="#bcc4cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#2d3436"; ctx.fillRect(x*tileSize+8, y*tileSize+8, 16, 20); ctx.fillStyle="#55efc4"; ctx.fillRect(x*tileSize+12, y*tileSize+12, 8, 4); }
           if(t===28) { ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.strokeStyle="#7f8c8d"; ctx.lineWidth=2; ctx.strokeRect(x*tileSize+4, y*tileSize+4, 24, 28); ctx.beginPath(); ctx.moveTo(x*tileSize+16, y*tileSize+4); ctx.lineTo(x*tileSize+16, y*tileSize+32); ctx.stroke(); }
           
-          if(t===29) { ctx.fillStyle="#dbe1eb"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#0984e3"; ctx.fillRect(x*tileSize, y*tileSize+4, tileSize, 24); }
+          if(t===29) { ctx.fillStyle="#dbe1eb"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#0984e3"; ctx.fillRect(x*tileSize+4, y*tileSize, tileSize, 24); }
           if(t===30) { ctx.fillStyle="#dbe1eb"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#7f8c8d"; ctx.fillRect(x*tileSize+2, y*tileSize+2, 28, 30); ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize+6, y*tileSize+8, 8, 16); ctx.fillRect(x*tileSize+18, y*tileSize+8, 8, 16); }
           if(t===14) { ctx.fillStyle="#8a7e71"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#7f8c8d"; ctx.fillRect(x*tileSize+2, y*tileSize+2, 28, 30); ctx.fillStyle="#2c3e50"; ctx.fillRect(x*tileSize+6, y*tileSize+8, 8, 16); ctx.fillRect(x*tileSize+18, y*tileSize+8, 8, 16); }
           if(t===31) { 
@@ -566,20 +665,38 @@
         }
       }
 
-      // --- 道路標示（案内テキスト）の描画 ---
+      // ★ 信号機の描画 (横断歩道があるマップのみ)
+      if (currentMapName === "outside" || currentMapName === "outside2") {
+        ctx.fillStyle = "#333"; ctx.fillRect(9*tileSize+12, 2*tileSize+16, 8, 16); // 柱上
+        ctx.fillRect(9*tileSize+6, 2*tileSize+6, 20, 10); 
+        ctx.fillStyle = trafficLight === "red" ? "#ff2222" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+11, 2*tileSize+11, 3, 0, Math.PI*2); ctx.fill(); // 赤
+        ctx.fillStyle = trafficLight === "green" ? "#2ecc71" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+21, 2*tileSize+11, 3, 0, Math.PI*2); ctx.fill(); // 青
+        
+        ctx.fillStyle = "#333"; ctx.fillRect(9*tileSize+12, 5*tileSize, 8, 16); // 柱下
+        ctx.fillRect(9*tileSize+6, 5*tileSize-10, 20, 10); 
+        ctx.fillStyle = trafficLight === "red" ? "#ff2222" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+11, 5*tileSize-5, 3, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = trafficLight === "green" ? "#2ecc71" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+21, 5*tileSize-5, 3, 0, Math.PI*2); ctx.fill();
+      }
+
+      // 道路標示
       ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
       ctx.font = "bold 14px sans-serif";
       if(currentMapName === "outside") {
-        ctx.fillText("◀ 東京駅", 1 * tileSize, 2 * tileSize + 22);
-        ctx.fillText("◀ TOKYO STA.", 1 * tileSize, 5 * tileSize + 22);
+        ctx.fillText("◀ 東京駅", 1 * tileSize, 2 * tileSize + 22); ctx.fillText("◀ TOKYO STA.", 1 * tileSize, 5 * tileSize + 22);
       } else if (currentMapName === "outside2") {
-        ctx.fillText("◀ 皇居", 1 * tileSize, 2 * tileSize + 22);
-        ctx.fillText("日本橋 ▶", 18 * tileSize, 2 * tileSize + 22);
-        ctx.fillText("◀ IMPERIAL PALACE", 1 * tileSize, 5 * tileSize + 22);
-        ctx.fillText("NIHONBASHI ▶", 16 * tileSize, 5 * tileSize + 22);
+        ctx.fillText("◀ 皇居", 1 * tileSize, 2 * tileSize + 22); ctx.fillText("日本橋 ▶", 18 * tileSize, 2 * tileSize + 22);
+        ctx.fillText("◀ IMPERIAL PALACE", 1 * tileSize, 5 * tileSize + 22); ctx.fillText("NIHONBASHI ▶", 16 * tileSize, 5 * tileSize + 22);
       } else if (currentMapName === "outside3") {
+        ctx.save(); ctx.translate(19 * tileSize + 22, 10 * tileSize); ctx.rotate(-Math.PI/2); ctx.fillText("▲ 北の丸公園", 0, 0); ctx.restore();
+        ctx.save(); ctx.translate(19 * tileSize + 22, 2 * tileSize); ctx.rotate(-Math.PI/2); ctx.fillText("桜田門 ▼", 0, 0); ctx.restore();
         ctx.fillText("東京駅 ▶", 18 * tileSize, 2 * tileSize + 22);
-        ctx.fillText("TOKYO STA. ▶", 16 * tileSize, 5 * tileSize + 22);
+      } else if (currentMapName === "outside4") {
+        ctx.fillText("◀ 半蔵門", 1 * tileSize, 1 * tileSize + 22); ctx.fillText("大手町 ▶", 18 * tileSize, 1 * tileSize + 22);
+      } else if (currentMapName === "outside5") {
+        ctx.save(); ctx.translate(1 * tileSize + 22, 10 * tileSize); ctx.rotate(-Math.PI/2); ctx.fillText("▲ 北の丸公園", 0, 0); ctx.restore();
+        ctx.save(); ctx.translate(1 * tileSize + 22, 2 * tileSize); ctx.rotate(-Math.PI/2); ctx.fillText("桜田門 ▼", 0, 0); ctx.restore();
+      } else if (currentMapName === "outside6") {
+        ctx.fillText("◀ 半蔵門", 1 * tileSize, 8 * tileSize + 22); ctx.fillText("皇居外苑 ▶", 18 * tileSize, 8 * tileSize + 22);
       }
 
       for(let i of icePlaced){
@@ -591,6 +708,7 @@
 
       let entities = [];
       if(currentMapName.startsWith("outside")) {
+        let cars = allCars[currentMapName] || [];
         for(let c of cars) entities.push({type: "car", obj: c, cy: c.y*tileSize+11});
       }
       for(let n of getNpcList()) entities.push({type: "npc", obj: n, cy: n.y*tileSize+24});
@@ -667,9 +785,10 @@
       if(npcAt(x,y)) return false;
       const t = map[y][x];
       
-      if(isNpc && [25, 26, 28, 14, 30, 18, 19, 22, 37, 40, 43, 49].includes(t)) return false; 
+      // NPCは改札や階段、水や城壁、百貨店の上に入れない
+      if(isNpc && [25, 26, 28, 14, 30, 18, 19, 22, 37, 40, 43, 49, 50, 51, 52].includes(t)) return false; 
 
-      const walkableTiles = [0, 2, 5, 9, 20, 21, 24, 25, 26, 18, 19, 22, 28, 14, 30, 37, 40, 43, 48, 49];
+      const walkableTiles = [0, 2, 5, 9, 20, 21, 24, 25, 26, 18, 19, 22, 28, 14, 30, 37, 40, 43, 48, 49, 51, 52];
       return walkableTiles.includes(t);
     }
 
@@ -678,12 +797,44 @@
       let nx=player.x+dx, ny=player.y+dy;
       player.dir = dir || player.dir;
 
-      // === 横スクロール(画面切り替え) ===
       if(currentMapName === "outside" && nx < 0) { switchMap("outside2", 21, ny, dir); return; }
       if(currentMapName === "outside2" && nx > 21) { switchMap("outside", 0, ny, dir); return; }
       if(currentMapName === "outside2" && nx < 0) { switchMap("outside3", 21, ny, dir); return; }
       if(currentMapName === "outside3" && nx > 21) { switchMap("outside2", 0, ny, dir); return; }
-      if(currentMapName === "outside3" && nx < 0) { return; } 
+
+      // 皇居 周回ロジック
+      if(currentMapName === "outside3") {
+        if(ny < 0) { switchMap("outside4", nx, 3, "up"); return; }
+        if(ny > 10) { switchMap("outside6", nx, 7, "down"); return; }
+        if(nx < 18) {
+          if(ny <= 3) { switchMap("outside4", 21, ny, "left"); return; }
+          if(ny >= 7) { switchMap("outside6", 21, ny, "left"); return; }
+        }
+      }
+      else if(currentMapName === "outside4") {
+        if(nx < 0) { switchMap("outside5", 3, ny, "left"); return; }
+        if(nx > 21) { switchMap("outside3", 18, ny, "right"); return; }
+        if(ny > 3) {
+          if(nx <= 3) { switchMap("outside5", nx, 0, "down"); return; }
+          if(nx >= 18) { switchMap("outside3", nx, 0, "down"); return; }
+        }
+      }
+      else if(currentMapName === "outside5") {
+        if(ny < 0) { switchMap("outside4", nx, 3, "up"); return; }
+        if(ny > 10) { switchMap("outside6", nx, 7, "down"); return; }
+        if(nx > 3) {
+          if(ny <= 3) { switchMap("outside4", 0, ny, "right"); return; }
+          if(ny >= 7) { switchMap("outside6", 0, ny, "right"); return; }
+        }
+      }
+      else if(currentMapName === "outside6") {
+        if(nx < 0) { switchMap("outside5", 3, ny, "left"); return; }
+        if(nx > 21) { switchMap("outside3", 18, ny, "right"); return; }
+        if(ny < 7) {
+          if(nx <= 3) { switchMap("outside5", nx, 10, "up"); return; }
+          if(nx >= 18) { switchMap("outside3", nx, 10, "up"); return; }
+        }
+      }
 
       if(isWalkable(nx,ny)){
         player.x=nx; player.y=ny;
@@ -698,67 +849,38 @@
     function checkMapTransition() {
       const t = map[player.y][player.x];
       
-      // === エレベーター ===
-      if(currentMapName === "office" && t === 28) { 
-        switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "office";
-        showMsg("第一三木ビルのエレベーターに乗りました。"); return true;
-      }
-      if(currentMapName === "hq" && t === 28) { 
-        switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "hq";
-        showMsg("本社のエレベーターに乗りました。"); return true;
-      }
-      if(currentMapName === "lounge" && t === 28) { 
-        switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "lounge";
-        showMsg("本社のエレベーターに乗りました。"); return true;
-      }
+      if(currentMapName === "office" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "office"; showMsg("第一三木ビルのエレベーターに乗りました。"); return true; }
+      if(currentMapName === "hq" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "hq"; showMsg("本社のエレベーターに乗りました。"); return true; }
+      if(currentMapName === "lounge" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "lounge"; showMsg("本社のエレベーターに乗りました。"); return true; }
+      
       if(currentMapName === "elevator" && t === 28) { 
         if(elevatorFloor === "office") switchMap("office", 9, 6, "down"); 
         else if(elevatorFloor === "hq") switchMap("hq", 9, 6, "down");
         else if(elevatorFloor === "lounge") switchMap("lounge", 9, 6, "down");
         else { 
-          if(currentBuilding === "office") switchMap("outside", 5, 2, "down"); 
-          else switchMap("outside", 13, 2, "down"); 
+          if(currentBuilding === "office") switchMap("outside", 9, 2, "down"); // 修正: 第一三木ビル前
+          else switchMap("outside", 13, 2, "down"); // 本社前
         }
         return true;
       }
 
-      // === 街と建物の出入り ===
-      if(currentMapName === "outside" && t === 18) { 
-        switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "1F";
-        showMsg("第一三木ビルに入りました。\nエレベーターに乗ります。"); return true;
-      }
-      if(currentMapName === "outside" && t === 19) { 
-        switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "1F";
-        showMsg("テラスカイテクノロジーズ本社に入りました。\nエレベーターに乗ります。"); return true;
-      }
-      if(currentMapName === "outside" && t === 37) { 
-        switchMap("dormitory", 9, 6, "up"); showMsg("社員寮に入りました。"); return true;
-      }
-      if(currentMapName === "dormitory" && t === 40) { 
-        switchMap("outside", 7, 5, "down"); return true;
-      }
+      if(currentMapName === "outside" && t === 18) { switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "1F"; showMsg("第一三木ビルに入りました.\nエレベーターに乗ります."); return true; }
+      if(currentMapName === "outside" && t === 19) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "1F"; showMsg("テラスカイテクノロジーズ本社に入りました.\nエレベーターに乗ります."); return true; }
+      if(currentMapName === "outside" && t === 37) { switchMap("dormitory", 9, 6, "up"); showMsg("社員寮に入りました."); return true; }
+      if(currentMapName === "dormitory" && t === 40) { switchMap("outside", 7, 5, "down"); return true; }
 
-      // === 駅・電車の行き来 ===
-      if(currentMapName === "outside" && t === 22) { switchMap("station", 17, 7, "up"); showMsg("日本橋駅に入りました。"); return true; }
+      if(currentMapName === "outside" && t === 22) { switchMap("station", 17, 7, "up"); showMsg("日本橋駅に入りました."); return true; }
       if(currentMapName === "station" && t === 26) { switchMap("outside", 17, 5, "up"); return true; }
-      if(currentMapName === "station" && t === 14) { 
-        departedStation = "station"; switchMap("train", player.x, 4, "up"); showMsg("電車に乗りました。\n次は「東京駅」です。"); return true; 
-      }
+      if(currentMapName === "station" && t === 14) { departedStation = "station"; switchMap("train", player.x, 4, "up"); showMsg("電車に乗りました.\n次は「東京駅」です."); return true; }
       
-      if(currentMapName === "outside2" && t === 43) { switchMap("station_tokyo", 9, 7, "up"); showMsg("東京駅に入りました。"); return true; }
+      if(currentMapName === "outside2" && t === 43) { switchMap("station_tokyo", 9, 7, "up"); showMsg("東京駅に入りました."); return true; }
       if(currentMapName === "station_tokyo" && t === 49) { switchMap("outside2", 9, 2, "down"); return true; }
-      if(currentMapName === "station_tokyo" && t === 14) { 
-        departedStation = "station_tokyo"; switchMap("train", player.x, 4, "up"); showMsg("電車に乗りました。\n次は「日本橋駅」です。"); return true; 
-      }
+      if(currentMapName === "station_tokyo" && t === 14) { departedStation = "station_tokyo"; switchMap("train", player.x, 4, "up"); showMsg("電車に乗りました.\n次は「日本橋駅」です."); return true; }
 
       if(currentMapName === "train" && t === 30) { 
-        if(departedStation === "station") {
-          switchMap("station_tokyo", player.x, 3, "down"); showMsg("東京駅に到着しました。"); return true; 
-        } else {
-          switchMap("station", player.x, 3, "down"); showMsg("日本橋駅に到着しました。"); return true; 
-        }
+        if(departedStation === "station") { switchMap("station_tokyo", player.x, 3, "down"); showMsg("東京駅に到着しました."); return true; }
+        else { switchMap("station", player.x, 3, "down"); showMsg("日本橋駅に到着しました."); return true; }
       }
-
       return false;
     }
 
@@ -795,51 +917,39 @@
         if(currentBuilding === "office") {
           elevatorFloor = (elevatorFloor === "office") ? "1F" : "office";
           let floorName = (elevatorFloor === "office") ? "オフィス階(第一三木ビル)" : "1階(外)";
-          showMsg(`ウィーン... ${floorName}に到着しました。`);
+          showMsg(`ウィーン... ${floorName}に到着しました.`);
         } else {
           if(elevatorFloor === "1F") elevatorFloor = "hq";
           else if(elevatorFloor === "hq") elevatorFloor = "lounge";
           else elevatorFloor = "1F";
-          
           let floorName = "";
           if(elevatorFloor === "hq") floorName = "本社階";
           else if(elevatorFloor === "lounge") floorName = "ラウンジ階";
           else floorName = "1階(外)";
-          showMsg(`ウィーン... ${floorName}に到着しました。`);
+          showMsg(`ウィーン... ${floorName}に到着しました.`);
         }
         return;
       }
 
-      if(currentMapName === "lounge") {
-        const dirs = [[0,0], [0,-1], [0,1], [-1,0], [1,0]];
-        for(let d of dirs) {
-          let tx = player.x + d[0], ty = player.y + d[1];
-          if(tx>=0 && ty>=0 && ty<map.length && tx<map[0].length) {
-            if(map[ty][tx] === 35) { showMsg("社食カウンター：\n「今日の定食はハンバーグです！いかがですか？」"); return; }
-            if(map[ty][tx] === 34) { showMsg("卓球台：\n誰か一緒にピンポンしませんか？🏓"); return; }
+      const dirs = [[0,0], [0,-1], [0,1], [-1,0], [1,0]];
+      for(let d of dirs) {
+        let tx = player.x + d[0], ty = player.y + d[1];
+        if(tx>=0 && ty>=0 && ty<map.length && tx<map[0].length) {
+          let checkTile = map[ty][tx];
+          if(currentMapName === "lounge") {
+            if(checkTile === 35) { showMsg("社食カウンター：\n「今日の定食はハンバーグです！いかがですか？」"); return; }
+            if(checkTile === 34) { showMsg("卓球台：\n誰か一緒にピンポンしませんか？🏓"); return; }
           }
-        }
-      }
-
-      if(currentMapName === "dormitory") {
-        const dirs = [[0,0], [0,-1], [0,1], [-1,0], [1,0]];
-        for(let d of dirs) {
-          let tx = player.x + d[0], ty = player.y + d[1];
-          if(tx>=0 && ty>=0 && ty<map.length && tx<map[0].length) {
-            if(map[ty][tx] === 38) { showMsg("ふかふかのソファ。\nここでくつろぐと疲れが取れる。"); return; }
-            if(map[ty][tx] === 39) { showMsg("大型テレビ。\nニュースや映画を楽しめる。"); return; }
-            if(map[ty][tx] === 41) { showMsg("個室のドアだ。\nプライベート空間なのでそっとしておこう。"); return; }
+          if(currentMapName === "dormitory") {
+            if(checkTile === 38) { showMsg("ふかふかのソファ.\nここでくつろぐと疲れが取れる."); return; }
+            if(checkTile === 39) { showMsg("大型テレビ.\nニュースや映画を楽しめる."); return; }
+            if(checkTile === 41) { showMsg("個室のドアだ.\nプライベート空間なのでそっとしておこう."); return; }
           }
-        }
-      }
-
-      if(currentMapName.startsWith("outside")) {
-        const dirs = [[0,0], [0,-1], [0,1], [-1,0], [1,0]];
-        for(let d of dirs) {
-          let tx = player.x + d[0], ty = player.y + d[1];
-          if(tx>=0 && ty>=0 && ty<map.length && tx<map[0].length) {
-            if(map[ty][tx] === 36) { showMsg("コンビニ：\n「いらっしゃいませ！」\n24時間営業で便利。"); return; }
-            if(map[ty][tx] === 48) { showMsg("皇居（江戸城跡）の橋だ。\n神聖な空気が流れている。"); return; }
+          if(currentMapName.startsWith("outside")) {
+            if(checkTile === 36) { showMsg("コンビニ：\n「いらっしゃいませ！」\n24時間営業で便利."); return; }
+            if(checkTile === 48) { showMsg("皇居（江戸城跡）の橋だ.\n神聖な空気が流れている."); return; }
+            if(checkTile === 50) { showMsg("江戸城の立派な「櫓（やぐら）」だ.\n歴史の重みを感じる."); return; }
+            if(checkTile === 51 || checkTile === 52) { showMsg("老舗百貨店「高島屋日本橋店」だ.\n重厚な石造りの建築は、国の重要文化財に指定されている."); return; }
           }
         }
       }
@@ -873,13 +983,23 @@
       let dt = time - lastTime;
       lastTime = time;
 
+      // 信号機の制御
+      trafficTimer -= dt;
+      if (trafficTimer <= 0) {
+        trafficLight = trafficLight === "green" ? "red" : "green";
+        trafficTimer = trafficLight === "green" ? 5000 : 4000;
+      }
+
       for(let n of getNpcList()){
         n.moveTick -= dt;
         if(n.moveTick<=0){
           const dirs=[{dx:0,dy:-1,dir:"up"},{dx:0,dy:1,dir:"down"},{dx:-1,dy:0,dir:"left"},{dx:1,dy:0,dir:"right"}].sort(()=>Math.random()-0.5);
           for(let d of dirs){
-            if(isWalkable(n.x+d.dx,n.y+d.dy, true) && !npcAt(n.x+d.dx,n.y+d.dy) && !(n.x+d.dx===player.x&&n.y+d.dy===player.y)){
-              n.x+=d.dx; n.y+=d.dy; n.dir=d.dir; break;
+            let nx = n.x + d.dx; let ny = n.y + d.dy;
+            if(nx >= 0 && nx < 22 && ny >= 0 && ny < 11) {
+              if(isWalkable(nx, ny, true) && !npcAt(nx, ny) && !(nx===player.x && ny===player.y)){
+                n.x=nx; n.y=ny; n.dir=d.dir; break;
+              }
             }
           }
           n.moveTick=randTick();
@@ -887,10 +1007,31 @@
       }
 
       if(currentMapName.startsWith("outside")){
-        for(let c of cars){
-          c.x += c.vx * dt;
-          if(c.vx>0 && c.x>24) c.x=-3;
-          if(c.vx<0 && c.x<-3) c.x=24;
+        let cars = allCars[currentMapName] || [];
+        for(let i=0; i<cars.length; i++) {
+          let c = cars[i];
+          let currentVx = c.vx;
+
+          // 信号による停止制御
+          let hasCrosswalk = currentMapName === "outside" || currentMapName === "outside2";
+          if (hasCrosswalk && trafficLight === "red") {
+            if (c.vx > 0 && c.x > 4 && c.x < 7.5) currentVx = 0;
+            if (c.vx < 0 && c.x > 11.5 && c.x < 15) currentVx = 0;
+          }
+
+          // 追突防止制御
+          for(let j=0; j<cars.length; j++) {
+            if (i === j) continue;
+            let other = cars[j];
+            if (c.y === other.y && Math.sign(c.vx) === Math.sign(other.vx)) {
+              if (c.vx > 0 && other.x > c.x && other.x - c.x < 2) currentVx = 0; 
+              if (c.vx < 0 && c.x > other.x && c.x - other.x < 2) currentVx = 0; 
+            }
+          }
+
+          c.x += currentVx * dt;
+          if(c.vx>0 && c.x>28) c.x=-4;
+          if(c.vx<0 && c.x<-4) c.x=28;
         }
       }
 
