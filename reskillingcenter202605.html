@@ -154,15 +154,15 @@
     function randTick(){ return 3000+Math.random()*5000;}
 
     const officeNpcs = [
-      {x:3, y:1, name:"栗山", color:"#2bb6f6", hair:"#519be3", msg:"栗山です。ぜひフットサルにご参加ください。"},
+      {x:3, y:1, name:"有賀", color:"#2bb6f6", hair:"#519be3", msg:"有賀です。本日はテラテク勉強会にご参加いただき誠にありがとうございます"},
       {x:19, y:1, name:"齋藤", color:"#fd924c", hair:"#ecab57", msg:"齋藤です。リスキ来ると頭痛くなるんですよ"},
-      {x:8, y:3, name:"李", color:"#8b6ef7", hair:"#ab78ef", msg:"李です。今日は何食べようかな"},
-      {x:1, y:3, name:"惟文", color:"#38c377", hair:"#1b7b55", msg:"惟文です。やっぱり美容は大事！"},
-      {x:17, y:3, name:"高津", color:"#fcd74a", hair:"#efc73e", msg:"高津です。イネーブルメントに戻ります"},
+      {x:8, y:3, name:"德江", color:"#8b6ef7", hair:"#ab78ef", msg:"德江です。オススメのお笑い芸人いる？"},
+      {x:1, y:3, name:"近藤", color:"#38c377", hair:"#1b7b55", msg:"近藤です。やぁ元気にしてる？うん"},
+      {x:17, y:3, name:"岡﨑", color:"#fcd74a", hair:"#efc73e", msg:"岡﨑です。わからない時には質問お待ちしております"},
       {x:4, y:5, name:"新倉", color:"#fe8ba9", hair:"#e37c97", msg:"新倉です。セキュリティ対策お願いします"},
       {x:11, y:3, name:"野中", color:"#bc66fc", hair:"#7e4ef5", msg:"野中です。リファラル積極採用中！"},
       {x:15, y:1, name:"彰太", color:"#ff964f", hair:"#e0824a", msg:"彰太です。資格取ってない人いる？"},
-      {x:13, y:6, name:"藤野", color:"#00aaa7", hair:"#268f8c", msg:"藤野です。youtube投稿しました"}
+      {x:13, y:6, name:"福永", color:"#00aaa7", hair:"#268f8c", msg:"福永です。もう帰ろうかなー"}
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const hqNpcs = [
@@ -197,7 +197,7 @@
 
     // ★ 東向島方面の電車NPC
     const trainHigashiNpcs = [
-      {x:8, y:4, name:"寮生D", color:"#3498db", hair:"#2980b9", msg:"これから寮に帰るんだ。"},
+      {x:8, y:4, name:"佐藤（彩）", color:"#3498db", hair:"#2980b9", msg:"佐藤です。これから寮に行きます。"},
       {x:12, y:3, name:"乗客C", color:"#9b59b6", hair:"#8e44ad", msg:"この電車、浅草の方まで行くんだよね。"},
       {x:5, y:3, name:"乗客D", color:"#1abc9c", hair:"#16a085", msg:"（読書に夢中だ）"},
       {x:16, y:4, name:"疲れた社員", color:"#7f8c8d", hair:"#2c3e50", msg:"今日も一日疲れたー。早く寮の風呂に入りたい。"},
@@ -205,15 +205,15 @@
 
     const outsideNpcs = [
       {x:6, y:2, name:"通行人A", color:"#95a5a6", hair:"#34495e", msg:"高島屋でのお買い物、楽しいわね！"},
-      {x:18, y:5, name:"通行人B", color:"#e74c3c", hair:"#c0392b", msg:"この重厚な建物、国の重要文化財なんだって."},
-      {x:2, y:4, name:"サラリーマン", color:"#34495e", hair:"#2c3e50", msg:"日本橋の老舗でお昼ご飯を食べよう！"},
-      {x:12, y:2, name:"おばあさん", color:"#ffb8b8", hair:"#ecf0f1", msg:"この辺りもだいぶ変わりましたねぇ."},
+      {x:18, y:5, name:"原田", color:"#e74c3c", hair:"#c0392b", msg:"原田です。今から本社行くけど君も来る？"},
+      {x:2, y:4, name:"サラリーマン", color:"#34495e", hair:"#2c3e50", msg:"サラリーマン「ガスト最近リニューアルしたんだって？」"},
+      {x:12, y:2, name:"戸巻", color:"#ffb8b8", hair:"#ecf0f1", msg:"戸巻です。家に早く帰ってゲームします"},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const outside2Npcs = [
-      {x:14, y:2, name:"観光客", color:"#e84393", hair:"#fd79a8", msg:"東京駅のレンガ造り、写真撮ろっと！📸"},
+      {x:14, y:2, name:"川端", color:"#e84393", hair:"#fd79a8", msg:"川端です。出社疲れた〜"},
       {x:5, y:5, name:"道に迷った人", color:"#1abc9c", hair:"#16a085", msg:"えっと、大手町はどっちだ…？スマホの地図が…"},
-      {x:18, y:3, name:"自転車の人", color:"#f39c12", hair:"#e67e22", msg:"チリンチリン！すみません、通りますよ〜"},
+      {x:18, y:3, name:"渡辺", color:"#f39c12", hair:"#e67e22", msg:"渡辺です。どこいくんですか！？今から皇居ランですよ"},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const outside3Npcs = [
@@ -227,18 +227,18 @@
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
     
     const outside5Npcs = [
-      {x:1, y:5, name:"ランナーC", color:"#55efc4", hair:"#00b894", msg:"半蔵門のあたりは坂がきつい！"},
+      {x:1, y:5, name:"石井", color:"#55efc4", hair:"#00b894", msg:"石井です。半蔵門のあたりは坂がきつい！"},
       {x:2, y:5, name:"休憩中の人", color:"#8e44ad", hair:"#9b59b6", msg:"お堀を眺めながら一休みするの、最高です. "},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
     
     const outside6Npcs = [
-      {x:12, y:9, name:"ランナーD", color:"#fab1a0", hair:"#e17055", msg:"桜田門が見えてきたぞ！ラストスパート！"},
-      {x:15, y:9, name:"カメラマン", color:"#27ae60", hair:"#2ecc71", msg:"いいアングルだ…カシャッ！📸"},
+      {x:12, y:9, name:"栗山", color:"#fab1a0", hair:"#e17055", msg:"栗山です。桜田門が見えてきたぞ！ラストスパート！"},
+      {x:15, y:9, name:"天野", color:"#27ae60", hair:"#2ecc71", msg:"天野です。いいアングルだ…カシャッ！📸"},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const stationNpcs = [
       {x:14, y:7, name:"乗客", color:"#2ecc71", hair:"#27ae60", msg:"電車、まだ来ないなぁ."},
-      {x:8, y:7, name:"急ぐ人", color:"#e74c3c", hair:"#c0392b", msg:"やばい！次の電車行っちゃう！"},
+      {x:8, y:7, name:"スーツの男性", color:"#e74c3c", hair:"#c0392b", msg:"あのすみません、リスキリングセンターってどこですか？"},
       {x:18, y:4, name:"待ち合わせの人", color:"#9b59b6", hair:"#8e44ad", msg:"全然来ないなぁ…ホーム間違えたかな？"},
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
@@ -253,7 +253,7 @@
       {x:10, y:8, name:"店員", color:"#2c3e50", hair:"#1a252f", msg:"いらっしゃいませ！お好きな席へどうぞ。"},
       {x:2, y:5, name:"客A", color:"#e74c3c", hair:"#c0392b", msg:"ここのチーズINハンバーグが大好きなんだ。"},
       {x:18, y:4, name:"客B", color:"#3498db", hair:"#2980b9", msg:"ドリンクバーで粘りすぎちゃったかな…"},
-      {x:6, y:6, name:"客C", color:"#27ae60", hair:"#2ecc71", msg:"ネコ型ロボット、可愛いなぁ。"}
+      {x:6, y:6, name:"三縄", color:"#27ae60", hair:"#2ecc71", msg:"店員の数多くない？"}
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
 
     const higashiNpcs = [
