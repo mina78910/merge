@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>リスキRPG - Real World Edition 8.0 (Nihonbashi Update)</title>
+  <title>リスキRPG（日本橋edition）</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <style>
     html,
@@ -56,21 +56,77 @@
       white-space: pre-wrap;
     }
 
-    #ice-badge {
+    /* カスタムダイアログ共通設定 */
+    .custom-dialog {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      background: rgba(243, 255, 248, 0.9);
-      backdrop-filter: blur(4px);
-      border: 1px solid #47cfb2;
-      color: #118878;
-      border-radius: 20px;
-      padding: 6px 16px;
-      font-size: 15px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 260px;
+      max-width: 90vw;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #222;
+      border-radius: 12px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      font-size: 16px;
       font-weight: bold;
+      line-height: 1.5;
       display: none;
       text-align: center;
+      z-index: 20;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .confirm-btn {
+      padding: 8px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: all 0.1s;
+    }
+
+    #btn-run-yes {
+      background: #3498db;
+      color: #fff;
+    }
+
+    #btn-run-yes:active {
+      background: #2980b9;
+      transform: scale(0.95);
+    }
+
+    #btn-run-no {
+      background: #e74c3c;
+      color: #fff;
+    }
+
+    #btn-run-no:active {
+      background: #c0392b;
+      transform: scale(0.95);
+    }
+
+    /* ダイアログ用ボタン (グリコ / パーカー) */
+    .item-btn {
+      padding: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.1s;
+      width: 100%;
+    }
+
+    .item-btn:active {
+      transform: scale(0.97);
     }
 
     #money-display {
@@ -142,7 +198,36 @@
     <div style="position: relative;">
       <canvas id="game" width="704" height="352"></canvas>
       <div id="message"></div>
-      <div id="ice-badge">🍦 アイス: 1</div>
+
+      <div id="confirm-dialog" class="custom-dialog">
+        <div id="confirm-text">いい天気だ。皇居ランを開始しますか？</div>
+        <div style="margin-top: 16px; display: flex; justify-content: center; gap: 16px;">
+          <button id="btn-run-yes" class="confirm-btn">はい</button>
+          <button id="btn-run-no" class="confirm-btn">いいえ</button>
+        </div>
+      </div>
+
+      <div id="glico-dialog" class="custom-dialog">
+        <div id="glico-text">🐸 オフィスグリコ<br><span style="font-size:14px; font-weight:normal;">どれを買おうかな？</span></div>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+          <button class="item-btn" style="background:#f39c12;" onclick="buyGlico('ビスコ', 100)">🍪 ビスコ (100円)</button>
+          <button class="item-btn" style="background:#f39c12;" onclick="buyGlico('ポッキー', 150)">🍫 ポッキー (150円)</button>
+          <button class="item-btn" style="background:#f39c12;" onclick="buyGlico('アーモンドチョコ', 200)">🍬 アーモンドチョコ (200円)</button>
+          <button class="item-btn" style="background:#95a5a6; margin-top:8px;" onclick="closeGlicoDialog()">やめる</button>
+        </div>
+      </div>
+
+      <div id="hoodie-dialog" class="custom-dialog">
+        <div id="hoodie-text">
+          🧥テラテクパーカー配布<br><span style="font-size:14px; font-weight:normal;">パーカーが入っている。着替えますか？</span></div>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+          <button class="item-btn" style="background:#9b59b6;" onclick="changeHoodie('#9b59b6', '#8e44ad')">🟣 紫のパーカー</button>
+          <button class="item-btn" style="background:#f1f2f6; color:#333; border:1px solid #ccc;" onclick="changeHoodie('#ecf0f1', '#bdc3c7')">⚪ 白のパーカー</button>
+          <button class="item-btn" style="background:#2c3e50;" onclick="changeHoodie('#2c3e50', '#1a252f')">⚫ 黒のパーカー</button>
+          <button class="item-btn" style="background:#95a5a6; margin-top:8px; color:#fff; border:none;" onclick="closeHoodieDialog()">やめる</button>
+        </div>
+      </div>
+
     </div>
     <div id="pad">
       <div id="money-display">💰 所持金: 1000円</div>
@@ -169,6 +254,17 @@
     function randTick(){ return 3000+Math.random()*5000;}
 
     let money = 1000;
+    
+    // プレイヤーの初期カラー設定
+    let playerColor = "#3a6e33";
+    let playerHair = "#767d38";
+
+    // ダイアログ状態管理
+    let isPalaceRunning = false;
+    let confirmOpen = false;
+    let glicoOpen = false;
+    let hoodieOpen = false;
+    let playerHistory = [];
 
     function updateMoneyUI() {
       const moneyDiv = document.getElementById('money-display');
@@ -180,11 +276,11 @@
     const officeNpcs = [
       {x:3, y:1, name:"有賀", color:"#2bb6f6", hair:"#519be3", msg:"有賀です。本日はテラテク勉強会にご参加いただき誠にありがとうございます"},
       {x:19, y:1, name:"齋藤", color:"#fd924c", hair:"#ecab57", msg:"齋藤です。リスキ来ると頭痛くなるんですよ"},
-      {x:8, y:3, name:"德江", color:"#8b6ef7", hair:"#ab78ef", msg:"德江です。オススメのお笑い芸人いる？"},
+      {x:8, y:4, name:"德江", color:"#8b6ef7", hair:"#ab78ef", msg:"德江です。オススメのお笑い芸人いる？"},
       {x:1, y:3, name:"近藤", color:"#38c377", hair:"#1b7b55", msg:"近藤です。やぁ元気にしてる？うん"},
-      {x:17, y:3, name:"岡﨑", color:"#fcd74a", hair:"#efc73e", msg:"岡﨑です。わからない時には質問お待ちしております"},
+      {x:18, y:4, name:"岡﨑", color:"#fcd74a", hair:"#efc73e", msg:"岡﨑です。わからない時には質問お待ちしております"},
       {x:4, y:5, name:"新倉", color:"#fe8ba9", hair:"#e37c97", msg:"新倉です。セキュリティ対策お願いします"},
-      {x:11, y:3, name:"野中", color:"#bc66fc", hair:"#7e4ef5", msg:"野中です。リファラル積極採用中！"},
+      {x:10, y:3, name:"野中", color:"#bc66fc", hair:"#7e4ef5", msg:"野中です。リファラル積極採用中！"},
       {x:15, y:1, name:"彰太", color:"#ff964f", hair:"#e0824a", msg:"彰太です。資格取ってない人いる？"},
       {x:13, y:6, name:"福永", color:"#00aaa7", hair:"#268f8c", msg:"福永です。もう帰ろうかなー"}
     ].map(x=>Object.assign({},x,{moveTick: randTick()}));
@@ -329,15 +425,6 @@
       return [];
     }
 
-    let items = [
-      {x:1, y:5, type:"冷蔵庫", msg:"業務用冷蔵庫：お茶などが入っている. "},
-      {x:3, y:5, type:"アイス冷蔵庫", msg:"アイス冷蔵庫：色とりどりのアイスがぎっしり！🍦\n→[アクション]でアイスを持てます"},
-      {x:4, y:5, type:"コーヒーマシン", msg:"コーヒーマシン：香ばしい匂いが漂う. "},
-      {x:8, y:5, type:"棚", msg:"棚：文房具や書類が並んでいる. "},
-      {x:10, y:5, type:"自動販売機", msg:"自動販売機：最近ラインナップが増えたらしい. "},
-    ];
-    let iceCarrys = 0; let icePlaced = [];
-
     let allCars = {
       outside: [
         {x:-2, y:4, vx:0.005, color:"#3ca5ff", w:34, h:15},
@@ -378,14 +465,15 @@
     let trafficTimer = 5000;
 
     // ========== マップ定義 ==========
+    // 66: デスク天板, 67: 椅子(上), 68: 椅子(下), 65: グリコ, 71: パーカー段ボール
     const officeMap = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,0,0,2,0,0,2,0,0,2,0,0,2,0,0,2,0,0,2,0,0,1],
+      [1,0,0,67,67,67,67,0,0,0,0,0,67,67,67,67,0,0,65,0,0,1],
+      [1,0,0,66,66,66,66,0,0,0,0,0,66,66,66,66,0,0,0,0,0,1],
+      [1,0,0,66,66,66,66,0,0,0,0,0,66,66,66,66,0,0,71,0,0,1],
+      [1,0,0,68,68,68,68,0,0,0,0,0,68,68,68,68,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-      [1,0,0,2,0,0,2,0,0,2,0,0,2,0,0,2,0,0,2,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-      [1,6,0,0,7,0,0,0,3,0,8,0,0,0,0,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,0,0,0,0,0,0,0,0,28,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -448,19 +536,49 @@
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
-	const outsideMap = [
-	      [1,1,51,51,52,51,51,1,53,53,53,1,1,1,1,1,1,1,1,1,1,1],
-	      [1,1,51,51,52,51,51,1,53,54,53,1,18,1,1,1,1,19,1,1,1,1],
-	      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
-	      [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,1], 
-	      [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,1],
-	      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
-	      [1,1,1,36,36,36,1,1,1,1,1,1,1,1,1,1,1,22,1,1,1,1],
-	      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-	      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-	      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-	      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-	    ];
+    const outsideMap = [
+    [1,1,51,51,52,51,51,1,53,53,53,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,51,51,52,51,51,1,53,54,53,1,18,1,1,1,1,19,1,1,1,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,1],
+    [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,36,36,36,1,1,1,0,0,1,1,1,1,1,1,22,1,1,1,1], // ←道を開通
+    [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1], // ←道を開通
+    [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1], // ←道を開通
+    [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1], // ←道を開通
+    [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1], // ←道を開通
+    ];
+
+    // 新規追加：有楽町マップ
+    const yurakuchoMap = [
+    [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
+    [1,73,73,73,73,73,73,73,73,0,0,1,76,76,76,76,76,76,76,76,76,1],
+    [1,72,72,72,72,72,72,72,72,0,0,1,76,76,76,76,76,76,76,76,76,1],
+    [1,72,72,72,74,74,74,72,72,0,0,1,76,76,76,76,76,76,76,76,76,1],
+    [1,72,72,72,74,74,74,72,72,0,0,1,76,76,76,76,76,76,76,76,76,1],
+    [1,72,72,72,72,72,72,72,72,0,0,0,0,0,0,75,75,75,0,0,0,1],
+    [1,73,73,73,73,73,73,73,73,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
+    [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,20],
+    [20,20,20,20,20,20,20,20,20,21,21,20,20,20,20,20,20,20,20,20,20,20],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+
+    // 新規追加：国際フォーラム ホール（2階席）マップ
+    const forumHallMap = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81], // 手すり（調べられる）
+      [77,80,80,80,80,77,77,80,80,80,80,80,80,77,77,80,80,80,80,80,77,1],
+      [77,80,80,80,80,77,77,80,80,80,80,80,80,77,77,80,80,80,80,80,77,1],
+      [77,80,80,80,80,77,77,80,80,80,80,80,80,77,77,80,80,80,80,80,77,1],
+      [77,80,80,80,80,77,77,80,80,80,80,80,80,77,77,80,80,80,80,80,77,1],
+      [77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,1],
+      [1,1,1,1,1,1,1,1,1,1,82,82,1,1,1,1,1,1,1,1,1,1], // 出口
+    ];
 
     const outside2Map = [
       [42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42],
@@ -539,7 +657,6 @@
 	      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
 	      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
 	      [1,1,1,1,1,1,1,25,25,25,25,1,1,1,1,1,1,1,1,1,1,1], 
-	      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], 
 	      [1,0,0,0,0,0,0,0,0,49,49,0,0,0,0,0,0,0,0,0,0,1], 
 	      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 	      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -613,6 +730,8 @@
       outside4: outside4Map,
       outside5: outside5Map,
       outside6: outside6Map,
+      yurakucho: yurakuchoMap,    // 追加
+      forum_hall: forumHallMap,   // 追加
       station: stationMap,
       station_tokyo: stationTokyoMap,
       train: trainMap,
@@ -654,27 +773,31 @@
         for(let x=0; x<map[0].length; x++){
           const t = map[y][x];
 
-          if(t===0) {
+          // ベースとなる床を先に描画する（机などの下にも床を描画）
+          let isFloorTile = [0, 2, 5, 6, 7, 8, 32, 33, 34, 35, 38, 39, 41, 65, 66, 67, 68, 71, 72, 75, 77].includes(t);
+          if(isFloorTile) {
             if(currentMapName==="office") { ctx.fillStyle=((x+y)%2===0)?"#e6ebf0":"#f5f6f7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="hq") { ctx.fillStyle=((x+y)%2===0)?"#e1e6e0":"#ebf0ea"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); } 
             else if(currentMapName==="lounge") { ctx.fillStyle=((x+y)%2===0)?"#fdf6e3":"#fcf2d9"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); } 
             else if(currentMapName==="dormitory") { ctx.fillStyle=((x+y)%2===0)?"#dcb17f":"#d4a670"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); } 
             else if(currentMapName.startsWith("outside")) { ctx.fillStyle="#c4c8cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
+            else if(currentMapName==="yurakucho") { ctx.fillStyle="#c4c8cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
+            else if(currentMapName==="forum_hall") { ctx.fillStyle="#2c3e50"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName.startsWith("station") && currentMapName!=="station_tokyo") { ctx.fillStyle="#c4c8cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="station_tokyo") { ctx.fillStyle=((x+y)%2===0)?"#d4b8a3":"#c9ac95"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="train") { ctx.fillStyle="#dbe1eb"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="elevator") { ctx.fillStyle="#bcc4cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="gusto") { ctx.fillStyle=((x+y)%2===0)?"#fdf6e3":"#faebd7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
           }
+          
           if(t===1) {
-            if(currentMapName.startsWith("outside")) { ctx.fillStyle="#444851"; } 
+            if(currentMapName.startsWith("outside") || currentMapName==="yurakucho") { ctx.fillStyle="#444851"; } 
             else if(currentMapName==="station_tokyo") { ctx.fillStyle="#8e4a3b"; } 
+            else if(currentMapName==="forum_hall") { ctx.fillStyle="#1a252f"; } 
             else { ctx.fillStyle="#adb5bd"; }
             ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
           }
 
-          if(t===2){ ctx.fillStyle="#faf9f6"; ctx.fillRect(x*tileSize+8, y*tileSize+10, tileSize-16, tileSize-17); ctx.fillStyle="#d3cab2"; ctx.fillRect(x*tileSize+12, y*tileSize+26, tileSize-24, 4); }
-          if(t===3){ ctx.fillStyle="#d2f1fc"; ctx.fillRect(x*tileSize+7, y*tileSize+15, 18, 14); }
           if(t===5){ ctx.fillStyle="#f8dbdb"; ctx.fillRect(x*tileSize+8, y*tileSize+6, 16, 20); }
           if(t===6){ ctx.fillStyle="#7bc5f9"; ctx.fillRect(x*tileSize+10, y*tileSize+13, 14, 10);}
           if(t===7){ ctx.fillStyle="#cbbf79"; ctx.fillRect(x*tileSize+10, y*tileSize+13, 14, 10);}
@@ -793,7 +916,7 @@
           
           if(t===29) { ctx.fillStyle="#dbe1eb"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#0984e3"; ctx.fillRect(x*tileSize+4, y*tileSize, tileSize, 24); }
           if(t===30) { ctx.fillStyle="#dbe1eb"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); ctx.fillStyle="#7f8c8d"; ctx.fillRect(x*tileSize+2, y*tileSize+2, 28, 30); ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize+6, y*tileSize+8, 8, 16); ctx.fillRect(x*tileSize+18, y*tileSize+8, 8, 16); }
-          // --- 駅構内の電車車両 ---
+          
           if(t===63 || t===64 || t===14) {
             let bgGrad = ctx.createLinearGradient(0, y*tileSize, 0, y*tileSize+tileSize);
             bgGrad.addColorStop(0, "#fdfdfd"); bgGrad.addColorStop(1, "#bdc3c7");
@@ -831,77 +954,206 @@
             ctx.fillRect(x*tileSize+2 - offset, y*tileSize+16, 16, 10); ctx.fillRect(x*tileSize+2 - offset + 32, y*tileSize+10, 10, 16); ctx.fillRect(x*tileSize+2 - offset + 64, y*tileSize+16, 16, 10);
             ctx.restore();
           }
+
+          // オフィスグリコの描画
+          if(t===65) {
+            ctx.fillStyle="#e74c3c"; ctx.fillRect(x*tileSize+4, y*tileSize+4, 24, 24); 
+            ctx.fillStyle="#f1c40f"; ctx.fillRect(x*tileSize+6, y*tileSize+8, 20, 4); 
+            ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.fillText("G", x*tileSize+11, y*tileSize+24);
+          }
+
+          // 大きなデスク (肌色ベースに縁取り)
+          if(t===66) {
+            ctx.fillStyle="#e5c098"; 
+            ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.strokeStyle="#c89b6c"; ctx.lineWidth=2;
+            ctx.strokeRect(x*tileSize+1, y*tileSize+1, tileSize-2, tileSize-2);
+            if ((x+y)%3===0) {
+               ctx.fillStyle="#95a5a6"; ctx.fillRect(x*tileSize+10, y*tileSize+8, 12, 10);
+               ctx.fillStyle="#ecf0f1"; ctx.fillRect(x*tileSize+11, y*tileSize+9, 10, 6);
+            } else if ((x+y)%5===0) {
+               ctx.fillStyle="#fff"; ctx.fillRect(x*tileSize+8, y*tileSize+12, 10, 14);
+            }
+          }
+
+          // 椅子（上向き/下向き）
+          if(t===67) {
+            ctx.fillStyle="#34495e"; ctx.beginPath(); ctx.roundRect(x*tileSize+8, y*tileSize+10, 16, 14, 2); ctx.fill();
+            ctx.fillStyle="#2c3e50"; ctx.beginPath(); ctx.roundRect(x*tileSize+8, y*tileSize+4, 16, 6, 2); ctx.fill();
+          }
+          if(t===68) {
+            ctx.fillStyle="#34495e"; ctx.beginPath(); ctx.roundRect(x*tileSize+8, y*tileSize+8, 16, 14, 2); ctx.fill();
+            ctx.fillStyle="#2c3e50"; ctx.beginPath(); ctx.roundRect(x*tileSize+8, y*tileSize+22, 16, 6, 2); ctx.fill();
+          }
+
+          // パーカー
+          if(t===71) {
+            ctx.fillStyle="#b88653"; ctx.fillRect(x*tileSize+4, y*tileSize+14, 24, 18);
+            ctx.fillStyle="#d3a068"; ctx.fillRect(x*tileSize+4, y*tileSize+10, 24, 10);
+            ctx.strokeStyle="#8b5e34"; ctx.lineWidth=1;
+            ctx.strokeRect(x*tileSize+4, y*tileSize+14, 24, 18);
+            ctx.strokeRect(x*tileSize+4, y*tileSize+10, 24, 10);
+            
+            ctx.fillStyle="#b88653"; ctx.fillRect(x*tileSize+6, y*tileSize+2, 20, 14);
+            ctx.fillStyle="#d3a068"; ctx.fillRect(x*tileSize+6, y*tileSize, 20, 8);
+            ctx.strokeRect(x*tileSize+6, y*tileSize+2, 20, 14);
+            ctx.strokeRect(x*tileSize+6, y*tileSize, 20, 8);
+            ctx.fillStyle="#fff"; ctx.font="bold 10px sans-serif"; ctx.fillText("📦", x*tileSize+10, y*tileSize+14);
+          }
+
+          // --- 新規追加：有楽町・フォーラム用タイル描画 ---
+          if(t===72) { // 芝生
+            ctx.fillStyle="#27ae60"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#2ecc71"; ctx.fillRect(x*tileSize+4, y*tileSize+4, 4, 4); ctx.fillRect(x*tileSize+16, y*tileSize+20, 4, 4);
+          }
+          if(t===73) { // 木
+            ctx.fillStyle="#27ae60"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#8b5a2b"; ctx.fillRect(x*tileSize+12, y*tileSize+16, 8, 16); 
+            ctx.fillStyle="#2ecc71"; ctx.beginPath(); ctx.arc(x*tileSize+16, y*tileSize+12, 14, 0, Math.PI*2); ctx.fill();
+          }
+          if(t===74) { // SL背景（芝生）
+            ctx.fillStyle="#27ae60"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+          }
+          if(t===75) { // 国際フォーラム 入り口ドア
+            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#87cefa"; ctx.fillRect(x*tileSize+2, y*tileSize+2, tileSize-4, tileSize-4); 
+            ctx.fillStyle="#ecf0f1"; ctx.fillRect(x*tileSize+tileSize/2, y*tileSize+4, 2, tileSize-8);
+          }
+          if(t===76) { // 国際フォーラム 建物フットプリント
+            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+          }
+          if(t===77) { // ホール カーペット
+            ctx.fillStyle="#8e44ad"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#9b59b6"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, 2);
+          }
+          if(t===80) { // ホール 観客席（静的タイル）
+            ctx.fillStyle="#8e44ad"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); 
+            ctx.fillStyle="#c0392b"; ctx.beginPath(); ctx.roundRect(x*tileSize+4, y*tileSize+8, 24, 20, 4); ctx.fill(); 
+            // 観客の後頭部
+            ctx.fillStyle="#2c3e50"; ctx.beginPath(); ctx.arc(x*tileSize+10, y*tileSize+12, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle="#1a252f"; ctx.beginPath(); ctx.arc(x*tileSize+22, y*tileSize+14, 6, 0, Math.PI*2); ctx.fill();
+          }
+          if(t===81) { // ホール 手すり
+            ctx.fillStyle="#2c3e50"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#bdc3c7"; ctx.fillRect(x*tileSize, y*tileSize+tileSize-6, tileSize, 6);
+          }
+          if(t===82) { // ホール 出口
+            ctx.fillStyle="#34495e"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#e74c3c"; ctx.font="bold 10px sans-serif"; ctx.fillText("EXIT", x*tileSize+4, y*tileSize+20);
+          }
         }
       }
       
       // --- 大型建物の描画（背景ループ後にまとめて大きく描画） ---
       if (currentMapName === "outside") {
-        // 第一三木ビル (2x2サイズ)
         ctx.fillStyle="#444851"; ctx.fillRect(12*tileSize, 0, 2*tileSize, 2*tileSize);
         ctx.fillStyle="#95a5a6"; ctx.fillRect(12*tileSize+2, 2, 2*tileSize-4, 2*tileSize-2);
-        ctx.fillStyle="#87cefa"; // 窓
-        for(let wy=0; wy<3; wy++){
-          for(let wx=0; wx<4; wx++){
-            ctx.fillRect(12*tileSize+8 + wx*13, 8 + wy*16, 10, 12);
-          }
-        }
+        ctx.fillStyle="#87cefa";
+        for(let wy=0; wy<3; wy++){ for(let wx=0; wx<4; wx++){ ctx.fillRect(12*tileSize+8 + wx*13, 8 + wy*16, 10, 12); } }
         ctx.fillStyle="#ecf0f1"; ctx.fillRect(12*tileSize+6, tileSize+8, 20, 24);
         ctx.fillStyle="#333"; ctx.fillRect(12*tileSize+8, tileSize+12, 16, 20);
 
-        // 本社ビル (3x2サイズ)
         ctx.fillStyle="#444851"; ctx.fillRect(16*tileSize, 0, 3*tileSize, 2*tileSize);
         ctx.fillStyle="#e67e22"; ctx.fillRect(16*tileSize+2, 2, 3*tileSize-4, 2*tileSize-2);
         ctx.fillStyle="#34495e"; ctx.fillRect(16*tileSize+6, 6, 3*tileSize-12, 2*tileSize-6);
-        ctx.fillStyle="#87cefa"; // 窓
-        for(let wy=0; wy<3; wy++){
-          for(let wx=0; wx<6; wx++){
-            ctx.fillRect(16*tileSize+12 + wx*13, 12 + wy*14, 10, 10);
-          }
-        }
+        ctx.fillStyle="#87cefa";
+        for(let wy=0; wy<3; wy++){ for(let wx=0; wx<6; wx++){ ctx.fillRect(16*tileSize+12 + wx*13, 12 + wy*14, 10, 10); } }
         ctx.fillStyle="#bdc3c7"; ctx.fillRect(17*tileSize+6, tileSize+4, 20, 28);
         ctx.fillStyle="#111"; ctx.fillRect(17*tileSize+8, tileSize+8, 16, 24);
       }
 
       if (currentMapName === "outside_higashi") {
-        // 社員寮 (5x2サイズの白い大きな建物)
         ctx.fillStyle="#bdc3c7"; ctx.fillRect(3*tileSize, 0, 5*tileSize, 2*tileSize);
         ctx.fillStyle="#fdfdfd"; ctx.fillRect(3*tileSize+2, 2, 5*tileSize-4, 2*tileSize-2);
-        // 大きな屋根
-        ctx.fillStyle="#5d4037";
-        ctx.beginPath();
-        ctx.moveTo(3*tileSize-4, 12); ctx.lineTo(8*tileSize+4, 12);
-        ctx.lineTo(8*tileSize-4, 0); ctx.lineTo(3*tileSize+4, 0); ctx.fill();
-        // 窓
+        ctx.fillStyle="#5d4037"; ctx.beginPath(); ctx.moveTo(3*tileSize-4, 12); ctx.lineTo(8*tileSize+4, 12); ctx.lineTo(8*tileSize-4, 0); ctx.lineTo(3*tileSize+4, 0); ctx.fill();
         ctx.fillStyle="#87cefa";
-        for(let wy=0; wy<2; wy++){
-          for(let wx=0; wx<9; wx++){
-             // 入り口上部は窓を描画しない
-             if(wy === 1 && (wx === 3 || wx === 4 || wx === 5)) continue; 
-             ctx.fillRect(3*tileSize+12 + wx*16, 20 + wy*20, 10, 14);
-          }
-        }
-        // 入り口（中央付近）
+        for(let wy=0; wy<2; wy++){ for(let wx=0; wx<9; wx++){ if(wy === 1 && (wx === 3 || wx === 4 || wx === 5)) continue; ctx.fillRect(3*tileSize+12 + wx*16, 20 + wy*20, 10, 14); } }
         ctx.fillStyle="#8d6e63"; ctx.fillRect(5*tileSize+4, tileSize+8, 24, 24);
         ctx.fillStyle="#f5f6f7"; ctx.fillRect(5*tileSize+10, tileSize+14, 12, 18);
         ctx.fillStyle="#f1c40f"; ctx.beginPath(); ctx.arc(5*tileSize+20, tileSize+22, 2, 0, Math.PI*2); ctx.fill();
       }
 
-      if (currentMapName === "outside" || currentMapName === "outside2" || currentMapName === "outside_higashi") {
-        ctx.fillStyle = "#333"; ctx.fillRect(9*tileSize+12, 2*tileSize+16, 8, 16); 
-        ctx.fillRect(9*tileSize+6, 2*tileSize+6, 20, 10); 
-        ctx.fillStyle = trafficLight === "red" ? "#ff2222" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+11, 2*tileSize+11, 3, 0, Math.PI*2); ctx.fill(); 
-        ctx.fillStyle = trafficLight === "green" ? "#2ecc71" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+21, 2*tileSize+11, 3, 0, Math.PI*2); ctx.fill(); 
+      // --- 新規追加：有楽町用 巨大SL＆国際フォーラム描画 ---
+      if (currentMapName === "yurakucho") {
+        // SL描画
+        let slX = 4 * tileSize;
+        let slY = 3 * tileSize;
+        ctx.fillStyle = "#111"; 
+        ctx.fillRect(slX+10, slY+10, 60, 30); 
+        ctx.fillRect(slX+70, slY, 30, 40); 
+        ctx.fillStyle = "#e74c3c"; 
+        ctx.beginPath(); ctx.arc(slX+20, slY+40, 10, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(slX+45, slY+40, 10, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(slX+80, slY+40, 12, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#bdc3c7"; 
+        ctx.fillRect(slX+15, slY-5, 10, 15);
+        ctx.fillStyle = "rgba(236, 240, 241, 0.6)";
+        let smokeOffset = (time * 0.02) % 20;
+        ctx.beginPath(); ctx.arc(slX+20 - smokeOffset, slY-15 - smokeOffset, 8, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(slX+25 - smokeOffset*1.5, slY-25 - smokeOffset*1.5, 12, 0, Math.PI*2); ctx.fill();
+
+        // 国際フォーラムのガラス張り建築（簡易オーバーレイ）
+        let fX = 13 * tileSize;
+        let fY = 1 * tileSize;
+        let gGrad = ctx.createLinearGradient(fX, fY, fX, fY+4*tileSize);
+        gGrad.addColorStop(0, "rgba(135, 206, 250, 0.85)");
+        gGrad.addColorStop(1, "rgba(70, 130, 180, 0.95)");
+        ctx.fillStyle = gGrad;
+        ctx.beginPath();
+        ctx.moveTo(fX, fY+2*tileSize);
+        ctx.quadraticCurveTo(fX + 4*tileSize, fY-2*tileSize, fX+8*tileSize, fY+2*tileSize);
+        ctx.quadraticCurveTo(fX + 4*tileSize, fY+6*tileSize, fX, fY+2*tileSize);
+        ctx.fill();
+        ctx.strokeStyle = "#ecf0f1"; ctx.lineWidth = 2; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(fX+2*tileSize, fY); ctx.lineTo(fX+2*tileSize, fY+4*tileSize); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(fX+4*tileSize, fY-1*tileSize); ctx.lineTo(fX+4*tileSize, fY+5*tileSize); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(fX+6*tileSize, fY); ctx.lineTo(fX+6*tileSize, fY+4*tileSize); ctx.stroke();
+      }
+
+      // --- 新規追加：国際フォーラム ホール用 ステージ＆ビジョン描画 ---
+      if (currentMapName === "forum_hall") {
+        ctx.fillStyle = "#1a252f"; ctx.fillRect(0, 0, 22*tileSize, 4*tileSize); 
+        ctx.fillStyle = "#34495e"; ctx.fillRect(5*tileSize, 10, 12*tileSize, 3*tileSize);
         
-        ctx.fillStyle = "#333"; ctx.fillRect(9*tileSize+12, 5*tileSize, 8, 16); 
-        ctx.fillRect(9*tileSize+6, 5*tileSize-10, 20, 10); 
-        ctx.fillStyle = trafficLight === "red" ? "#ff2222" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+11, 5*tileSize-5, 3, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = trafficLight === "green" ? "#2ecc71" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+21, 5*tileSize-5, 3, 0, Math.PI*2); ctx.fill();
+        // Salesforce Cloud ロゴ
+        ctx.fillStyle = "#00a1e0";
+        let cx = 11*tileSize, cy = 1.5*tileSize + 5;
+        ctx.beginPath();
+        ctx.arc(cx - 30, cy + 10, 15, 0, Math.PI*2);
+        ctx.arc(cx - 10, cy - 5, 20, 0, Math.PI*2);
+        ctx.arc(cx + 15, cy - 10, 22, 0, Math.PI*2);
+        ctx.arc(cx + 40, cy + 5, 18, 0, Math.PI*2);
+        ctx.arc(cx + 20, cy + 15, 15, 0, Math.PI*2);
+        ctx.arc(cx, cy + 15, 15, 0, Math.PI*2);
+        ctx.fill();
+
+        // 社長キャラクター描画
+        ctx.fillStyle = "#e67e22"; 
+        ctx.beginPath(); ctx.arc(11*tileSize, 3.5*tileSize, 8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#34495e"; 
+        ctx.fillRect(11*tileSize-6, 3.5*tileSize+8, 12, 14);
+      }
+
+      if (currentMapName === "outside" || currentMapName === "outside2" || currentMapName === "outside_higashi" || currentMapName === "yurakucho") {
+        let hasLight = ["outside", "outside2", "outside_higashi"].includes(currentMapName);
+        if(hasLight) {
+          ctx.fillStyle = "#333"; ctx.fillRect(9*tileSize+12, 2*tileSize+16, 8, 16); 
+          ctx.fillRect(9*tileSize+6, 2*tileSize+6, 20, 10); 
+          ctx.fillStyle = trafficLight === "red" ? "#ff2222" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+11, 2*tileSize+11, 3, 0, Math.PI*2); ctx.fill(); 
+          ctx.fillStyle = trafficLight === "green" ? "#2ecc71" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+21, 2*tileSize+11, 3, 0, Math.PI*2); ctx.fill(); 
+          
+          ctx.fillStyle = "#333"; ctx.fillRect(9*tileSize+12, 5*tileSize, 8, 16); 
+          ctx.fillRect(9*tileSize+6, 5*tileSize-10, 20, 10); 
+          ctx.fillStyle = trafficLight === "red" ? "#ff2222" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+11, 5*tileSize-5, 3, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = trafficLight === "green" ? "#2ecc71" : "#555"; ctx.beginPath(); ctx.arc(9*tileSize+21, 5*tileSize-5, 3, 0, Math.PI*2); ctx.fill();
+        }
       }
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
       ctx.font = "bold 14px sans-serif";
       if(currentMapName === "outside") {
         ctx.fillText("◀ 東京駅", 1 * tileSize, 2 * tileSize + 22); ctx.fillText("◀ TOKYO STA.", 1 * tileSize, 5 * tileSize + 22);
+        ctx.fillText("▼ 有楽町", 9 * tileSize, 10 * tileSize + 28); // 案内追加
       } else if (currentMapName === "outside2") {
         ctx.fillText("◀ 皇居", 1 * tileSize, 2 * tileSize + 22); ctx.fillText("日本橋 ▶", 18 * tileSize, 2 * tileSize + 22);
         ctx.fillText("◀ IMPERIAL PALACE", 1 * tileSize, 5 * tileSize + 22); ctx.fillText("NIHONBASHI ▶", 16 * tileSize, 5 * tileSize + 22);
@@ -918,6 +1170,9 @@
         ctx.fillText("◀ 半蔵門", 1 * tileSize, 8 * tileSize + 22); ctx.fillText("皇居外苑 ▶", 18 * tileSize, 8 * tileSize + 22);
       } else if (currentMapName === "outside_higashi") {
         ctx.fillText("東向島商店街", 1 * tileSize, 2 * tileSize + 22);
+      } else if (currentMapName === "yurakucho") {
+        ctx.fillText("▲ 東京・日本橋", 9 * tileSize, 22);
+        ctx.fillText("東京国際フォーラム ▶", 13 * tileSize, 6 * tileSize + 22);
       }
 
       if (currentMapName === "station") {
@@ -929,23 +1184,33 @@
         ctx.fillText("▼ 銀座・東京 方面", 3 * tileSize, 9 * tileSize + 28);
       }
 
-      for(let i of icePlaced){
-        if(i.mapName===currentMapName){
-          ctx.beginPath(); ctx.arc(i.x*tileSize+16, i.y*tileSize+24, 8, 0, Math.PI*2);
-          ctx.fillStyle=i.color||"#f8e44c"; ctx.fill();
-        }
-      }
-
       let entities = [];
       if(currentMapName.startsWith("outside")) {
         let cars = allCars[currentMapName] || [];
         for(let c of cars) entities.push({type: "car", obj: c, cy: c.y*tileSize+11});
       }
       for(let n of getNpcList()) entities.push({type: "npc", obj: n, cy: n.y*tileSize+24});
+      
       entities.push({type: "player", obj: player, cy: player.y*tileSize+24});
 
       if(currentMapName === "gusto") {
         entities.push({type: "robot", obj: gustoRobot, cy: gustoRobot.ry * tileSize + 24});
+      }
+      
+      if (isPalaceRunning) {
+        const runnerColors = ["#e74c3c", "#3498db", "#f1c40f", "#2ecc71", "#9b59b6"];
+        for (let i = 0; i < 5; i++) {
+          if (i < playerHistory.length) {
+            let h = playerHistory[i];
+            if (h.map === currentMapName) {
+              entities.push({
+                type: "runner",
+                obj: {x: h.x, y: h.y, color: runnerColors[i], dir: h.dir},
+                cy: h.y * tileSize + 24
+              });
+            }
+          }
+        }
       }
 
       entities.sort((a,b) => a.cy - b.cy); 
@@ -953,7 +1218,8 @@
       for(let e of entities) {
         if(e.type === "car") drawCar(e.obj, time);
         else if(e.type === "npc") drawHuman(e.obj.x, e.obj.y, e.obj.color, e.obj.hair, e.obj.dir||"down", e.obj.name, false, time);
-        else if(e.type === "player") drawHuman(e.obj.x, e.obj.y, "#3a6e33", "#767d38", e.obj.dir, "", true, time);
+        else if(e.type === "runner") drawHuman(e.obj.x, e.obj.y, e.obj.color, e.obj.color, e.obj.dir||"down", "", false, time);
+        else if(e.type === "player") drawHuman(e.obj.x, e.obj.y, playerColor, playerHair, e.obj.dir, "", true, time);
         else if(e.type === "robot") drawRobot(e.obj.rx, e.obj.ry, time);
       }
 
@@ -962,9 +1228,6 @@
       vGrad.addColorStop(1, currentMapName.startsWith("outside") ? "rgba(0,0,20,0.5)" : "rgba(0,0,0,0.1)");
       ctx.fillStyle = vGrad;
       ctx.fillRect(0,0,704,352);
-
-      document.getElementById('ice-badge').style.display = (iceCarrys>0)?"block":"none";
-      if(iceCarrys>0) document.getElementById('ice-badge').innerText = `🍦 アイス: ${iceCarrys}`;
     }
 
     function drawRobot(rx, ry, time) {
@@ -1034,7 +1297,6 @@
     // ========== ロジック ==========
     function npcAt(x,y){
       for(let n of getNpcList()) if(n.x===x&&n.y===y) return true;
-      for(let i of icePlaced) if(i.x===x&&i.y===y&&i.mapName===currentMapName) return true;
       return false;
     }
 
@@ -1043,21 +1305,63 @@
       if(npcAt(x,y)) return false;
       const t = map[y][x];
       
-      if(isNpc && [25, 26, 28, 14, 30, 18, 19, 22, 37, 40, 43, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61].includes(t)) return false; 
+      if(isNpc) {
+        if([25, 26, 28, 14, 30, 18, 19, 22, 37, 40, 43, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 65, 71, 75, 82].includes(t)) return false; 
+        
+        // オフィス入り口周辺へのNPC侵入禁止
+        if(currentMapName === "office") {
+          if(x >= 7 && x <= 11 && y >= 6 && y <= 9) return false;
+        }
+      }
 
-      const walkableTiles = [0, 2, 5, 9, 20, 21, 24, 25, 26, 18, 19, 22, 28, 14, 30, 37, 40, 43, 48, 49, 51, 52, 54, 61];
+      const walkableTiles = [0, 2, 5, 9, 20, 21, 24, 25, 26, 18, 19, 22, 28, 14, 30, 37, 40, 43, 48, 49, 51, 52, 54, 61, 67, 68, 72, 75, 77, 82];
       return walkableTiles.includes(t);
     }
 
-    function move(dx,dy,dir){
+    function move(dx, dy, dir){
       if(msgOpen){ hideMsg(); return; }
+      if(confirmOpen || glicoOpen || hoodieOpen){ return; }
+
+      let preX = player.x, preY = player.y, preMap = currentMapName;
+
+      _doMove(dx, dy, dir);
+
+      if (preX !== player.x || preY !== player.y || preMap !== currentMapName) {
+        if (isPalaceRunning) {
+          playerHistory.unshift({x: preX, y: preY, dir: player.dir, map: preMap});
+          if (playerHistory.length > 30) playerHistory.pop();
+        }
+      }
+
+      if (currentMapName === "outside3" && preMap !== "outside3" && !isPalaceRunning) {
+        showConfirmDialog();
+      }
+
+      if (isPalaceRunning) {
+        if (currentMapName === "outside") {
+          isPalaceRunning = false;
+          playerHistory = [];
+          showMsg("はぁ疲れたけど、皇居ラン楽しかった");
+        } else if (!currentMapName.startsWith("outside")) {
+          isPalaceRunning = false;
+          playerHistory = [];
+        }
+      }
+    }
+
+    function _doMove(dx, dy, dir) {
       let nx=player.x+dx, ny=player.y+dy;
       player.dir = dir || player.dir;
 
+      // outside ⇔ outside2 ⇔ outside3
       if(currentMapName === "outside" && nx < 0) { switchMap("outside2", 21, ny, dir); return; }
       if(currentMapName === "outside2" && nx > 21) { switchMap("outside", 0, ny, dir); return; }
       if(currentMapName === "outside2" && nx < 0) { switchMap("outside3", 21, ny, dir); return; }
       if(currentMapName === "outside3" && nx > 21) { switchMap("outside2", 0, ny, dir); return; }
+
+      // 新規追加：outside ⇔ yurakucho
+      if(currentMapName === "outside" && ny > 10 && (nx === 9 || nx === 10)) { switchMap("yurakucho", nx, 0, dir); return; }
+      if(currentMapName === "yurakucho" && ny < 0 && (nx===9 || nx===10)) { switchMap("outside", nx, 10, dir); return; }
 
       if(currentMapName === "outside3") {
         if(ny < 0) { switchMap("outside4", nx, 3, "up"); return; }
@@ -1126,6 +1430,10 @@
       if(currentMapName === "outside" && t === 54) { switchMap("gusto", 11, 9, "up"); showMsg("ガストに入りました！\n美味しい匂いがします。"); return true; }
       if(currentMapName === "gusto" && t === 61) { switchMap("outside", 9, 2, "down"); return true; }
 
+      // 新規追加：有楽町・フォーラムの遷移
+      if(currentMapName === "yurakucho" && t === 75) { switchMap("forum_hall", 11, 9, "up"); showMsg("東京国際フォーラムのホールに入りました！\n熱気がすごい…！"); return true; }
+      if(currentMapName === "forum_hall" && t === 82) { switchMap("yurakucho", 17, 6, "down"); return true; }
+
       if(currentMapName === "outside_higashi" && t === 37) { switchMap("dormitory", 9, 6, "up"); showMsg("社員寮に入りました."); return true; }
       if(currentMapName === "dormitory" && t === 40) { switchMap("outside_higashi", 6, 2, "down"); return true; }
 
@@ -1161,6 +1469,7 @@
     document.getElementById('btn-right').onclick = ()=>move(1,0,"right");
     document.getElementById('btn-action').onclick = ()=>action();
     document.addEventListener('keydown', e=>{
+      if(confirmOpen || glicoOpen || hoodieOpen) return;
       if(msgOpen && (e.key===" "||e.key==="Enter")){ hideMsg(); return; }
       let nx=player.x, ny=player.y, dir=player.dir;
       if(e.key==="ArrowUp"){ ny--; dir="up"; }
@@ -1181,7 +1490,34 @@
     }
     document.getElementById("message").onclick=hideMsg;
 
+    // ダイアログ制御
+    function showConfirmDialog() { document.getElementById("confirm-dialog").style.display = "block"; confirmOpen = true; }
+    function closeConfirmDialog() { document.getElementById("confirm-dialog").style.display = "none"; confirmOpen = false; }
+    document.getElementById("btn-run-yes").onclick = () => { isPalaceRunning = true; playerHistory = []; closeConfirmDialog(); };
+    document.getElementById("btn-run-no").onclick = () => { closeConfirmDialog(); };
+
+    function openGlicoDialog() { document.getElementById("glico-dialog").style.display = "block"; glicoOpen = true; }
+    function closeGlicoDialog() { document.getElementById("glico-dialog").style.display = "none"; glicoOpen = false; }
+    function buyGlico(itemName, price) {
+      if(money >= price) {
+        money -= price; updateMoneyUI(); closeGlicoDialog();
+        showMsg(`カチャッ…\n${price}円で「${itemName}」を買った！\nモシャモシャ…美味しい！😋`);
+      } else {
+        closeGlicoDialog(); showMsg("オフィスグリコ：\n「お金が足りないみたいだよ…」");
+      }
+    }
+
+    function openHoodieDialog() { document.getElementById("hoodie-dialog").style.display = "block"; hoodieOpen = true; }
+    function closeHoodieDialog() { document.getElementById("hoodie-dialog").style.display = "none"; hoodieOpen = false; }
+    function changeHoodie(color, hairColor) {
+      playerColor = color;
+      playerHair = hairColor;
+      closeHoodieDialog();
+      showMsg("パーカーを着替えた！");
+    }
+
     function action(){
+      if(confirmOpen || glicoOpen || hoodieOpen) return;
       if(msgOpen){ hideMsg(); return; }
 
       if(currentMapName === "gusto" && Math.abs(player.x - gustoRobot.rx) <= 1.5 && Math.abs(player.y - gustoRobot.ry) <= 1.5) {
@@ -1212,13 +1548,29 @@
         if(tx>=0 && ty>=0 && ty<map.length && tx<map[0].length) {
           let checkTile = map[ty][tx];
           
-          // ラウンジでの注文と支払い処理
+          if(currentMapName === "office") {
+            if(checkTile === 65) { openGlicoDialog(); return; }
+            if(checkTile === 71) { openHoodieDialog(); return; }
+          }
+
+          // 新規追加：フォーラム ホール内アクション
+          if(currentMapName === "forum_hall") {
+            if(checkTile === 81) {
+              showMsg("社長：「AIとデータで、これからのビジネスを劇的に変革します！」\n\n（Salesforceのビジョンをもとに熱いプレゼンをしている！観客も大興奮だ！）"); return;
+            }
+          }
+
+          // 新規追加：有楽町アクション
+          if(currentMapName === "yurakucho") {
+            if(checkTile === 74) {
+              showMsg("立派な蒸気機関車（SL）が展示されている。\n鉄道の歴史を感じるなぁ。"); return;
+            }
+          }
+
           if(currentMapName === "lounge") {
             if(checkTile === 35) { 
               if (money >= 500) {
-                money -= 500;
-                updateMoneyUI();
-                showMsg("500円支払い、ハンバーグ定食を食べた！");
+                money -= 500; updateMoneyUI(); showMsg("500円支払い、ハンバーグ定食を食べた！");
               } else {
                 showMsg("社食カウンター：\n「お金が足りないみたいですね…」");
               }
@@ -1240,13 +1592,10 @@
             if(checkTile === 37) { showMsg("社員寮だ。\nみんな仲良く暮らしているらしい。"); return; }
           }
           
-          // ガストでの注文と支払い処理
           if(currentMapName === "gusto") {
             if(checkTile === 55) { 
               if (money >= 800) {
-                money -= 800;
-                updateMoneyUI();
-                showMsg("800円支払い、料理を注文した！");
+                money -= 800; updateMoneyUI(); showMsg("800円支払い、料理を注文した！");
               } else {
                 showMsg("テーブル：\n「所持金が不足しています。」");
               }
@@ -1258,38 +1607,18 @@
         }
       }
 
-      // NPCからのお小遣いイベント処理
       for(let n of getNpcList()) {
         if(Math.abs(player.x-n.x)+Math.abs(player.y-n.y)===1){ 
           let msg = n.msg;
           if (money < 500 && Math.random() < 0.2) {
             msg += "\n\nお小遣いをあげよう！\n1000円もらった！";
-            money += 1000;
-            updateMoneyUI();
+            money += 1000; updateMoneyUI();
           }
           showMsg(msg); 
           return; 
         }
       }
-
-      if(currentMapName === "office") {
-        for(let i of items) {
-          if(Math.abs(player.x-i.x)+Math.abs(player.y-i.y)===1){
-            if(i.type==="アイス冷蔵庫"){ iceCarrys++; showMsg("アイスをゲット！"); return; }
-            else { showMsg(i.msg); return; }
-          }
-        }
-      }
-
-      if(iceCarrys>0 && !npcAt(player.x,player.y)) {
-        const t = map[player.y][player.x];
-        if([0, 2, 20, 21, 24].includes(t)){
-          icePlaced.push({x:player.x, y:player.y, mapName:currentMapName, color:randIceColor()});
-          iceCarrys--; showMsg("ここにアイスを設置しました！"); return;
-        }
-      }
     }
-    function randIceColor(){ return ["#ff5555","#33ccff","#fff700","#8ad431","#a184db","#ffaacc","#ffae49","#b2e6f8"][Math.floor(Math.random()*8)]; }
 
     let lastTime = 0;
     function gameLoop(time) {
