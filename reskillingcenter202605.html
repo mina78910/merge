@@ -1410,8 +1410,8 @@
       const t = map[player.y][player.x];
       
       if(currentMapName === "office" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "office"; showMsg("第一三木ビルのエレベーターに乗りました。"); return true; }
-      if(currentMapName === "hq" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "hq"; showMsg("本社のエレベーターに乗りました。"); return true; }
-      if(currentMapName === "lounge" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "lounge"; showMsg("本社のエレベーターに乗りました。"); return true; }
+      if(currentMapName === "hq" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "hq"; showMsg("太陽生命日本橋ビルのエレベーターに乗りました。"); return true; }
+      if(currentMapName === "lounge" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "lounge"; showMsg("太陽生命日本橋ビルのエレベーターに乗りました。"); return true; }
       
       if(currentMapName === "elevator" && t === 28) { 
         if(elevatorFloor === "office") switchMap("office", 9, 6, "down"); 
@@ -1425,7 +1425,7 @@
       }
 
       if(currentMapName === "outside" && t === 18) { switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "1F"; showMsg("第一三木ビルに入りました.\nエレベーターに乗ります."); return true; }
-      if(currentMapName === "outside" && t === 19) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "1F"; showMsg("テラスカイテクノロジーズ本社に入りました.\nエレベーターに乗ります."); return true; }
+      if(currentMapName === "outside" && t === 19) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "1F"; showMsg("太陽生命日本橋ビルに入りました.\nエレベーターに乗ります."); return true; }
 
       if(currentMapName === "outside" && t === 54) { switchMap("gusto", 11, 9, "up"); showMsg("ガストに入りました！\n美味しい匂いがします。"); return true; }
       if(currentMapName === "gusto" && t === 61) { switchMap("outside", 9, 2, "down"); return true; }
