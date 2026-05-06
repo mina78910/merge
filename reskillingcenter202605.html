@@ -1409,7 +1409,7 @@
     function checkMapTransition() {
       const t = map[player.y][player.x];
       
-      if(currentMapName === "office" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "office"; showMsg("第一三木ビルのエレベーターに乗りました。"); return true; }
+      if(currentMapName === "office" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "office"; showMsg("第一三木ビルのエレベーターに乗りました。\n （近づいて〇ボタンを押下）"); return true; }
       if(currentMapName === "hq" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "hq"; showMsg("太陽生命日本橋ビルのエレベーターに乗りました。"); return true; }
       if(currentMapName === "lounge" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "lounge"; showMsg("太陽生命日本橋ビルのエレベーターに乗りました。"); return true; }
       
