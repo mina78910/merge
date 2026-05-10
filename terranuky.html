@@ -66,17 +66,24 @@
             font-size: 1rem; line-height: 1.5; white-space: pre-wrap; 
         }
 
-        /* Slack風通知UI */
-        #slack-notification {
+        /* アプリ風通知UI (旧Slack風から汎用化) */
+        #app-notification {
             position: absolute; top: -100px; left: 10px; right: 10px; z-index: 10;
             background-color: #fff; border-left: 5px solid #4a154b; border-radius: 5px;
             padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             display: flex; align-items: center; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        #slack-notification.show { top: 15px; }
-        .slack-icon { width: 30px; height: 30px; background: #e01e5a; border-radius: 5px; margin-right: 10px; }
-        .slack-content h4 { margin: 0; font-size: 0.8rem; color: #333; }
-        .slack-content p { margin: 2px 0 0; font-size: 0.9rem; color: #666; }
+        #app-notification.show { top: 15px; }
+        
+        /* アイコンのベース設定 */
+        .app-icon { width: 30px; height: 30px; margin-right: 10px; }
+        
+        /* アプリ別のスタイル */
+        .icon-slack { background: #e01e5a; border-radius: 5px; }
+        .icon-line { background: #06c755; border-radius: 50%; /* LINEっぽく丸くする */ }
+
+        .app-content h4 { margin: 0; font-size: 0.8rem; color: #333; }
+        .app-content p { margin: 2px 0 0; font-size: 0.9rem; color: #666; }
 
         /* 下画面（コントローラー・パラメーター） */
         #bottom-screen {
@@ -143,11 +150,11 @@
     <div id="top-screen">
         <div id="bg-image"></div>
         
-        <div id="slack-notification">
-            <div class="slack-icon"></div>
-            <div class="slack-content">
-                <h4 id="slack-sender">人事部</h4>
-                <p id="slack-text">メッセージが届いています。</p>
+        <div id="app-notification">
+            <div id="app-icon" class="app-icon icon-slack"></div>
+            <div class="app-content">
+                <h4 id="app-sender">人事部</h4>
+                <p id="app-text">メッセージが届いています。</p>
             </div>
         </div>
 
@@ -195,9 +202,10 @@
             speakerName: document.getElementById('speaker-name'),
             messageText: document.getElementById('message-text'),
             characterImg: document.getElementById('character-img'),
-            slackNotification: document.getElementById('slack-notification'),
-            slackSender: document.getElementById('slack-sender'),
-            slackText: document.getElementById('slack-text'),
+            appNotification: document.getElementById('app-notification'),
+            appIcon: document.getElementById('app-icon'),
+            appSender: document.getElementById('app-sender'),
+            appText: document.getElementById('app-text'),
             stressBar: document.getElementById('stress-bar'),
             shachikuBar: document.getElementById('shachiku-bar'),
             bgImage: document.getElementById('bg-image'),
@@ -212,6 +220,8 @@
 
         // テキストを1文字ずつ表示するためのタイマー管理
         let typeInterval = null;
+        // 通知を消すタイマー管理（デグレ修正用）
+        let notificationTimeout = null;
 
         /**
          * テキストをタイプライター風に流して表示する関数
@@ -298,7 +308,7 @@
             // 1. 当日の朝（家）
             'scene_1': {
                 text: "ピピピピピ！ピピピピピ！AM 7:00。入社式当日の朝だ。",
-                slack: { sender: "LINE #お母さん", text: "『あんた！まだ寝てんの？』" },
+                notification: { type: "line", sender: "お母さん", text: "『あんた！まだ寝てんの？』" },
                 bgImg: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", // ベッドルーム
                 choices: [
                     { text: "スマートスピーカーに「テンション上がる曲かけて」と頼む", stress: 10, shachiku: 0, comment: "なぜかヒーリングミュージック（お経アレンジ）が流れ始め、朝からテンションが地の底に落ちた。嫌々日本橋までの電車の時刻を調べ始めた。" },
@@ -659,16 +669,37 @@
                 }
             }
 
-            // Slack通知
-            if (scene.slack) {
-                ui.slackSender.textContent = scene.slack.sender;
-                ui.slackText.textContent = scene.slack.text;
-                ui.slackNotification.classList.add("show");
-                setTimeout(() => {
-                    ui.slackNotification.classList.remove("show");
+            // アプリ風通知のデグレ対策ロジック (新・旧両対応)
+            const notif = scene.notification || scene.slack; 
+
+            // 前のタイマーが動いていたらキャンセルする
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+                notificationTimeout = null;
+            }
+            
+            if (notif) {
+                ui.appSender.textContent = notif.sender;
+                ui.appText.textContent = notif.text;
+                
+                // アイコンと枠線の切り替え
+                ui.appIcon.className = "app-icon"; // クラスリセット
+                if (notif.type === 'line') {
+                    ui.appIcon.classList.add("icon-line");
+                    ui.appNotification.style.borderLeftColor = "#06c755";
+                } else {
+                    ui.appIcon.classList.add("icon-slack");
+                    ui.appNotification.style.borderLeftColor = "#4a154b";
+                }
+
+                ui.appNotification.classList.add("show");
+                
+                // 新しいタイマーを変数に格納
+                notificationTimeout = setTimeout(() => {
+                    ui.appNotification.classList.remove("show");
                 }, 7500);
             } else {
-                ui.slackNotification.classList.remove("show");
+                ui.appNotification.classList.remove("show");
             }
 
             // 選択肢の表示
