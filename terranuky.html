@@ -53,11 +53,12 @@
         #text-window {
             z-index: 2; background: rgba(0, 0, 0, 0.8); color: #fff;
             padding: 15px; border-radius: 10px; border: 2px solid #fff;
-            min-height: 120px; margin-top: 10px;
-            max-height: 40vh; /* 広げました */
+            margin-top: 10px;
+            /* 修正: 固定の高さをやめて、上枠の中で自動で伸縮＆スクロールするように変更 */
+            min-height: 120px;
+            flex: 0 1 auto;
             overflow-y: auto;
-            display: block;
-            flex-shrink: 0; /* 潰れないように追加 */
+            display: block; 
         }
 
         #speaker-name { font-weight: bold; color: #f1c40f; margin-bottom: 5px; font-size: 0.9rem; }
