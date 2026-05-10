@@ -220,6 +220,8 @@
 
         // テキストを1文字ずつ表示するためのタイマー管理
         let typeInterval = null;
+        // 通知を消すタイマー管理（デグレ修正用）
+        let notificationTimeout = null;
 
         /**
          * テキストをタイプライター風に流して表示する関数
@@ -669,6 +671,12 @@
 
             // アプリ風通知のデグレ対策ロジック (新・旧両対応)
             const notif = scene.notification || scene.slack; 
+
+            // 前のタイマーが動いていたらキャンセルする
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+                notificationTimeout = null;
+            }
             
             if (notif) {
                 ui.appSender.textContent = notif.sender;
@@ -685,7 +693,9 @@
                 }
 
                 ui.appNotification.classList.add("show");
-                setTimeout(() => {
+                
+                // 新しいタイマーを変数に格納
+                notificationTimeout = setTimeout(() => {
                     ui.appNotification.classList.remove("show");
                 }, 7500);
             } else {
