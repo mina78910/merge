@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>テラテク日和</title>
+    <title>新入社員サバイバル</title>
     <style>
         /* =========================================
            CSS: 100dvhで固定したDS風レイアウト
@@ -54,17 +54,15 @@
             z-index: 2; background: rgba(0, 0, 0, 0.8); color: #fff;
             padding: 15px; border-radius: 10px; border: 2px solid #fff;
             min-height: 120px; margin-top: 10px;
-            /* スクロール対応 */
-            max-height: 25vh;
-            display: flex;
-            flex-direction: column;
+            /* スクロール対応: スピーカー名も含めて全体をスクロールさせる */
+            max-height: 30vh;
+            overflow-y: auto;
+            display: block; /* flexを解除して自然なスクロールに */
         }
 
-        #speaker-name { font-weight: bold; color: #f1c40f; margin-bottom: 5px; font-size: 0.9rem; flex-shrink: 0; }
+        #speaker-name { font-weight: bold; color: #f1c40f; margin-bottom: 5px; font-size: 0.9rem; }
         #message-text { 
             font-size: 1rem; line-height: 1.5; white-space: pre-wrap; 
-            /* スクロール対応 */
-            overflow-y: auto; flex: 1;
         }
 
         /* Slack風通知UI */
@@ -222,11 +220,14 @@
             element.textContent = "";
             let i = 0;
             
+            // スクロール追従先をウィンドウ全体に変更
+            const textWindow = document.getElementById('text-window');
+            
             typeInterval = setInterval(() => {
                 if (i < text.length) {
                     element.textContent += text.charAt(i);
-                    // スクロールバーを一番下に追従させる
-                    element.scrollTop = element.scrollHeight;
+                    // スクロールバーをテキストウィンドウ全体の一番下に追従させる
+                    textWindow.scrollTop = textWindow.scrollHeight;
                     i++;
                 } else {
                     clearInterval(typeInterval);
@@ -278,7 +279,7 @@
         const scenario = {
             // タイトル
             'title': {
-                text: "「新入社員サバイバル 〜地獄のIT企業編〜」\n\nスマホのブラウザを閉じると最初からになります。",
+                text: "「新入社員サバイバル 〜地獄のIT企業編〜 へようこそ」\n・スマホのブラウザを閉じると最初からになります。（所要時間は約5～10分）\n・ストレス度と社畜度によってあなたの未来が決まります。\n・選択肢によっては即ゲームオーバーになります。心して生き延びてください。\n「さぁ！希望を胸にテラヌカイ社への入社初日です！",
                 bgImg: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", // おしゃれなオフィス
                 choices: [
                     { text: "入社する（ゲーム開始）", next: "scene_1" }
@@ -288,20 +289,20 @@
             // 1. 当日の朝（家）
             'scene_1': {
                 text: "ピピピピピ！ピピピピピ！AM 7:00。入社式当日の朝だ。",
-                slack: { sender: "Slack #general", text: "『新入社員の皆様、本日は気合を入れてきてください』" },
-                bgImg: "https://images.unsplash.com/photo-1541364983171-a8ba01e95cfc?auto=format&fit=crop&w=800&q=80", // ベッドルーム
+                slack: { sender: "LINE #お母さん", text: "『あんた！まだ寝てんの？』" },
+                bgImg: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", // ベッドルーム
                 choices: [
-                    { text: "シャワーを浴びる", stress: -10, shachiku: 5, comment: "熱いシャワーで目を覚ました。さあ、出社だ。" },
+                    { text: "スマートスピーカーに「テンション上がる曲かけて」と頼む", stress: 10, shachiku: 0, comment: "なぜかヒーリングミュージック（お経アレンジ）が流れ始め、朝からテンションが地の底に落ちた。" },
                     { text: "二度寝する", stress: 0, shachiku: 0, comment: "心の声「あと5分だけ…」ハッ！気がついたら13時だった。入社式を無断欠席したため、即クビになった。", gameover: true },
-                    { text: "とりあえずSlackのカスタム絵文字を漁る", stress: 10, shachiku: 0, comment: "謎のスタンプが多すぎて少し不安になった。" },
-                    { text: "親に「会社行きたくない」とLINE", stress: 10, shachiku: 0, comment: "親から「Z世代だねぇ」と返ってきた。ちょっとイラッとした。" }
+                    { text: "「通勤もタイパ」と割り切り、初日からタクシーを呼ぶ", stress: -20, shachiku: 0, comment: "優雅に出社したが、初任給が入る前に生活費が底をつくことが確定した。" },
+                    { text: "とりあえず「退職代行 即日」でググって安心感を得る", stress: -10, shachiku: 0, comment: "「いつでも逃げられる」という無敵のカードを手に入れ、なんとか布団から這い出した。" }
                 ]
             },
 
             // 2. 入社式
             'scene_2': {
                 speaker: "社長",
-                text: "「新入社員の皆さん！我が社はパーパスを重んじ、心理的安全性を担保したアジャイルな組織です！皆さんは今日から『家族』です！！」",
+                text: "【入社式】\n「新入社員の皆さん！我が社はパーパスを重んじ、心理的安全性を担保したアジャイルな組織です！皆さんは今日から『家族』です！！」",
                 slack: { sender: "Slack #裏チャンネル", text: "社長また同じこと言ってるよ草" },
                 bgImg: "https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&w=800&q=80", // プレゼン会場
                 charImg: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80", // 社長風の男性
@@ -316,12 +317,12 @@
             // 3. 自己紹介
             'scene_3': {
                 speaker: "研修担当",
-                text: "「じゃあ自己紹介と、今後の目標をお願い。面白いやつね。」最悪なフリが来た。",
+                text: "【グループワーク初日】\n「じゃあ自己紹介と、今後の目標をお願い。面白いやつね。」最悪なフリが来た。",
                 bgImg: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80", // ミーティングルーム
                 charImg: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80", // 先輩風の女性
                 choices: [
-                    { text: "無難に「頑張ります」", stress: -10, shachiku: 0, comment: "「つまらん奴だ」という顔をされたが、無傷で生還した。" },
-                    { text: "一発ギャグをする", stress: 30, shachiku: 0, comment: "空気が完全に凍りついた。研修担当の先輩の目が笑っていない。" },
+                    { text: "ChatGPTに書かせた自己紹介をそのまま読み上げる", stress: 10, shachiku: -10, comment: "「[ここに名前を入力]です！」とChatGPTからの指示書きごと読んでしまい、別の意味で大爆笑をさらった。" },
+                    { text: "一発ギャグをする", stress: 30, shachiku: 0, comment: "空気が完全に凍りついた。研修担当の先輩の目が笑っていない。ごく一部の先輩エンジニアにはめちゃくちゃ刺さった" },
                     { text: "「CEOの座を奪います」", stress: 0, shachiku: 20, comment: "「ハングリー精神があってイイネ！」と謎の高評価を得た。" },
                     { text: "お腹が痛いと嘘をつく", stress: -20, shachiku: 0, comment: "「体調管理も仕事のうちだぞ」と嫌味を言われたが、スルーした。" }
                 ]
@@ -333,9 +334,9 @@
                 slack: { sender: "Slack #general", text: "【全社連絡】本日の定時後、新人の歓迎会を行います。※強制参加" },
                 bgImg: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80", // 研修風景・PC
                 choices: [
-                    { text: "必死にメモをとる", stress: 10, shachiku: 15, comment: "ノートが真っ黒になったが、内容は全く頭に入っていない。" },
+                    { text: "エンターキーだけ「ッターン！」と無駄に強く叩く", stress: 20, shachiku: -5, comment: "仕事できる感を出したが、音が大きすぎて講師陣がザワつき始めた" },
                     { text: "ChatGPTに丸投げする", stress: -10, shachiku: -10, comment: "AIが完璧なコードを書いてくれた。未来を感じた。" },
-                    { text: "同期と裏でチャットする", stress: -5, shachiku: 0, comment: "「この会社ヤバくない？」と結束が深まった。" },
+                    { text: "とりあえずSlackのカスタム絵文字を漁る", stress: 10, shachiku: 0, comment: "大量の謎スタンプに気を取られて気づいたら2時間経過していた。" },
                     { text: "こっそり副業をする", stress: 0, shachiku: 0, comment: "画面共有を求められた際に副業の画面が映り込み、大炎上。即クビ。", gameover: true }
                 ]
             },
@@ -347,68 +348,71 @@
                 bgImg: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80", // 居酒屋・バー風
                 charImg: "https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&w=200&q=80", // 酔っ払った部長風
                 choices: [
-                    { text: "「一滴も飲めません」", stress: -10, shachiku: 0, comment: "なんとか歓迎会を乗り切った。社会人の洗礼を浴びた気分だ。" },
+                    { text: "「それってアルハラに該当するリスクありませんか？」と笑顔で牽制", stress: -10, shachiku: -10, comment: "部長が露骨に怯え始め、その後一切話しかけられなくなった。" },
                     { text: "「浴びるほど飲めます」", stress: 20, shachiku: 20, comment: "調子に乗って飲みすぎた結果、部長にタメ口をきいてしまった。明日の朝礼が怖い。" },
                     { text: "部長のグラスに注ぎ返す", stress: 0, shachiku: 30, comment: "見事なお酌スキルを披露し、部長のハートを鷲掴みにした。" },
-                    { text: "ウーロン茶で乾杯する", stress: -5, shachiku: 0, comment: "こっそりウーロン茶を飲み続け、シラフで生き残った。" }
+                    { text: "「じゃあマイプロテインで」と持参したシェイカーを振り始める", stress: 0, shachiku: -5, comment: "筋肉キャラとして定着し、飲み会のたびに「筋肉に悪いんで」で全て断れる無敵の口実を手に入れた。" }
                 ]
             },
 
-            // 6. 日常イベント
+            // 6. 昼食（カジュアル1on1）
             'scene_6': {
-                text: "研修も中盤。今日は昼休みに少し時間がある。どこに行こうか？",
-                bgImg: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80", // ランチ/街並み
+                speaker: "人事",
+                text: "「お疲れ様！今日は評価とか全然関係ない、ただのカジュアルなランチ面談だから！ぶっちゃけ今の研修どう？」",
+                slack: { sender: "Slack #ボードメッセージ", text: "『新入社員の皆様、弊社には慣れましたか？』" },
+                bgImg: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80",
+                charImg: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
                 choices: [
-                    { text: "日本橋のランチ", stress: -10, shachiku: 0, comment: "【日本橋】1500円もした。リフレッシュできた。" },
-                    { text: "駅前の牛丼", stress: -5, shachiku: 0, comment: "【駅前】牛丼を3分でかきこんだ。これが日本のビジネスマンだ。" },
-                    { text: "研修室に引きこもる", stress: 10, shachiku: 20, comment: "先輩「おっ、偉いね。じゃあこの資料のレビューもお願いしていい？」" },
-                    { text: "こっそり家に帰る", stress: -50, shachiku: 0, comment: "【自宅】起きたら夕方だった。もちろんクビになった。", gameover: true }
+                    { text: "「最高です！毎日が圧倒的成長です！」と嘘をつく", stress: 20, shachiku: 30, comment: "人事が満足そうにメモを取った。嘘に嘘を重ねる社会人生活が幕を開けた。" },
+                    { text: "「ぶっちゃけ、ちょっと意味わかんないです」と本音を言う", stress: 0, shachiku: -20, comment: "「君、カルチャーフィットに課題があるね」と、評価シート（ガッツリ評価してる）に書かれた。" },
+                    { text: "無言で高いランチメニュー（経費）だけを頼む", stress: -10, shachiku: 0, comment: "「3000円のうな重」を注文した瞬間、人事の笑顔が引き攣った。" },
+                    { text: "「私の心理的安全性が脅かされています」と逆質問", stress: 30, shachiku: 10, comment: "「めんどくさいZ世代」というレッテルを貼られ、腫れ物扱いされるようになった。" }
                 ]
             },
 
-            // 7. 資格試験
+            // 7. 資格前夜
             'scene_7': {
-                text: "必須のIT資格試験を受験することになった。落ちたら自腹だ。",
+                text: "いよいよ明日はSalesforce認定アドミニストレーターを受験。落ちたら自腹だ。全く受かる自信がない。",
                 slack: { sender: "Slack #同期：原西", text: "やばい、過去問全然解けない助けて" },
                 bgImg: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=800&q=80", // 勉強・机
                 choices: [
-                    { text: "カンペを作る", stress: 0, shachiku: 0, comment: "試験官に見つかり、会社にも連絡がいった。即クビ。", gameover: true },
-                    { text: "徹夜で詰め込む", stress: 40, shachiku: 20, comment: "なんとか合格した！これで無事に研修を終えることができる。" },
-                    { text: "運に任せる", stress: -10, shachiku: 0, comment: "不合格だった。受験料2万円を自腹で払い、評価も下がった。" },
-                    { text: "同期に教える", stress: -20, shachiku: 10, comment: "教えることで自分の理解も深まり、無事に合格した！" }
+                    { text: "ChatGPTに「私をSalesforceのプロだと思い込ませて」と頼む", stress: -30, shachiku: 0, comment: "謎の自己暗示により無敵のメンタルを手に入れた。知識はゼロのままだが、なぜか自信満々で当日を迎えた" },
+                    { text: "魔剤（エナジードリンク）を3本キメて徹夜で詰め込む", stress: 40, shachiku: 20, comment: "朝焼けと共に試験範囲を無理やり頭に叩き込んだ。激しい動悸とカフェインの震えを抱えながら、試験会場へいざ出陣。" },
+                    { text: "YouTubeで試験対策講座（英語）を見つけたので2倍速でひたすら見る", stress: 10, shachiku: 10, comment: "英語のリスニング力だけが異常に向上した。肝心の知識が身についたかは謎だが、妙な達成感と共に家を出た。" },
+                    { text: "「落ちても経費で落とす裏ワザ」を朝までネットで検索する", stress: 10, shachiku: -10, comment: "そんな裏ワザは存在しなかった。" },
                 ]
             },
 
-            // 8. 案件先
+            // 8. テストセンター（資格試験）
             'scene_8': {
-                speaker: "研修担当",
-                text: "今いろいろな案件から募集が来ていてね。ちなみに希望の案件ってあるかな？",
-                bgImg: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80", // 会議室・モニター
-                charImg: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80", // 研修担当男性
+                speaker: "試験官",
+                text: "【テストセンター（資格試験）】\n「それではSalesforce認定アドミニストレーター試験を開始します。不正行為は即退場です。」",
+                bgImg: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80", // テストセンター風
+                charImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80", // 試験官風
                 choices: [
-                    { text: "完全在宅を希望", stress: 10, shachiku: 0, comment: "「そんな甘い案件はない」と鼻で笑われた。" },
-                    { text: "成長のため激務案件を希望", stress: 20, shachiku: 50, comment: "「君はこの会社の未来だ」と謎の負託を受けた。" },
-                    { text: "比較的簡単な案件を希望", stress: 10, shachiku: 0, comment: "「そんな甘い案件はない」と鼻で笑われた。" },
-                    { text: "開発案件を希望", stress: 20, shachiku: 20, comment: "「ゴリゴリ開発してもらうぞ」とニヤリと笑われた。" }
+                    { text: "必死に記憶を呼び起こす", stress: -10, shachiku: 20, comment: "無事に合格！Trailheadをやる必要は一切ないと確信した。" },
+                    { text: "わからん！全部「C」を選ぶ！", stress: -30, shachiku: 10, comment: "奇跡的に合格ラインギリギリで合格。受験料2万円の死守に成功した。" },
+                    { text: "隣の人の画面を覗き込む", stress: 0, shachiku: 0, comment: "パーティションが高すぎて首を攣ったうえ、試験官につまみ出された。即クビ。", gameover: true },
+                    { text: "試験中に寝る", stress: 20, shachiku: -10, comment: "いびきがうるさいとクレームが入り、会社に報告された。" }
                 ]
             },
 
-            // 9. サークル活動
+            // 9. フットサル部
             'scene_9': {
-                text: "激務の合間を縫って、今日は会社の部活動の日だ。",
+                text: "会社のフットサル部に初参加。元サッカー部の名に懸けてインパクトを残したい",
                 bgImg: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=800&q=80", // スポーツ/活動
                 choices: [
-                    { text: "フットサル", stress: -30, shachiku: 10, comment: "いい汗を流してリフレッシュした。" },
-                    { text: "ボードゲーム", stress: -20, shachiku: 0, comment: "頭を使いすぎて逆に疲れたが、楽しかった。" },
-                    { text: "残業する", stress: 20, shachiku: 30, comment: "部活なんてやってる暇はない。ひたすらPCに向かった。" },
-                    { text: "帰って寝る", stress: -40, shachiku: -10, comment: "すべてを投げ出して布団にダイブした。最高だ。" }
+                    { text: "社長に絶対にゴールできるキラーパスを出し続ける", stress: 10, shachiku: 40, comment: "社長はご満悦だったが、周りの社員からは「あいつのヨイショ力はエグい」と距離を置かれた。" },
+                    { text: "実力で先輩をボコボコにする", stress: -30, shachiku: 10, comment: "気持ちよく勝ったが、翌日の先輩のチャットが少し冷たかった。" },
+                    { text: "「足首のAPIが応答しないため見学します」とベンチに座る", stress: -20, shachiku: -10, comment: "意味不明な言い訳で見学したが、「エンジニアジョークだね」と奇跡的にウケて許された。" },
+                    { text: "開始3秒でアキレス腱を伸ばし、労災を主張する", stress: 30, shachiku: 0, comment: "「業務外の任意活動だから」と人事に冷たくあしらわれ、ただただ足が痛いだけの人になった。" }
                 ]
             },
 
             // 10. 勉強会
             'scene_10': {
                 speaker: "勉強会運営",
-                text: "「テラテク勉強会を開始までもうしばらくお待ちください！」",
+                text: "「テラヌカイ勉強会を開始までもうしばらくお待ちください！」",
                 slack: { sender: "Slack #general", text: "【出欠確認】本日の勉強会、もちろん若手は全員参加ですよね？（※無給）" },
                 bgImg: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=800&q=80", // コワーキングスペース
                 charImg: "https://images.unsplash.com/photo-1488161628813-044c69818967?auto=format&fit=crop&w=200&q=80", // 意識高そうな先輩
@@ -420,10 +424,24 @@
                 ]
             },
 
-            // 11. 初アサイン
+            // 11. 案件面談
             'scene_11': {
+                speaker: "営業担当",
+                text: "【会議室】\n「今いろいろな案件から募集が来ていてね。ちなみに希望の案件ってあるかな？」",
+                bgImg: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80", // 会議室・モニター
+                charImg: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80", // 研修担当男性
+                choices: [
+                    { text: "完全在宅を希望", stress: 10, shachiku: 0, comment: "「そんな甘い案件はない」と鼻で笑われた。" },
+                    { text: "成長のため激務案件を希望", stress: 20, shachiku: 50, comment: "「君はこの会社の未来だ」と謎の負託を受けた。" },
+                    { text: "比較的簡単な案件を希望", stress: 10, shachiku: 0, comment: "「そんな甘い案件はない」と鼻で笑われた。" },
+                    { text: "開発案件を希望", stress: 20, shachiku: 20, comment: "「ゴリゴリ開発してもらうぞ」とニヤリと笑われた。" }
+                ]
+            },
+
+            // 12. 初アサイン
+            'scene_12': {
                 speaker: "PM",
-                text: "【初アサイン】\n「今日から君はSalesforceの運用保守チームだ。顧客の要望は絶対だからな。」",
+                text: "【初アサイン】\n「今日から君はSalesforceの保守チームだ。顧客の要望は絶対だからな。」",
                 bgImg: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80", // オフィス会議
                 charImg: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80", // PM風の男性
                 choices: [
@@ -434,79 +452,79 @@
                 ]
             },
 
-            // 12. 顧客ミーティング
-            'scene_12': {
+            // 13. 顧客ミーティング
+            'scene_13': {
                 speaker: "クライアント",
-                text: "【顧客ミーティング】\n「Salesforce導入したんだけどさ、画面のレイアウト全部今まで使ってたExcelと全く同じにしてよ」",
+                text: "【要望のヒアリング会議】\n「Salesforce導入したんだけどさ、画面のレイアウト全部今まで使ってたExcelと全く同じにしてよ」",
                 slack: { sender: "Slack #チームチャンネル", text: "出たよ、Excel至上主義おじさん…誰か止めて…" },
                 bgImg: "https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&w=800&q=80", // 商談・クライアント
                 charImg: "https://images.unsplash.com/photo-1558222218-b7b54eede3f3?auto=format&fit=crop&w=200&q=80", // クライアント風の男性
                 choices: [
                     { text: "AIに「顧客を説得する文章」を考えさせる", stress: 10, shachiku: 0, comment: "生成された文章をそのまま読んだら、論理的すぎて顧客が黙った。"  },
                     { text: "「承知いたしました！」とVisualforceでゴリ押し", stress: 40, shachiku: 40, comment: "凄まじくメンテナンス性の低いコードになり、後のエンジニアが地獄を見た。" },
-                    { text: "画面にExcelのアイコンを貼って誤魔化す", stress: 0, shachiku: 0, comment: "「おお、これだよこれ！」と顧客は喜んだが、後日バレて大炎上した。クビ。", gameover: true },
+                    { text: "画面にExcelのスクショをそのまま埋め込み誤魔化す", stress: 0, shachiku: 0, comment: "「おお、これだよこれ！」と顧客は喜んだが、後日バレて大炎上した。クビ。", gameover: true },
                     { text: "泣き出す", stress: -20, shachiku: 0, comment: "顧客がドン引きして要求を取り下げた。泣いてスッキリした。" }
-                ]
-            },
-
-            // 13. テストセンター（資格試験）
-            'scene_13': {
-                speaker: "試験官",
-                text: "【テストセンター（資格試験）】\n「それではSalesforce認定アドミニストレーター試験を開始します。不正行為は即退場です。」",
-                bgImg: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80", // テストセンター風
-                charImg: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80", // 試験官風
-                choices: [
-                    { text: "必死に記憶を呼び起こす", stress: -10, shachiku: 20, comment: "無事に合格！Trailheadをやる必要は一切ないと思った。" },
-                    { text: "わからん！全部「C」を選ぶ！", stress: 40, shachiku: 0, comment: "奇跡的に合格ラインに1点届かず不合格。自腹受験料2万円が消えた。" },
-                    { text: "隣の人の画面を覗き込む", stress: 0, shachiku: 0, comment: "パーティションが高すぎて首を攣ったうえ、試験官につまみ出された。即クビ。", gameover: true },
-                    { text: "試験中に寝る", stress: 20, shachiku: -10, comment: "いびきがうるさいとクレームが入り、会社に報告された。" }
                 ]
             },
 
             // 14. リリース当日（深夜）
             'scene_14': {
                 speaker: "PM",
-                text: "【リリース当日（深夜）】\n本番環境への変更セットのデプロイがエラーで弾かれ続けている。現在時刻、深夜2時。",
-                slack: { sender: "Slack #PM", text: "まだ？お客様が朝9時に使うんだけど。俺は先に寝るからよろしく。" },
+                text: "【リリース当日（深夜）】\n本番環境への変更セットのリリースがエラーで弾かれ続けている。現在時刻、深夜2時。",
+                slack: { sender: "Slack #同期：原西", text: "寝れないんだけど、今暇？" },
                 bgImg: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80", // 暗い部屋のコード画面
                 charImg: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80", // PM(再登場)
                 choices: [
                     { text: "エラーログを一つずつ解読して修正", stress: 50, shachiku: 50, comment: "朝礼ギリギリで完了。寿命が5年縮んだ気がする。" },
                     { text: "「Salesforceの不具合です」と言い張る", stress: 10, shachiku: -10, comment: "誰も信じてくれなかった。" },
-                    { text: "祈りながら「再デプロイ」ボタンを連打", stress: -10, shachiku: 20, comment: "なぜか通った。ITの神秘を感じた。" },
+                    { text: "祈りながら「リリース」ボタンを連打", stress: -10, shachiku: 20, comment: "なぜか通った。ITの神秘を感じた。" },
                     { text: "自分も画面が真っ白になったフリをする", stress: 30, shachiku: 10, comment: "PMから『心理的安全性に配慮した原因究明会（という名の吊るし上げ）』に招待された。" }
                 ]
             },
 
-            // 15. 障害発生
+            // 15. 給料日
             'scene_15': {
+                text: "【給料日】\nついに給料日だ！激務を耐え抜いた証！さて、何に使おうか？",
+                bgImg: "https://images.unsplash.com/photo-1580519542036-ed47139145ce?auto=format&fit=crop&w=800&q=80", // ATM/お金
+                choices: [
+                    { text: "勉強代に全額ツッコむ", stress: 10, shachiku: 40, comment: "成長意欲は高いが、今月の夕飯が毎日もやしになった。" },
+                    { text: "豪遊してパーッと使う", stress: 30, shachiku: -10, comment: "翌日から定期代すら無くなり、歩いて通勤するハメに。" },
+                    { text: "親に仕送りをする", stress: -15, shachiku: 10, comment: "実家から「無理するな」と大量の米が送られてきて泣いた。" },
+                    { text: "ストレス発散のため、Vチューバーに赤スパ（高額投げ銭）を撃つ", stress: -50, shachiku: 0, comment: "「ナイスパ〜！」と名前を呼ばれた瞬間、労働の辛さがすべて吹き飛んだ。" }
+                ]
+            },
+
+            // 16. 障害発生
+            'scene_16': {
                 speaker: "ユーザー",
-                text: "【障害発生】\n「なんか画面が真っ白になって何も見えないんだけど！！至急対応して！！」",
-                slack: { sender: "Slack #システムアラート", text: "本番環境でApexガバナ制限エラーが発生しました（Too many SOQL queries: 101）" },
+                text: "【障害発生】\n「至急対応お願い！！商談の保存ボタン押したら『未処理の例外が発生しました』って赤いエラーが出て何もできないんだけど！！」",
+                slack: { sender: "Slack #システムアラート", text: "Flow:「商談_自動更新処理」でエラーが発生しています" },
                 bgImg: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80", // エラー画面/サイバー
                 charImg: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80", // 怒っているユーザー風
                 choices: [
-                    { text: "ループ処理内のSOQLを急いで外に出す", stress: 30, shachiku: 30, comment: "先輩の書いたクソコードの尻拭いをさせられた。" },
-                    { text: "「キャッシュクリアしてください」と返信", stress: 10, shachiku: 0, comment: "一時凌ぎにはなったが、根本解決していないので明日また怒られる。" },
-                    { text: "サポートに丸投げする", stress: 20, shachiku: -5, comment: "「御社のカスタムコードの問題です」と冷たく突き返された。" },
-                    { text: "自分も画面が真っ白になったフリをする", stress: 15, shachiku: -10, comment: "「お前のは物理的に電源が切れてるだけだろ！」とPMにドロップキックされた。" }
+                    { text: "本番環境で直接フローを「無効化」して強行突破する", stress: 40, shachiku: 30, comment: "赤いエラーは止まったが、裏で動くはずだった自動更新が全て止まり、翌日「データがおかしい」と他部署から大クレームが来た。サクセスストーリーはここで終わりを告げた", gameover: true },
+                    { text: "「キャッシュクリアしてください」と返信", stress: 10, shachiku: 0, comment: "奇跡的に一時凌ぎにはなったが、根本解決していないので明日また怒られる。" },
+                    { text: "Salesforceのプレミアサポートに泣きつく", stress: 20, shachiku: -5, comment: "「標準機能の仕様内です。お客様の作成したフローの構築を見直してください」と丁寧かつ冷酷に突き放され、絶望した。" },
+                    { text: "「私の画面でもエラー出ますね〜」と通信障害のフリをする", stress: 30, shachiku: -10, comment: "適当に誤魔化そうとしたが、設定変更の「設定監査履歴」に自分の名前がバッチリ残っており、PMから無言で1on1面談がセットされた。" }
                 ]
             },
 
-            // 16. 給料日
-            'scene_16': {
-                text: "【給料日】\nついに給料日だ！激務を耐え抜いた証！ATMで残高を確認する。",
-                bgImg: "https://images.unsplash.com/photo-1580519542036-ed47139145ce?auto=format&fit=crop&w=800&q=80", // ATM/お金
+            // 17. 評価面談
+            'scene_17': {
+                speaker: "部長",
+                text: "【評価面談】\n「今期もよく頑張ってくれた。これが君の評価と来季の給与だ。不満が無ければ今ここでカオナビで確定ボタンを押してくれるかな」",
+                bgImg: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80", // 面談/1on1
+                charImg: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80", // 部長風
                 choices: [
-                    { text: "次の資格受験料と技術書に全額ツッコむ", stress: 10, shachiku: 40, comment: "成長意欲は高いが、今月の夕飯が毎日もやしになった。" },
-                    { text: "豪遊してパーッと使う", stress: -20, shachiku: -10, comment: "翌日から定期代すら無くなり、歩いて通勤するハメに。" },
-                    { text: "親に仕送りをする", stress: -15, shachiku: 10, comment: "実家から「無理するな」と大量の米が送られてきて泣いた。" },
-                    { text: "明細を見たら手取り14万だった", stress: 0, shachiku: 0, comment: "みなし残業恐るべし。怒りで我を忘れ、その場で退職届を書いた。", gameover: true }
+                    { text: "「ありがとうございます！さらに粉骨砕身頑張ります！」", stress: 0, shachiku: 50, comment: "部長「うんうん、その意気だ（チョロいな）」" },
+                    { text: "「は？資格3つも取ったんですが？」とキレる", stress: 30, shachiku: -10, comment: "扱いづらい奴認定され、さらに面倒な案件に回された。" },
+                    { text: "笑顔は見せるも確定ボタンは頑なに押さない", stress: 10, shachiku: 0, comment: "部長「来期も君には期待しているよ・・・で、確定ボタン押した？」" },
+                    { text: "辞表を叩きつける", stress: 0, shachiku: 0, comment: "勢いで辞めたはいいが、次のアテがなくニートになった。", gameover: true }
                 ]
             },
 
-            // 17. 翌年春（後輩の指導）
-            'scene_17':  {
+            // 18. 翌年春（後輩の指導）
+            'scene_18':  {
                 speaker: "Z世代の新入社員",
                 text: "「先輩、このタスクなんですけど、AIにスクリプト書かせて自動化しときました。手作業とかタイパ悪すぎません？」",
                 bgImg: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
@@ -519,19 +537,6 @@
                 ]
             },
 
-            // 18. 評価面談
-            'scene_18': {
-                speaker: "部長",
-                text: "【評価面談】\n「今期の君の評価だが…頑張ってはいるけど、突出した成果がないんだよね。よって昇給は月500円だ。」",
-                bgImg: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80", // 面談/1on1
-                charImg: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80", // 部長風
-                choices: [
-                    { text: "「ありがとうございます！さらに粉骨砕身頑張ります！」", stress: 0, shachiku: 50, comment: "部長「うんうん、その意気だ（チョロいな）」" },
-                    { text: "「は？資格3つも取ったんですが？」とキレる", stress: 30, shachiku: -10, comment: "扱いづらい奴認定され、さらに面倒な案件に回された。" },
-                    { text: "泣き落としで情に訴える", stress: 10, shachiku: 0, comment: "ドン引きされ、面談が強制終了した。" },
-                    { text: "辞表を叩きつける", stress: 0, shachiku: 0, comment: "勢いで辞めたはいいが、次のアテがなくニートになった。", gameover: true }
-                ]
-            },
 
             // 19. 運命の選択
             'scene_19': {
@@ -638,7 +643,7 @@
                 ui.slackNotification.classList.add("show");
                 setTimeout(() => {
                     ui.slackNotification.classList.remove("show");
-                }, 3500);
+                }, 7500);
             } else {
                 ui.slackNotification.classList.remove("show");
             }
