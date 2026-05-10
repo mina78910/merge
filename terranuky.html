@@ -96,7 +96,7 @@
         #stress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #f1c40f, #e74c3c); transition: width 0.3s; }
         #shachiku-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #3498db, #9b59b6); transition: width 0.3s; }
 
-/* コントローラー（4択ボタン） */
+        /* コントローラー（4択ボタン） */
         #controls { 
             flex: 1; display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -138,7 +138,9 @@
 <body>
 
     <div id="effect-overlay"></div>
-    <div id="confetti-container"></div> <div id="top-screen">
+    <div id="confetti-container"></div> 
+    
+    <div id="top-screen">
         <div id="bg-image"></div>
         
         <div id="slack-notification">
@@ -589,7 +591,7 @@
 
             // エンディング各種
             'end_legend': { text: "【鋼の伝説】\nストレスも社畜度も極限まで高まった結果、君は謎の覚醒を遂げた。\nもはや君に限界はない。次期社長は君だ。", bgImg: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80", bg: "gold", choices: [{ text: "再度入社する（はじめから）", next: "title" }] },
-            'end_stress': { text: "【限界突破】\n蓄積されたストレスがついに爆発し、君は静かにPCを閉じた。\nどこか遠くへ旅に出よう。お疲れ様でした。", bgImg: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", bg: "red", choices: [{ text: "再度入社する（はじめから）", next: "title" }] },
+            'end_stress': { text: "【限界突破】\n蓄積されたストレスがついに爆発し、君は静かにPCを閉じた。\nどこか遠くへ旅に出よう。お疲れ様でした。", bgImg: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", choices: [{ text: "再度入社する（はじめから）", next: "title" }] },
             'end_shachiku': { text: "【社畜王の誕生】\n「君こそが我が社のエースだ！」\n社畜精神が認められ、最年少マネージャーに昇格した。休日はもう無い。", bgImg: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80", bg: "gold", choices: [{ text: "再度入社する（はじめから）", next: "title" }] },
             'end_peace': { text: "【悠々自適】\nストレスも溜めず、会社に染まることもなく生き抜いた。\n君のワークライフバランスは完璧だ。これぞ現代の勝者。", bgImg: "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=800&q=80", bg: "lightblue", choices: [{ text: "再度入社する（はじめから）", next: "title" }] },
             'end_normal': { text: "【一般社員の日常】\n適度に働き、適度にサボる。\n平凡だが、悪くない社会人生活がこれからも続いていく……。", bgImg: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80", bg: "lightblue", choices: [{ text: "再度入社する（はじめから）", next: "title" }] }
