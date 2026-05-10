@@ -484,8 +484,8 @@
                 choices: [
                     { text: "エラーログを一つずつ解読して修正", stress: 50, shachiku: 50, comment: "朝礼ギリギリで完了。寿命が5年縮んだ気がする。" },
                     { text: "「Salesforceの不具合です」と言い張る", stress: 10, shachiku: -10, comment: "誰も信じてくれなかった。" },
-                    { text: "祈りながら「リリース」ボタンを連打", stress: -10, shachiku: 20, comment: "なぜか通った。ITの神秘を感じた。" },
-                    { text: "自分も画面が真っ白になったフリをする", stress: 30, shachiku: 10, comment: "PMから『心理的安全性に配慮した原因究明会（という名の吊るし上げ）』に招待された。" }
+                    { text: "祈りながら「リリース」ボタンを連打", stress: -10, shachiku: -10, comment: "なぜか通った。ITの神秘を感じた。" },
+                    { text: "自分も画面が真っ白になったフリをする", stress: 30, shachiku: 0, comment: "PMから『心理的安全性に配慮した原因究明会（という名の吊るし上げ）』に招待された。" }
                 ]
             },
 
@@ -494,9 +494,9 @@
                 text: "【給料日】\nついに給料日だ！激務を耐え抜いた証！さて、何に使おうか？",
                 bgImg: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=800&q=80", // ATM/お金
                 choices: [
-                    { text: "勉強代に全額ツッコむ", stress: 10, shachiku: 40, comment: "成長意欲は高いが、今月の夕飯が毎日もやしになった。" },
+                    { text: "勉強代に全額ツッコむ", stress: 10, shachiku: 30, comment: "成長意欲は高いが、今月の夕飯が毎日もやしになった。" },
                     { text: "豪遊してパーッと使う", stress: 30, shachiku: -10, comment: "翌日から定期代すら無くなり、歩いて通勤するハメに。" },
-                    { text: "親に仕送りをする", stress: -15, shachiku: 10, comment: "実家から「無理するな」と大量の米が送られてきて泣いた。" },
+                    { text: "親に仕送りをする", stress: -15, shachiku: 0, comment: "実家から「無理するな」と大量の米が送られてきて泣いた。" },
                     { text: "ストレス発散のため、Vチューバーに赤スパ（高額投げ銭）を撃つ", stress: -50, shachiku: 0, comment: "「ナイスパ〜！」と名前を呼ばれた瞬間、労働の辛さがすべて吹き飛んだ。" }
                 ]
             },
@@ -509,8 +509,8 @@
                 bgImg: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80", // エラー画面/サイバー
                 charImg: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80", // 怒っているユーザー風
                 choices: [
-                    { text: "本番環境で直接フローを「無効化」して強行突破する", stress: 40, shachiku: 30, comment: "赤いエラーは止まったが、裏で動くはずだった自動更新が全て止まり、翌日「データがおかしい」と他部署から大クレームが来た。サクセスストーリーはここで終わりを告げた", gameover: true },
-                    { text: "「キャッシュクリアしてください」と一時応答する", stress: 10, shachiku: 0, comment: "奇跡的に一時凌ぎにはなったが、根本解決していないので明日また怒られる。" },
+                    { text: "本番環境で直接フローを「無効化」して強行突破する", stress: 40, shachiku: 0, comment: "赤いエラーは止まったが、裏で動くはずだった自動更新が全て止まり、翌日「データがおかしい」と他部署から大クレームが来た。サクセスストーリーはここで終わりを告げた", gameover: true },
+                    { text: "「キャッシュクリアしてください」と一時応答する", stress: 10, shachiku: 10, comment: "奇跡的に一時凌ぎにはなったが、根本解決していないので明日また怒られる。" },
                     { text: "Salesforceのプレミアサポートに泣きつく", stress: 20, shachiku: -5, comment: "「標準機能の仕様内です。お客様の作成したフローの構築を見直してください」と丁寧かつ冷酷に突き放され、絶望した。" },
                     { text: "「私の画面でもエラー出ますね〜」と通信障害のフリをする", stress: 30, shachiku: -10, comment: "適当に誤魔化そうとしたが、設定変更の「設定監査履歴」に自分の名前がバッチリ残っており、PMから無言で1on1面談がセットされた。" }
                 ]
@@ -538,7 +538,7 @@
                 charImg: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
                 choices: [
                     { text: "「すごいね！」と素直に褒める", stress: 20, shachiku: 20, comment: "自分より優秀な後輩を見て、存在意義に悩み始めた。" },
-                    { text: "「でもセキュリティ要件満たしてる？」とマウントをとる", stress: 30, shachiku: 0, comment: "「あ、社内規程に沿ってプロンプト組んでます」と論破され、撃沈した。" },
+                    { text: "「でもセキュリティ要件満たしてる？」とマウントをとる", stress: 30, shachiku: 10, comment: "「あ、社内規程に沿ってプロンプト組んでます」と論破され、撃沈した。" },
                     { text: "「お前、そういう態度はよくないぞ」と説教", stress: 30, shachiku: 10, comment: "翌日、後輩のSlackのステータスが「ハラスメント相談中」になっており震えた。" },
                     { text: "便乗して自分の仕事も自動化してもらう", stress: -30, shachiku: -20, comment: "後輩とは意気投合したが、なぜか揃って『仕事してない』と評価が下がった。" }
                 ]
@@ -552,7 +552,7 @@
                 bgImg: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80", // スーツの人物/成功
                 choices: [
                     { text: "誘いに乗り、華麗に転職する", stress: 0, shachiku: 0, comment: "しかしそこは、さらに過酷なスーパーブラック企業だった…！終わりなき旅は続く。" },
-                    { text: "「私は今の会社に骨を埋めます！」と即レス", stress: 0, shachiku: 100, comment: "立派な社畜が完成した。社長が裏でガッツポーズしている。" },
+                    { text: "「私は今の会社に骨を埋めます！」と即レス", stress: 0, shachiku: 80, comment: "立派な社畜が完成した。社長が裏でガッツポーズしている。" },
                     { text: "1000万の画面をPMに見せて脅す", stress: 30, shachiku: 0, comment: "「おう、行け行け」とあっさり見捨てられた。" },
                     { text: "スパムだと思って無視する", stress: 10, shachiku: 40, comment: "一生この会社で薄給でこき使われる運命を受け入れた。" }
                 ]
