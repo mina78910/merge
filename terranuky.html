@@ -54,10 +54,10 @@
             z-index: 2; background: rgba(0, 0, 0, 0.8); color: #fff;
             padding: 15px; border-radius: 10px; border: 2px solid #fff;
             min-height: 120px; margin-top: 10px;
-            /* スクロール対応: スピーカー名も含めて全体をスクロールさせる */
-            max-height: 30vh;
+            max-height: 40vh; /* 広げました */
             overflow-y: auto;
-            display: block; /* flexを解除して自然なスクロールに */
+            display: block;
+            flex-shrink: 0; /* 潰れないように追加 */
         }
 
         #speaker-name { font-weight: bold; color: #f1c40f; margin-bottom: 5px; font-size: 0.9rem; }
@@ -81,6 +81,7 @@
         #bottom-screen {
             flex: 1; background-color: #34495e; padding: 15px;
             display: flex; flex-direction: column; justify-content: space-between;
+            overflow-y: auto; /* スクロールできるように追加 */
         }
 
         /* パラメーターUI */
@@ -94,8 +95,13 @@
         #stress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #f1c40f, #e74c3c); transition: width 0.3s; }
         #shachiku-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #3498db, #9b59b6); transition: width 0.3s; }
 
-        /* コントローラー（4択ボタン） */
-        #controls { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; margin-top: 15px; }
+/* コントローラー（4択ボタン） */
+        #controls { 
+            flex: 1; display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            grid-auto-rows: minmax(70px, 1fr); /* 高さの最低ラインを保証するように変更 */
+            gap: 10px; margin-top: 15px; 
+        }
         .choice-btn {
             background: linear-gradient(to bottom, #ecf0f1, #bdc3c7);
             border: 2px solid #7f8c8d; border-radius: 10px; font-size: 0.9rem;
