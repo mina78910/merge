@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アイドルcloud - Lightning Experience</title>
+    <style>
+        /* ==========================================
+           1. グローバル・変数定義
+        ========================================== */
+        :root {
+            --brand-color: #0176D3;
+            --brand-hover: #014486;
+            --bg-color: #B0C4DF; 
+            --surface-color: #FFFFFF;
+            --text-main: #181818;
+            --text-sub: #444444;
+            --text-weak: #747474;
+            --border-color: #DDDBDA;
+            --header-bg: #FFFFFF;
+            --tab-active: #F3F2F2;
+            --shadow-sm: 0 2px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --border-radius: 4px;
+            --font-family: "Salesforce Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-main); font-size: 13px; line-height: 1.5; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* ==========================================
+           2. グローバルナビゲーション (ヘッダー)
+        ========================================== */
+        header { background-color: var(--header-bg); border-bottom: 2px solid var(--brand-color); flex-shrink: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding: 8px 20px; border-bottom: 1px solid var(--border-color); }
+        .logo { font-size: 1.2rem; font-weight: 700; color: var(--brand-color); display: flex; align-items: center; gap: 8px; }
+        .logo span { background: var(--brand-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+        
+        .nav-tabs { display: flex; list-style: none; background-color: #FAFAF9; padding-left: 20px; overflow-x: auto;}
+        .nav-tabs li { padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: bold; color: var(--text-sub); transition: all 0.2s; white-space: nowrap; font-size: 13px;}
+        .nav-tabs li:hover { background-color: #F3F2F2; color: var(--brand-color); }
+        .nav-tabs li.active { border-bottom-color: var(--brand-color); color: var(--text-main); background-color: var(--surface-color); }
+
+        /* メメインコンテナ */
+        main { flex: 1; overflow-y: auto; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* ==========================================
+           3. 共通UIコンポーネント
+        ========================================== */
+        .card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+        
+        .btn { padding: 6px 16px; border-radius: var(--border-radius); border: 1px solid var(--border-color); background: white; color: var(--brand-color); cursor: pointer; font-weight: 700; font-size: 13px; transition: background 0.1s; }
+        .btn:hover { background: #F3F2F2; }
+        .btn-brand { background: var(--brand-color); color: white; border: none; }
+        .btn-brand:hover { background: var(--brand-hover); }
+        .btn-danger { color: #C23934; }
+        .btn-danger:hover { background: #FDE8E9; border-color: #C23934;}
+
+        .input-field { padding: 6px 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); outline: none; font-size: 13px; }
+        .input-field:focus { border-color: var(--brand-color); box-shadow: 0 0 3px rgba(1, 118, 211, 0.4); }
+
+        .action-link { color: var(--brand-color); text-decoration: none; cursor: pointer; }
+        .action-link:hover { text-decoration: underline; }
+
+        /* 画面表示制御 */
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* バッジ・ステータス */
+        .badge { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .badge-active { background: #E6F4EA; color: #1E8E3E; } 
+        .badge-pause { background: #FFF3E0; color: #E65100; } 
+        .badge-grad { background: #FCE8E6; color: #D93025; } 
+
+        /* ==========================================
+           4. リストビュー (一覧画面)
+        ========================================== */
+        .list-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #FAFAF9; border-radius: 4px 4px 0 0;}
+        .list-header-left h2 { font-size: 1.25rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px;}
+        .list-header-right { display: flex; gap: 8px; align-items: center; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: var(--surface-color); color: var(--text-sub); font-weight: 700; cursor: pointer; position: sticky; top: 0; z-index: 10;}
+        th:hover { background-color: #F3F2F2; }
+        tr:hover td { background-color: #FAFAF9; }
+
+        /* ==========================================
+           5. レコード詳細画面 (Lightning風レイアウト)
+        ========================================== */
+        .detail-page-layout { display: flex; flex-direction: column; gap: 16px; }
+        
+        .highlights-panel { padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .hp-left { display: flex; gap: 16px; align-items: center; }
+        .entity-icon { width: 48px; height: 48px; border-radius: var(--border-radius); display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; background: var(--brand-color); }
+        .hp-title-area .entity-label { font-size: 12px; color: var(--text-sub); margin-bottom: 2px; }
+        .hp-title-area h1 { font-size: 20px; margin: 0; font-weight: 700; }
+        
+        .hp-fields { display: flex; gap: 32px; margin-top: 16px; overflow-x: auto; }
+        .hp-field { display: flex; flex-direction: column; min-width: 80px; }
+        .hp-field-label { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; white-space: nowrap; }
+        .hp-field-value { font-size: 13px; font-weight: 500; white-space: nowrap; }
+        
+        .hp-actions { display: flex; gap: 8px; }
+
+        .detail-main-split { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+        @media (max-width: 900px) {
+            .detail-main-split { grid-template-columns: 1fr; }
+        }
+        
+        .detail-tab-header { padding: 12px 20px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 14px;}
+        .detail-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; padding: 20px; }
+        .field-item { border-bottom: 1px solid transparent; padding-bottom: 4px; }
+        .field-item:hover { border-bottom-color: var(--border-color); }
+        .field-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        .field-value { font-size: 13px; color: var(--text-main); }
+
+        .related-list-card { margin-bottom: 16px; }
+        .rl-header { padding: 12px 16px; border-bottom: 1px solid var(--border-color); background: #FAFAF9; border-radius: 4px 4px 0 0; display: flex; justify-content: space-between; align-items: center;}
+        .rl-header h3 { margin: 0; font-size: 13px; }
+        .rl-table th, .rl-table td { padding: 8px 16px; font-size: 12px; }
+
+        .breadcrumb { font-size: 12px; color: var(--brand-color); margin-bottom: 12px; cursor: pointer; display: inline-block;}
+        .breadcrumb:hover { text-decoration: underline; }
+
+        /* ==========================================
+           6. モーダル (新規/編集)
+        ========================================== */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: white; border-radius: var(--border-radius); width: 600px; max-width: 90%; box-shadow: var(--shadow-md); display: flex; flex-direction: column; max-height: 90vh;}
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #FAFAF9;}
+        .modal-body { padding: 20px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border-color); text-align: right; background: #FAFAF9; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-group label { margin-bottom: 6px; color: var(--text-sub); font-size: 12px; font-weight: 700; }
+
+        /* ==========================================
+           7. ダッシュボード・コンポーネント
+        ========================================== */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .kpi-card { padding: 20px; text-align: center; }
+        .kpi-value { font-size: 28px; font-weight: 700; color: var(--brand-color); margin-bottom: 4px; }
+        .kpi-label { font-size: 12px; color: var(--text-sub); text-transform: uppercase; }
+        
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        @media (max-width: 900px) {
+            .chart-grid { grid-template-columns: 1fr; }
+        }
+        .chart-card { min-height: 300px; padding: 20px; }
+        .chart-title { font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 16px; }
+
+        .bar-scroll { max-height: 350px; overflow-y: auto; padding-right: 4px; }
+        .bar-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;}
+        .bar-label { width: 140px; text-align: right; margin-right: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+        .bar-track { flex: 1; background: #F3F2F2; height: 20px; border-radius: 2px; overflow: hidden; display: flex;}
+        .bar-fill { background: var(--brand-color); height: 100%; display: flex; align-items: center; padding-left: 8px; color: white; font-weight: bold; font-size: 11px;}
+
+        .timeline-box { max-height: 350px; overflow-y: auto; padding: 10px; }
+        .timeline-item { position: relative; padding-left: 24px; margin-bottom: 16px; border-left: 2px solid var(--border-color); }
+        .timeline-item::before { content: ""; position: absolute; left: -6px; top: 2px; width: 10px; height: 10px; background: var(--brand-color); border-radius: 50%; }
+        .timeline-date { font-weight: bold; color: var(--brand-color); font-size: 12px; margin-bottom: 2px; }
+        .timeline-desc { font-size: 13px; color: var(--text-main); }
+    </style>
+</head>
+<body>
+
+    <!-- ヘッダー (グローバルナビ) -->
+    <header>
+        <div class="header-top">
+            <div class="logo">☁️ アイドルcloud </div>
+            <div style="font-size: 12px; color: var(--text-sub);">擬似Salesforce CRM環境 (メモリ保持)</div>
+        </div>
+        <ul class="nav-tabs" id="global-nav">
+            <!-- JSで動的生成されます -->
+        </ul>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- ダッシュボード画面 -->
+            <div id="view-dashboard" class="view-section">
+                <div class="dashboard-grid" id="dash-kpi"></div>
+                <div class="chart-grid">
+                    <div class="card chart-card">
+                        <div class="chart-title">グループ別 在籍メンバー数 (COUNT集計)</div>
+                        <div class="bar-scroll" id="chart-group-members"></div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-title">兼務・複数所属メンバー一覧 (中間テーブル結合解析)</div>
+                        <div class="bar-scroll" id="chart-concurrent"></div>
+                    </div>
+                </div>
+                <div class="chart-grid">
+                    <div class="card chart-card" style="grid-column: span 2;">
+                        <div class="chart-title">歴史イベント・タイムライン (時系列履歴マスタ)</div>
+                        <div class="timeline-box" id="chart-timeline"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- リストビュー画面 (一覧) -->
+            <div id="view-list" class="view-section active">
+                <div class="card">
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <h2 id="list-title">オブジェクト一覧</h2>
+                        </div>
+                        <div class="list-header-right">
+                            <input type="text" id="search-input" class="input-field" placeholder="このリストを検索...">
+                            <select id="filter-select" class="input-field"><option value="all">すべて</option></select>
+                            <button class="btn btn-brand" onclick="app.openModal('new')">新規</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="list-table">
+                            <thead><tr id="list-thead"></tr></thead>
+                            <tbody id="list-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ★新設: レポート画面 -->
+            <div id="view-report" class="view-section">
+                <div class="card" style="display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; padding: 20px;">
+                    <!-- 左側: レポート条件設定パネル -->
+                    <div style="border-right: 1px solid var(--border-color); padding-right: 24px;">
+                        <h2 style="font-size: 15px; font-weight: bold; margin-bottom: 16px; color: var(--brand-color); display: flex; align-items: center; gap: 6px;">📊 レポートビルダー</h2>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-weight: bold; font-size: 12px; color: var(--text-sub);">対象オブジェクト</label>
+                            <select id="report-object-select" class="input-field" onchange="app.onReportObjectChange()">
+                                <option value="idol">アイドル</option>
+                                <option value="group">グループ</option>
+                                <option value="work">作品</option>
+                                <option value="live">ライブ</option>
+                                <option value="venue">会場</option>
+                                <option value="event">イベント</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-weight: bold; font-size: 12px; color: var(--text-sub);">検索項目</label>
+                            <select id="report-field-select" class="input-field"></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-weight: bold; font-size: 12px; color: var(--text-sub);">演算子</label>
+                            <select id="report-operator-select" class="input-field">
+                                <option value="contains">次の文字列を含む</option>
+                                <option value="equals">次の値と一致する</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label style="font-weight: bold; font-size: 12px; color: var(--text-sub);">検索値</label>
+                            <input type="text" id="report-value-input" class="input-field" placeholder="検索ワードを入力...">
+                        </div>
+                        <button class="btn btn-brand" onclick="app.runReport()" style="width: 100%;">レポートを実行</button>
+                    </div>
+                    <!-- 右側: レポート結果表示テーブル -->
+                    <div>
+                        <div class="list-header" style="background: transparent; padding: 0 0 12px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                            <h2 id="report-result-title" style="font-size: 15px; margin: 0;">カスタムレポート結果</h2>
+                            <div class="badge badge-active" id="report-result-count" style="font-size: 12px;">0 レコード</div>
+                        </div>
+                        <div style="overflow-x: auto; margin-top: 16px;">
+                            <table id="report-result-table">
+                                <thead><tr id="report-result-thead"></tr></thead>
+                                <tbody id="report-result-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 詳細画面 (レコード詳細 ＋ 関連リスト) -->
+            <div id="view-detail" class="view-section">
+                <div class="breadcrumb" onclick="app.showList()">← <span id="breadcrumb-text">一覧へ戻る</span></div>
+                <div class="detail-page-layout">
+                    <!-- 上部: コンパクトレイアウト -->
+                    <div class="card highlights-panel">
+                        <div class="hp-left">
+                            <div class="entity-icon" id="detail-icon">📄</div>
+                            <div class="hp-title-area">
+                                <div class="entity-label" id="detail-obj-name">オブジェクト名</div>
+                                <h1 id="detail-title">レコード名</h1>
+                                <div class="hp-fields" id="detail-hp-fields"></div>
+                            </div>
+                        </div>
+                        <div class="hp-actions">
+                            <button class="btn" onclick="app.openModal('edit', app.currentDetailId)">編集</button>
+                            <button class="btn btn-danger" onclick="app.deleteRecord(app.currentDetailId)">削除</button>
+                        </div>
+                    </div>
+                    <!-- 下部: 詳細情報 ＆ 関連リスト分配 -->
+                    <div class="detail-main-split">
+                        <div class="card">
+                            <div class="detail-tab-header">詳細情報</div>
+                            <div class="detail-fields-grid" id="detail-info"></div>
+                        </div>
+                        <div id="related-lists-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- モーダル (新規作成/編集) -->
+    <div class="modal-overlay" id="form-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 style="font-size: 14px; margin:0;" id="modal-title">レコード編集</h2>
+                <button class="btn" style="border:none; background:transparent;" onclick="app.closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modal-form-content"></div>
+            <div class="modal-footer">
+                <button class="btn" onclick="app.closeModal()">キャンセル</button>
+                <button class="btn btn-brand" onclick="app.saveRecord()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 制御ロジック -->
+    <script>
+        // === 万が一エラーが起きた場合に画面に表示する安全装置 ===
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error("Error occurred:", message);
+        };
+
+        // --- 1. インポートデータベース ---
+        const db = {
+            agency: [
+                { id: 1, name: "SMILE-UP.", foundedYear: 1962, location: "東京都" },
+                { id: 2, name: "STARTO ENTERTAINMENT", foundedYear: 2024, location: "東京都" }
+            ],
+            group: [
+                { id: 1, name: "嵐", debutDate: "1999-11-03", status: "活動休止" },
+                { id: 2, name: "SixTONES", debutDate: "2020-01-22", status: "活動中" },
+                { id: 3, name: "Snow Man", debutDate: "2020-01-22", status: "活動中" },
+                { id: 4, name: "SUPER EIGHT", debutDate: "2004-08-25", status: "活動中" },
+                { id: 5, name: "NEWS", debutDate: "2003-11-07", status: "活動中" },
+                { id: 6, name: "KAT-TUN", debutDate: "2006-03-22", status: "活動中" },
+                { id: 7, name: "Hey! Say! JUMP", debutDate: "2007-11-14", status: "活動中" },
+                { id: 8, name: "King & Prince", debutDate: "2018-05-23", status: "活動中" },
+                { id: 9, name: "timelesz", debutDate: "2011-11-16", status: "活動中" },
+                { id: 10, name: "WEST.", debutDate: "2014-04-23", status: "活動中" },
+                { id: 11, name: "なにわ男子", debutDate: "2021-11-12", status: "活動中" },
+                { id: 12, name: "Travis Japan", debutDate: "2022-10-28", status: "活動中" },
+                { id: 13, name: "Aぇ! group", debutDate: "2024-05-15", status: "活動中" },
+                { id: 14, name: "Kis-My-Ft2", debutDate: "2011-08-10", status: "活動中" },
+                { id: 15, name: "TOKIO", debutDate: "1994-09-21", status: "活動中" },
+                { id: 16, name: "V6", debutDate: "1995-11-01", status: "解散" },
+                { id: 17, name: "KinKi Kids", debutDate: "1997-07-21", status: "活動中" }
+            ],
+            idol: [
+                { id: 1, name: "大野智", birthday: "1980-11-26", status: "活動休止", agencyId: 1, memberColor: "青" },
+                { id: 2, name: "櫻井翔", birthday: "1982-01-25", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 3, name: "相葉雅紀", birthday: "1982-12-24", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 4, name: "二宮和也", birthday: "1983-06-17", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 5, name: "松本潤", birthday: "1983-08-30", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 6, name: "ジェシー", birthday: "1996-06-11", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 7, name: "京本大我", birthday: "1994-12-03", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 8, name: "松村北斗", birthday: "1995-06-18", status: "活動中", agencyId: 1, memberColor: "黒" },
+                { id: 9, name: "髙地優吾", birthday: "1994-03-08", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 10, name: "森本慎太郎", birthday: "1997-07-15", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 11, name: "田中樹", birthday: "1995-06-15", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 12, name: "目黒蓮", birthday: "1997-02-16", status: "活動中", agencyId: 1, memberColor: "黒" },
+                { id: 13, name: "ラウール", birthday: "2003-06-27", status: "活動中", agencyId: 1, memberColor: "白" },
+                { id: 14, name: "渡辺翔太", birthday: "1992-11-05", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 15, name: "向井康二", birthday: "1994-06-21", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
+                { id: 16, name: "山下智久", birthday: "1985-04-09", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 17, name: "錦戸亮", birthday: "1984-11-03", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 18, name: "内博貴", birthday: "1986-09-10", status: "活動休止", agencyId: 1, memberColor: "紫" },
+                { id: 19, name: "岩本照", birthday: "1993-05-17", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 20, name: "深澤辰哉", birthday: "1992-05-05", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 21, name: "阿部亮平", birthday: "1993-11-27", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 22, name: "宮舘涼太", birthday: "1993-03-25", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 23, name: "佐久間大介", birthday: "1992-07-05", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 24, name: "山田涼介", birthday: "1993-05-09", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 25, name: "知念侑李", birthday: "1993-11-30", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 26, name: "中島裕翔", birthday: "1993-08-10", status: "活動中", agencyId: 1, memberColor: "水色" },
+                { id: 27, name: "永瀬廉", birthday: "1999-01-23", status: "活動中", agencyId: 1, memberColor: "漆黒" },
+                { id: 28, name: "髙橋海人", birthday: "1999-04-03", status: "活動中", agencyId: 1, memberColor: "ひまわりイエロー" },
+                { id: 29, name: "平野紫耀", birthday: "1997-01-29", status: "脱退", agencyId: 1, memberColor: "真紅" },
+                { id: 30, name: "神宮寺勇太", birthday: "1997-10-30", status: "脱退", agencyId: 1, memberColor: "ターコイズブルー" },
+                { id: 31, name: "岸優太", birthday: "1995-09-29", status: "脱退", agencyId: 1, memberColor: "紫" },
+                { id: 32, name: "亀梨和也", birthday: "1986-02-23", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 33, name: "上田竜也", birthday: "1983-10-04", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 34, name: "中丸雄一", birthday: "1983-09-04", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 35, name: "村上信五", birthday: "1982-01-26", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 36, name: "丸山隆平", birthday: "1983-11-26", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
+                { id: 37, name: "安田章大", birthday: "1984-09-11", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 38, name: "大倉忠義", birthday: "1985-05-16", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 39, name: "堂本光一", birthday: "1979-01-01", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 40, name: "堂本剛", birthday: "1979-04-10", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 41, name: "城島茂", birthday: "1970-11-17", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 42, name: "国分太一", birthday: "1974-09-02", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 43, name: "松岡昌宏", birthday: "1977-01-11", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 44, name: "有岡大貴", birthday: "1991-04-15", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
+                { id: 45, name: "髙木雄也", birthday: "1990-03-26", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 46, name: "伊野尾慧", birthday: "1990-06-22", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 47, name: "八乙女光", birthday: "1990-12-02", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 48, name: "薮宏太", birthday: "1990-01-31", status: "活動中", agencyId: 1, memberColor: "黄緑" },
+                { id: 49, name: "佐藤勝利", birthday: "1996-10-30", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 50, name: "菊池風磨", birthday: "1995-03-07", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 51, name: "松島聡", birthday: "1997-11-27", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 52, name: "重岡大毅", birthday: "1992-08-26", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 53, name: "桐山照史", birthday: "1989-08-31", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
+                { id: 54, name: "中間淳太", birthday: "1987-10-21", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 55, name: "神山智洋", birthday: "1993-07-01", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 56, name: "藤井流星", birthday: "1993-08-18", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 57, name: "濱田崇裕", birthday: "1988-12-19", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 58, name: "小瀧望", birthday: "1996-07-30", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 59, name: "西畑大吾", birthday: "1997-01-09", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 60, name: "大西流星", birthday: "2001-08-07", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
+                { id: 61, name: "道枝駿佑", birthday: "2002-07-25", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 62, name: "高橋恭平", birthday: "2000-02-28", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 63, name: "長尾謙杜", birthday: "2002-08-15", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 64, name: "藤原丈一郎", birthday: "1996-02-08", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 65, name: "大橋和也", birthday: "1997-08-09", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 66, name: "宮近海斗", birthday: "1997-09-22", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 67, name: "中村海人", birthday: "1997-04-15", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 68, name: "七五三掛龍也", birthday: "1995-06-23", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 69, name: "川島如恵留", birthday: "1994-11-22", status: "活動中", agencyId: 1, memberColor: "白" },
+                { id: 70, name: "吉澤閑也", birthday: "1995-08-10", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 71, name: "松田元太", birthday: "1999-04-19", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 72, name: "松倉海斗", birthday: "1997-11-14", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
+                { id: 73, name: "正門良規", birthday: "1996-11-28", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 74, name: "末澤誠也", birthday: "1994-08-24", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 75, name: "草間リチャード敬太", birthday: "1996-01-11", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 76, name: "小島健", birthday: "1999-06-25", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 77, name: "佐野晶哉", birthday: "2002-03-13", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 78, name: "藤ヶ谷太輔", birthday: "1987-06-25", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 79, name: "玉森裕太", birthday: "1990-03-17", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 80, name: "二階堂高嗣", birthday: "1990-08-06", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 81, name: "千賀健永", birthday: "1991-03-23", status: "活動中", agencyId: 1, memberColor: "水色" },
+                { id: 82, name: "宮田俊哉", birthday: "1988-09-14", status: "活動中", agencyId: 1, memberColor: "紫" },
+                { id: 83, name: "横尾渉", birthday: "1986-05-16", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
+                { id: 84, name: "坂本昌行", birthday: "1971-07-24", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 85, name: "長野博", birthday: "1972-10-09", status: "活動中", agencyId: 1, memberColor: "purple" },
+                { id: 86, name: "井ノ原快彦", birthday: "1976-05-17", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 87, name: "森田剛", birthday: "1979-02-20", status: "脱退", agencyId: 1, memberColor: "赤" },
+                { id: 88, name: "三宅健", birthday: "1979-07-02", status: "脱退", agencyId: 1, memberColor: "オレンジ" },
+                { id: 89, name: "岡田准一", birthday: "1980-11-18", status: "脱退", agencyId: 1, memberColor: "黄" },
+                { id: 90, name: "寺西拓人", birthday: "1993-12-31", status: "活動中", agencyId: 1, memberColor: "赤" },
+                { id: 91, name: "原嘉孝", birthday: "1995-09-25", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
+                { id: 92, name: "橋本将生", birthday: "2000-01-01", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 93, name: "猪俣周杜", birthday: "2001-02-02", status: "活動中", agencyId: 1, memberColor: "緑" },
+                { id: 94, name: "篠塚大輝", birthday: "2002-03-03", status: "活動中", agencyId: 1, memberColor: "黄" },
+            ],
+            // 中間テーブル: グループ所属 (非表示タブ)
+            affiliation: [
+                { id: 1, idolId: 1, groupId: 1, status: "活動休止", role: "リーダー", isConcurrent: "false" },
+                { id: 2, idolId: 2, groupId: 1, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 3, idolId: 3, groupId: 1, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 4, idolId: 4, groupId: 1, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 5, idolId: 5, groupId: 1, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 6, idolId: 6, groupId: 2, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 7, idolId: 7, groupId: 2, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 8, idolId: 8, groupId: 2, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 9, idolId: 9, groupId: 2, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 10, idolId: 10, groupId: 2, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 11, idolId: 11, groupId: 2, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 12, idolId: 12, groupId: 3, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 13, idolId: 13, groupId: 3, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 14, idolId: 14, groupId: 3, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 15, idolId: 15, groupId: 3, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 16, idolId: 17, groupId: 4, status: "脱退", role: "メンバー", isConcurrent: "false" },
+                { id: 17, idolId: 17, groupId: 5, status: "脱退", role: "メンバー", isConcurrent: "true" },
+                { id: 18, idolId: 16, groupId: 5, status: "脱退", role: "メンバー", isConcurrent: "true" },
+                { id: 19, idolId: 18, groupId: 5, status: "活動休止", role: "メンバー", isConcurrent: "true" },
+                { id: 20, idolId: 18, groupId: 4, status: "活動休止", role: "メンバー", isConcurrent: "true" },
+                { id: 21, idolId: 19, groupId: 3, status: "在籍中", role: "リーダー", isConcurrent: "false" },
+                { id: 22, idolId: 20, groupId: 3, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 23, idolId: 21, groupId: 3, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 24, idolId: 22, groupId: 3, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 25, idolId: 23, groupId: 3, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 26, idolId: 24, groupId: 7, status: "在籍中", role: "センター", isConcurrent: "false" },
+                { id: 27, idolId: 25, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 28, idolId: 26, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 29, idolId: 27, groupId: 8, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 30, idolId: 28, groupId: 8, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 31, idolId: 29, groupId: 8, status: "脱退", role: "センター", isConcurrent: "false" },
+                { id: 32, idolId: 30, groupId: 8, status: "脱退", role: "メンバー", isConcurrent: "false" },
+                { id: 33, idolId: 31, groupId: 8, status: "脱退", role: "リーダー", isConcurrent: "false" },
+                { id: 34, idolId: 32, groupId: 6, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 35, idolId: 33, groupId: 6, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 36, idolId: 34, groupId: 6, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 37, idolId: 35, groupId: 4, status: "在籍中", role: "MC", isConcurrent: "false" },
+                { id: 38, idolId: 36, groupId: 4, status: "在籍中", role: "ベース", isConcurrent: "false" },
+                { id: 39, idolId: 37, groupId: 4, status: "在籍中", role: "ギター", isConcurrent: "false" },
+                { id: 40, idolId: 38, groupId: 4, status: "在籍中", role: "ドラム", isConcurrent: "false" },
+                { id: 41, idolId: 39, groupId: 17, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 42, idolId: 40, groupId: 17, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 43, idolId: 41, groupId: 15, status: "在籍中", role: "リーダー", isConcurrent: "false" },
+                { id: 44, idolId: 42, groupId: 15, status: "在籍中", role: "キーボード", isConcurrent: "false" },
+                { id: 45, idolId: 43, groupId: 15, status: "在籍中", role: "ドラム", isConcurrent: "false" },
+                { id: 46, idolId: 44, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 47, idolId: 45, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 48, idolId: 46, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 49, idolId: 47, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 50, idolId: 48, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 51, idolId: 49, groupId: 9, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 52, idolId: 50, groupId: 9, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 53, idolId: 51, groupId: 9, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 54, idolId: 52, groupId: 10, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 55, idolId: 53, groupId: 10, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 56, idolId: 54, groupId: 10, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 57, idolId: 55, groupId: 10, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 58, idolId: 56, groupId: 10, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 59, idolId: 57, groupId: 10, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 60, idolId: 58, groupId: 10, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 61, idolId: 59, groupId: 11, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 62, idolId: 60, groupId: 11, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 63, idolId: 61, groupId: 11, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 64, idolId: 62, groupId: 11, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 65, idolId: 63, groupId: 11, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 66, idolId: 64, groupId: 11, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 67, idolId: 65, groupId: 11, status: "在籍中", role: "リーダー", isConcurrent: "false" },
+                { id: 68, idolId: 66, groupId: 12, status: "在籍中", role: "リーダー", isConcurrent: "false" },
+                { id: 69, idolId: 67, groupId: 12, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 70, idolId: 68, groupId: 12, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 71, idolId: 69, groupId: 12, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 72, idolId: 70, groupId: 12, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 73, idolId: 71, groupId: 12, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 74, idolId: 72, groupId: 12, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 75, idolId: 73, groupId: 13, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 76, idolId: 74, groupId: 13, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 77, idolId: 75, groupId: 13, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 78, idolId: 76, groupId: 13, status: "在籍中", role: "リーダー", isConcurrent: "false" },
+                { id: 79, idolId: 77, groupId: 13, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 80, idolId: 78, groupId: 14, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 81, idolId: 79, groupId: 14, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 82, idolId: 80, groupId: 14, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 83, idolId: 81, groupId: 14, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 84, idolId: 82, groupId: 14, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 85, idolId: 83, groupId: 14, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 86, idolId: 84, groupId: 16, status: "脱退", role: "リーダー", isConcurrent: "false" },
+                { id: 87, idolId: 85, groupId: 16, status: "脱退", role: "メンバー", isConcurrent: "false" },
+                { id: 88, idolId: 86, groupId: 16, status: "脱退", role: "メンバー", isConcurrent: "false" },
+                { id: 89, idolId: 87, groupId: 16, status: "脱退", role: "メンバー", isConcurrent: "false" },
+                { id: 90, idolId: 88, groupId: 16, status: "脱退", role: "メンバー", isConcurrent: "false" },
+                { id: 91, idolId: 89, groupId: 16, status: "脱退", role: "メンバー", isConcurrent: "false" },
+                { id: 92, idolId: 90, groupId: 9, status: "在籍中", role: "追加メンバー", isConcurrent: "false" },
+                { id: 93, idolId: 91, groupId: 9, status: "在籍中", role: "追加メンバー", isConcurrent: "false" },
+                { id: 94, idolId: 92, groupId: 9, status: "在籍中", role: "追加メンバー", isConcurrent: "false" },
+                { id: 95, idolId: 93, groupId: 9, status: "在籍中", role: "追加メンバー", isConcurrent: "false" },
+                { id: 96, idolId: 94, groupId: 9, status: "在籍中", role: "追加メンバー", isConcurrent: "false" }
+            ],
+            groupHistory: [
+                { id: 1, groupId: 4, oldName: "関ジャニ∞", newName: "SUPER EIGHT", changeDate: "2024-02-04" },
+                { id: 2, groupId: 9, oldName: "Sexy Zone", newName: "timelesz", changeDate: "2024-04-01" }
+            ],
+            // 作品マスタ (旧番組・メガ拡張データ追加完了)
+            work: [
+                { id: 1, title: "A・RA・SHI", type: "シングル", publisher: "ポニーキャニオン", releaseDate: "1999-11-03", ownerRecord: "group_1" },
+                { id: 2, title: "Love so sweet", type: "シングル", publisher: "J Storm", releaseDate: "2007-02-21", ownerRecord: "group_1" },
+                { id: 3, title: "Imitation Rain", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2020-01-22", ownerRecord: "group_2" },
+                { id: 4, title: "NAVIGATOR", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2020-07-22", ownerRecord: "group_2" },
+                { id: 5, title: "silent", type: "ドラマ", publisher: "フジテレビ", releaseDate: "2022-10-06", ownerRecord: "idol_12" },
+                { id: 6, title: "青春アミーゴ", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2005-11-02", ownerRecord: "idol_16" },
+                { id: 7, title: "硝子の少年", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "1997-07-21", ownerRecord: "group_17" },
+                { id: 8, title: "シンデレラガール", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2018-05-23", ownerRecord: "group_8" },
+                { id: 9, title: "D.D.", type: "シングル", publisher: "avex trax", releaseDate: "2020-01-22", ownerRecord: "group_3" },
+                { id: 10, title: "Real Face", type: "シングル", publisher: "J-One Records", releaseDate: "2006-03-22", ownerRecord: "group_6" },
+                { id: 11, title: "クロサギ", type: "ドラマ", publisher: "TBS", releaseDate: "2006-04-14", ownerRecord: "idol_16" },
+                { id: 12, title: "ごくせん 第2シリーズ", type: "ドラマ", publisher: "日本テレビ", releaseDate: "2005-01-15", ownerRecord: "idol_32" },
+                { id: 13, title: "Happiness", type: "シングル", publisher: "J Storm", releaseDate: "2007-09-05", ownerRecord: "group_1" },
+                { id: 14, title: "感謝カンゲキ雨嵐", type: "シングル", publisher: "ポニーキャニオン", releaseDate: "2000-11-08", ownerRecord: "group_1" },
+                { id: 15, title: "ワイルド アット ハート", type: "シングル", publisher: "J Storm", releaseDate: "2012-03-07", ownerRecord: "group_1" },
+                { id: 16, title: "truth", type: "シングル", publisher: "J Storm", releaseDate: "2008-08-20", ownerRecord: "group_1" },
+                { id: 17, title: "Monster", type: "シングル", publisher: "J Storm", releaseDate: "2010-05-19", ownerRecord: "group_1" },
+                { id: 18, title: "果てない空", type: "シングル", publisher: "J Storm", releaseDate: "2010-11-10", ownerRecord: "group_1" },
+                { id: 19, title: "迷宮ラブソング", type: "シングル", publisher: "J Storm", releaseDate: "2011-11-02", ownerRecord: "group_1" },
+                { id: 20, title: "GUTS!", type: "シングル", publisher: "J Storm", releaseDate: "2014-04-30", ownerRecord: "group_1" },
+                { id: 21, title: "Sakura", type: "シングル", publisher: "J Storm", releaseDate: "2015-02-25", ownerRecord: "group_1" },
+                { id: 22, title: "NEW ERA", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2020-11-11", ownerRecord: "group_2" },
+                { id: 23, title: "僕が僕じゃないみたいだ", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2021-02-17", ownerRecord: "group_2" },
+                { id: 24, title: "マスカラ", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2021-08-11", ownerRecord: "group_2" },
+                { id: 25, title: "わたし", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2022-06-08", ownerRecord: "group_2" },
+                { id: 26, title: "共鳴", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2022-03-02", ownerRecord: "group_2" },
+                { id: 27, title: "KISSIN' MY LIPS", type: "シングル", publisher: "avex trax", releaseDate: "2020-10-07", ownerRecord: "group_3" },
+                { id: 28, title: "Grandeur", type: "シングル", publisher: "avex trax", releaseDate: "2021-01-20", ownerRecord: "group_3" },
+                { id: 29, title: "HELLO HELLO", type: "シングル", publisher: "avex trax", releaseDate: "2021-07-14", ownerRecord: "group_3" },
+                { id: 30, title: "Secret Touch", type: "シングル", publisher: "avex trax", releaseDate: "2021-12-01", ownerRecord: "group_3" },
+                { id: 31, title: "ブラザービート", type: "シングル", publisher: "MENT RECORDING", releaseDate: "2022-03-30", ownerRecord: "group_3" },
+                { id: 32, title: "Memorial", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2018-10-10", ownerRecord: "group_8" },
+                { id: 33, title: "koi-wazurai", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2019-08-28", ownerRecord: "group_8" },
+                { id: 34, title: "Mazy Night", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2020-06-10", ownerRecord: "group_8" },
+                { id: 35, title: "I promise", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2020-12-16", ownerRecord: "group_8" },
+                { id: 36, title: "ツキヨミ", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2022-11-09", ownerRecord: "group_8" },
+                { id: 37, title: "初心LOVE", type: "シングル", publisher: "J Storm", releaseDate: "2021-11-12", ownerRecord: "group_11" },
+                { id: 38, title: "The Answer", type: "シングル", publisher: "J Storm", releaseDate: "2022-04-27", ownerRecord: "group_11" },
+                { id: 39, title: "サチアレ", type: "シングル", publisher: "J Storm", releaseDate: "2022-04-27", ownerRecord: "group_11" },
+                { id: 40, title: "愛されるより 愛したい", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "1997-11-12", ownerRecord: "group_17" },
+                { id: 41, title: "全部だきしめて", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "1998-07-29", ownerRecord: "group_17" },
+                { id: 42, title: "青の時代", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "1998-07-29", ownerRecord: "group_17" },
+                { id: 43, title: "99.9-刑事専門弁護士-", type: "ドラマ", publisher: "TBS", releaseDate: "2016-04-17", ownerRecord: "idol_5" },
+                { id: 44, title: "マイファミリー", type: "ドラマ", publisher: "TBS", releaseDate: "2022-04-10", ownerRecord: "idol_4" },
+                { id: 45, title: "謎解きはディナーのあとで", type: "ドラマ", publisher: "フジテレビ", releaseDate: "2011-10-18", ownerRecord: "idol_2" },
+                { id: 46, title: "ごくせん 第1シリーズ", type: "ドラマ", publisher: "日本テレビ", releaseDate: "2002-04-17", ownerRecord: "idol_5" },
+                { id: 47, title: "金田一少年の事件簿", type: "ドラマ", publisher: "日本テレビ", releaseDate: "1995-07-15", ownerRecord: "idol_40" },
+                { id: 48, title: "野ブタ。をプロデュース", type: "ドラマ", publisher: "日本テレビ", releaseDate: "2005-10-15", ownerRecord: "idol_32" },
+                { id: 49, title: "VS嵐", type: "バラエティ", publisher: "フジテレビ", releaseDate: "2008-04-12", ownerRecord: "group_1" },
+                { id: 50, title: "ザ！鉄腕！DASH!!", type: "バラエティ", publisher: "日本テレビ", releaseDate: "1995-11-02", ownerRecord: "group_15" },
+                { id: 51, title: "月曜から夜ふかし", type: "バラエティ", publisher: "日本テレビ", releaseDate: "2012-04-09", ownerRecord: "idol_35" },
+                { id: 52, title: "櫻井・有吉 THE夜会", type: "バラエティ", publisher: "TBS", releaseDate: "2014-04-17", ownerRecord: "idol_2" },
+                { id: 53, title: "嵐にしやがれ", type: "バラエティ", publisher: "日本テレビ", releaseDate: "2010-04-24", ownerRecord: "group_1" },
+                { id: 54, title: "それSnow Manにやらせて下さい", type: "バラエティ", publisher: "TBS", releaseDate: "2021-04-11", ownerRecord: "group_3" },
+                { id: 55, title: "SixTONESのオールナイトニッポンサタデースペシャル", type: "ラジオ", publisher: "ニッポン放送", releaseDate: "2020-04-04", ownerRecord: "group_2" },
+                { id: 56, title: "EIGHT-JAM", type: "音楽番組", publisher: "テレビ朝日", releaseDate: "2015-05-10", ownerRecord: "group_4" },
+                { id: 57, title: "KinKi Kidsのブンブブーン", type: "バラエティ", publisher: "フジテレビ", releaseDate: "2014-10-26", ownerRecord: "group_17" },
+                { id: 58, title: "スクール革命！", type: "バラエティ", publisher: "日本テレビ", releaseDate: "2009-04-05", ownerRecord: "group_7" },
+                { id: 59, title: "キスマイ超BUSAIKU!?", type: "バラエティ", publisher: "フジテレビ", releaseDate: "2013-04-21", ownerRecord: "group_14" },
+                { id: 60, title: "なにわ男子の逆転男子", type: "バラエティ", publisher: "テレビ朝日", releaseDate: "2023-07-01", ownerRecord: "group_11" },
+                { id: 61, title: "A-Studio+", type: "バラエティ", publisher: "TBS", releaseDate: "2009-04-10", ownerRecord: "idol_78" },
+                { id: 62, title: "相葉マナブ", type: "バラエティ", publisher: "テレビ朝日", releaseDate: "2013-04-21", ownerRecord: "idol_3" },
+                { id: 63, title: "ニノさん", type: "バラエティ", publisher: "日本テレビ", releaseDate: "2013-04-25", ownerRecord: "idol_4" },
+                { id: 64, title: "NEWS ZERO", type: "報道", publisher: "日本テレビ", releaseDate: "2006-10-02", ownerRecord: "idol_2" },
+                { id: 65, title: "キントレ", type: "バラエティ", publisher: "日本テレビ", releaseDate: "2023-07-01", ownerRecord: "group_8" },
+                { id: 66, title: "ザ少年倶楽部", type: "音楽番組", publisher: "NHK BSプレミアム", releaseDate: "2000-04-09", ownerRecord: "group_11" },
+                { id: 67, title: "KAT-TUNの世界一タメになる旅!", type: "バラエティ", publisher: "TBS", releaseDate: "2014-01-11", ownerRecord: "group_6" },
+                { id: 68, title: "トキタビ", type: "バラエティ", publisher: "フジテレビ", releaseDate: "2023-10-07", ownerRecord: "group_15" },
+                { id: 69, title: "V6の愛なんだ", type: "バラエティ", publisher: "TBS", releaseDate: "2017-08-30", ownerRecord: "group_16" },
+                { id: 70, title: "Time", type: "アルバム", publisher: "J Storm", releaseDate: "2007-07-11", ownerRecord: "group_1" },
+                { id: 71, title: "5×10 All the BEST! 1999-2009", type: "アルバム", publisher: "J Storm", releaseDate: "2009-08-19", ownerRecord: "group_1" },
+                { id: 72, title: "Japonism", type: "アルバム", publisher: "J Storm", releaseDate: "2015-10-21", ownerRecord: "group_1" },
+                { id: 73, title: "ARASHI Anniversary Tour 5×20", type: "映像作品", publisher: "J Storm", releaseDate: "2020-09-30", ownerRecord: "group_1" },
+                { id: 74, title: "鍵のかかった部屋", type: "ドラマ", publisher: "フジテレビ", releaseDate: "2012-04-16", ownerRecord: "idol_1" },
+                { id: 75, title: "フリーター、家を買う。", type: "ドラマ", publisher: "フジテレビ", releaseDate: "2010-10-19", ownerRecord: "idol_4" },
+                { id: 76, title: "マイガール", type: "ドラマ", publisher: "テレビ朝日", releaseDate: "2009-10-09", ownerRecord: "idol_3" },
+                { id: 77, title: "Good Luck!", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2022-11-02", ownerRecord: "group_2" },
+                { id: 78, title: "こっから", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2023-06-14", ownerRecord: "group_2" },
+                { id: 79, title: "アンセム", type: "シングル", publisher: "ソニー・ミュージック", releaseDate: "2024-01-10", ownerRecord: "group_2" },
+                { id: 80, title: "1ST", type: "アルバム", publisher: "ソニー・ミュージック", releaseDate: "2021-01-06", ownerRecord: "group_2" },
+                { id: 81, title: "CITY", type: "アルバム", publisher: "ソニー・ミュージック", releaseDate: "2022-01-05", ownerRecord: "group_2" },
+                { id: 82, title: "声", type: "アルバム", publisher: "ソニー・ミュージック", releaseDate: "2023-01-04", ownerRecord: "group_2" },
+                { id: 83, title: "THE VIBES", type: "アルバム", publisher: "ソニー・ミュージック", releaseDate: "2024-01-10", ownerRecord: "group_2" },
+                { id: 84, title: "バリューの真実", type: "バラエティ", publisher: "NHK Eテレ", releaseDate: "2020-12-20", ownerRecord: "group_2" },
+                { id: 85, title: "タペストリー / W", type: "シングル", publisher: "MENT RECORDING", releaseDate: "2023-03-15", ownerRecord: "group_3" },
+                { id: 86, title: "Dangerholic", type: "シングル", publisher: "MENT RECORDING", releaseDate: "2023-09-06", ownerRecord: "group_3" },
+                { id: 87, title: "LOVE TRIGGER / We'll go together", type: "シングル", publisher: "MENT RECORDING", releaseDate: "2024-02-14", ownerRecord: "group_3" },
+                { id: 88, title: "Snow Mania S1", type: "アルバム", publisher: "avex trax", releaseDate: "2021-09-29", ownerRecord: "group_3" },
+                { id: 89, title: "Snow Labo. S2", type: "アルバム", publisher: "MENT RECORDING", releaseDate: "2022-09-21", ownerRecord: "group_3" },
+                { id: 90, title: "i DO ME", type: "アルバム", publisher: "MENT RECORDING", releaseDate: "2023-05-17", ownerRecord: "group_3" },
+                { id: 91, title: "おそ松さん", type: "映画", publisher: "東宝", releaseDate: "2022-03-25", ownerRecord: "group_3" },
+                { id: 92, title: "滝沢歌舞伎 ZERO 2020 The Movie", type: "映画", publisher: "松竹", releaseDate: "2020-12-04", ownerRecord: "group_3" },
+                { id: 93, title: "ズッコケ男道", type: "シングル", publisher: "インペリアルレコード", releaseDate: "2007-04-11", ownerRecord: "group_4" },
+                { id: 94, title: "無責任ヒーロー", type: "シングル", publisher: "インペリアルレコード", releaseDate: "2008-10-29", ownerRecord: "group_4" },
+                { id: 95, title: "LIFE〜目の前の向こうへ〜", type: "シングル", publisher: "インペリアルレコード", releaseDate: "2010-08-25", ownerRecord: "group_4" },
+                { id: 96, title: "ありえへん∞世界", type: "バラエティ", publisher: "テレビ東京", releaseDate: "2008-04-15", ownerRecord: "group_4" },
+                { id: 97, title: "関ジャニ∞の ジャニ勉", type: "バラエティ", publisher: "関西テレビ", releaseDate: "2007-05-02", ownerRecord: "group_4" },
+                { id: 98, title: "チャンカパーナ", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2012-07-18", ownerRecord: "group_5" },
+                { id: 99, title: "weeeek", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2007-11-07", ownerRecord: "group_5" },
+                { id: 100, title: "さくらガール", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2010-03-31", ownerRecord: "group_5" },
+                { id: 101, title: "NEWSな2人", type: "バラエティ", publisher: "TBS", releaseDate: "2015-07-03", ownerRecord: "group_5" },
+                { id: 102, title: "Keep the faith", type: "シングル", publisher: "J-One Records", releaseDate: "2007-11-21", ownerRecord: "group_6" },
+                { id: 103, title: "DON'T U EVER STOP", type: "シングル", publisher: "J-One Records", releaseDate: "2008-05-14", ownerRecord: "group_6" },
+                { id: 104, title: "妖怪人間ベム", type: "ドラマ", publisher: "日本テレビ", releaseDate: "2011-10-22", ownerRecord: "idol_32" },
+                { id: 105, title: "Ultra Music Power", type: "シングル", publisher: "J Storm", releaseDate: "2007-11-14", ownerRecord: "group_7" },
+                { id: 106, title: "ウィークエンダー", type: "シングル", publisher: "J Storm", releaseDate: "2014-09-03", ownerRecord: "group_7" },
+                { id: 107, title: "White Love", type: "シングル", publisher: "J Storm", releaseDate: "2017-12-20", ownerRecord: "group_7" },
+                { id: 108, title: "ネガティブファイター", type: "シングル", publisher: "J Storm", releaseDate: "2021-05-12", ownerRecord: "group_7" },
+                { id: 109, title: "いただきハイジャンプ", type: "バラエティ", publisher: "フジテレビ", releaseDate: "2015-07-08", ownerRecord: "group_7" },
+                { id: 110, title: "Magic Touch", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2021-05-19", ownerRecord: "group_8" },
+                { id: 111, title: "踊るように人生を。", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2022-04-13", ownerRecord: "group_8" },
+                { id: 112, title: "TraceTrace", type: "シングル", publisher: "Johnnys' Universe", releaseDate: "2022-09-14", ownerRecord: "group_8" },
+                { id: 113, title: "L&", type: "アルバム", publisher: "Johnnys' Universe", releaseDate: "2020-09-02", ownerRecord: "group_8" },
+                { id: 114, title: "Re:Sense", type: "アルバム", publisher: "Johnnys' Universe", releaseDate: "2021-07-21", ownerRecord: "group_8" },
+                { id: 115, title: "Made in", type: "アルバム", publisher: "Johnnys' Universe", releaseDate: "2022-06-29", ownerRecord: "group_8" },
+                { id: 116, title: "Mr.5", type: "アルバム", publisher: "Johnnys' Universe", releaseDate: "2023-04-19", ownerRecord: "group_8" },
+                { id: 117, title: "ピース", type: "アルバム", publisher: "Johnnys' Universe", releaseDate: "2023-08-16", ownerRecord: "group_8" },
+                { id: 118, title: "Sexy Zone", type: "シングル", publisher: "ポニーキャニオン", releaseDate: "2011-11-16", ownerRecord: "group_9" },
+                { id: 119, title: "RUN", type: "シングル", publisher: "Top J Records", releaseDate: "2020-08-05", ownerRecord: "group_9" },
+                { id: 120, title: "夏のハイドレンジア", type: "シングル", publisher: "Top J Records", releaseDate: "2021-08-04", ownerRecord: "group_9" },
+                { id: 121, title: "本音と建前", type: "シングル", publisher: "Top J Records", releaseDate: "2023-09-20", ownerRecord: "group_9" },
+                { id: 122, title: "Sexy Zoneの進化論", type: "バラエティ", publisher: "フジテレビTWO", releaseDate: "2020-04-10", ownerRecord: "group_9" },
+                { id: 123, title: "ええじゃないか", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2014-04-23", ownerRecord: "group_10" },
+                { id: 124, title: "証拠", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2020-06-24", ownerRecord: "group_10" },
+                { id: 125, title: "星の雨", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2022-08-03", ownerRecord: "group_10" },
+                { id: 126, title: "リア突WEST", type: "バラエティ", publisher: "朝日放送", releaseDate: "2020-10-03", ownerRecord: "group_10" },
+                { id: 127, title: "ハッピーサプライズ", type: "シングル", publisher: "J Storm", releaseDate: "2022-11-16", ownerRecord: "group_11" },
+                { id: 128, title: "Special Kiss", type: "シングル", publisher: "J Storm", releaseDate: "2023-03-08", ownerRecord: "group_11" },
+                { id: 129, title: "Make Up Day", type: "シングル", publisher: "J Storm", releaseDate: "2023-09-13", ownerRecord: "group_11" },
+                { id: 130, title: "消えた初恋", type: "ドラマ", publisher: "テレビ朝日", releaseDate: "2021-10-09", ownerRecord: "idol_61" },
+                { id: 131, title: "金田一少年の事件簿(第5シリーズ)", type: "ドラマ", publisher: "日本テレビ", releaseDate: "2022-04-24", ownerRecord: "idol_61" },
+                { id: 132, title: "JUST DANCE!", type: "シングル", publisher: "Capitol Records", releaseDate: "2022-10-28", ownerRecord: "group_12" },
+                { id: 133, title: "Candy Kiss", type: "シングル", publisher: "Capitol Records", releaseDate: "2023-07-03", ownerRecord: "group_12" },
+                { id: 134, title: "《A》BEGINNING", type: "シングル", publisher: "ユニバーサルミュージック", releaseDate: "2024-05-15", ownerRecord: "group_13" },
+                { id: 135, title: "Aぇ!!!!!!ゐこ", type: "バラエティ", publisher: "MBS", releaseDate: "2023-10-14", ownerRecord: "group_13" },
+                { id: 136, title: "Everybody Go", type: "シングル", publisher: "avex trax", releaseDate: "2011-08-10", ownerRecord: "group_14" },
+                { id: 137, title: "SHE! HER! HER!", type: "シングル", publisher: "avex trax", releaseDate: "2012-03-21", ownerRecord: "group_14" },
+                { id: 138, title: "Luv Bias", type: "シングル", publisher: "avex trax", releaseDate: "2021-02-24", ownerRecord: "group_14" },
+                { id: 139, title: "10万円でできるかな", type: "バラエティ", publisher: "テレビ朝日", releaseDate: "2017-10-04", ownerRecord: "group_14" },
+                { id: 140, title: "AMBITIOUS JAPAN!", type: "シングル", publisher: "ユニバーサルJ", releaseDate: "2003-10-01", ownerRecord: "group_15" },
+                { id: 141, title: "宙船", type: "シングル", publisher: "ユニバーサルJ", releaseDate: "2006-08-23", ownerRecord: "group_15" },
+                { id: 142, title: "MUSIC FOR THE PEOPLE", type: "シングル", publisher: "avex trax", releaseDate: "1995-11-01", ownerRecord: "group_16" },
+                { id: 143, title: "WAになっておどろう", type: "シングル", publisher: "avex trax", releaseDate: "1997-07-09", ownerRecord: "group_16" },
+                { id: 144, title: "Darling", type: "シングル", publisher: "avex trax", releaseDate: "2003-05-28", ownerRecord: "group_16" },
+                { id: 145, title: "ボクの背中には羽根がある", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2001-02-07", ownerRecord: "group_17" },
+                { id: 146, title: "Anniversary", type: "シングル", publisher: "ジャニーズ・エンタテイメント", releaseDate: "2004-12-22", ownerRecord: "group_17" }
+            ],
+            // 中間テーブル: 作品参加
+            participation: [
+                { id: 1, workId: 5, idolId: 12, role: "出演 (佐倉想)" },
+                { id: 2, workId: 5, idolId: 8, role: "出演" },
+                { id: 3, workId: 6, idolId: 16, role: "歌唱・メイン" },
+                { id: 4, workId: 7, idolId: 39, role: "歌唱" },
+                { id: 5, workId: 7, idolId: 40, role: "歌唱" },
+                { id: 6, workId: 8, idolId: 29, role: "歌唱・センター" },
+                { id: 7, workId: 8, idolId: 27, role: "歌唱" },
+                { id: 8, workId: 9, idolId: 13, role: "歌唱・センター" },
+                { id: 9, workId: 10, idolId: 32, role: "歌唱" },
+                { id: 10, workId: 11, idolId: 16, role: "出演 (主演)" },
+                { id: 11, workId: 12, idolId: 32, role: "出演 (小田切竜)" },
+                { id: 12, workId: 49, idolId: 2, role: "MC" },
+                { id: 13, workId: 50, idolId: 41, role: "レギュラー (メイン)" },
+                { id: 14, workId: 50, idolId: 42, role: "レギュラー (メイン)" },
+                { id: 15, workId: 50, idolId: 43, role: "レギュラー (メイン)" },
+                { id: 16, workId: 50, idolId: 10, role: "レギュラー" },
+                { id: 17, workId: 51, idolId: 35, role: "MC" },
+                { id: 18, workId: 52, idolId: 2, role: "MC" },
+                { id: 19, workId: 61, idolId: 78, role: "MC" },
+                { id: 20, workId: 62, idolId: 3, role: "MC" },
+                { id: 21, workId: 63, idolId: 4, role: "MC" },
+                { id: 22, workId: 64, idolId: 2, role: "キャスター" },
+                { id: 23, workId: 74, idolId: 1, role: "出演 (榎本径)" },
+                { id: 24, workId: 75, idolId: 4, role: "出演 (武誠治)" },
+                { id: 25, workId: 76, idolId: 3, role: "出演 (笠間正宗)" },
+                { id: 26, workId: 104, idolId: 32, role: "出演 (ベム)" },
+                { id: 27, workId: 130, idolId: 61, role: "出演 (青木想太)" },
+                { id: 28, workId: 131, idolId: 61, role: "出演 (金田一一)" },
+                { id: 29, workId: 47, idolId: 40, role: "出演 (金田一一)" }
+            ],
+            live: [
+                { id: 1, name: "ARASHI Anniversary Tour 5×20", date: "2019-12-25", venueId: 1 },
+                { id: 2, name: "慣声の法則", date: "2023-01-05", venueId: 2 },
+                { id: 3, name: "Snow Man LIVE TOUR 2024", date: "2024-11-15", venueId: 3 },
+                { id: 4, name: "King & Prince LIVE TOUR 2023 ~ピース~", date: "2023-08-27", venueId: 2 },
+                { id: 5, name: "KinKi Kids Concert 2023-2024", date: "2023-12-16", venueId: 1 },
+                { id: 6, name: "KAT-TUN LIVE TOUR 2023 Fantasia", date: "2023-05-03", venueId: 2 },
+                { id: 7, name: "アラフェス 2020 at 国立競技場", date: "2020-11-03", venueId: 7 }
+            ],
+            venue: [
+                { id: 1, name: "東京ドーム", location: "東京都", capacity: 55000 },
+                { id: 2, name: "横浜アリーナ", location: "神奈川県", capacity: 17000 },
+                { id: 3, name: "京セラドーム大阪", location: "大阪府", capacity: 55000 },
+                { id: 4, name: "さいたまスーパーアリーナ", location: "埼玉県", capacity: 37000 },
+                { id: 5, name: "福岡PayPayドーム", location: "福岡県", capacity: 38500 },
+                { id: 6, name: "バンテリンドーム ナゴヤ", location: "愛知県", capacity: 40500 },
+                { id: 7, name: "国立競技場", location: "東京都", capacity: 68000 }
+            ],
+            liveCast: [
+                { id: 1, liveId: 1, groupId: 1 },
+                { id: 2, liveId: 2, groupId: 2 },
+                { id: 3, liveId: 3, groupId: 3 },
+                { id: 4, liveId: 4, groupId: 8 },
+                { id: 5, liveId: 5, groupId: 17 },
+                { id: 6, liveId: 6, groupId: 6 },
+                { id: 7, liveId: 7, groupId: 1 }
+            ],
+            event: [
+                { id: 1, date: "1999-09-15", type: "結成", description: "嵐 結成" },
+                { id: 2, date: "2020-01-22", type: "デビュー", description: "SixTONES デビュー" },
+                { id: 3, date: "2024-02-04", type: "改名", description: "関ジャニ∞ → SUPER EIGHT" },
+                { id: 4, date: "2020-12-31", type: "活動休止", description: "嵐 活動休止" },
+                { id: 5, date: "1997-07-21", type: "デビュー", description: "KinKi Kids CDデビュー (ミリオンセラー達成)" },
+                { id: 6, date: "2006-03-22", type: "デビュー", description: "KAT-TUN デビューシングル・アルバム・DVD同時発売" },
+                { id: 7, date: "2018-05-23", type: "デビュー", description: "King & Prince CDデビュー" },
+                { id: 8, date: "2023-05-22", type: "脱退", description: "平野紫耀・神宮寺勇太・岸優太 King & Prince脱退" },
+                { id: 9, date: "1994-09-21", type: "デビュー", description: "TOKIO CDデビュー" },
+                { id: 10, date: "1995-11-01", type: "デビュー", description: "V6 CDデビュー" },
+                { id: 11, date: "2003-11-07", type: "デビュー", description: "NEWS CDデビュー" },
+                { id: 12, date: "2004-08-25", type: "デビュー", description: "関ジャニ∞ 関西限定CDデビュー" },
+                { id: 13, date: "2004-09-22", type: "デビュー", description: "関ジャニ∞ 全国CDデビュー" },
+                { id: 14, date: "2007-11-14", type: "デビュー", description: "Hey! Say! JUMP CDデビュー・東京ドーム公演" },
+                { id: 15, date: "2008-09-05", type: "その他", description: "嵐 国立競技場での初ライブ「ARASHI AROUND ASIA 2008」" },
+                { id: 16, date: "2011-08-10", type: "デビュー", description: "Kis-My-Ft2 CDデビュー" },
+                { id: 17, date: "2011-11-16", type: "デビュー", description: "Sexy Zone CDデビュー" },
+                { id: 18, date: "2014-04-23", type: "デビュー", description: "ジャニーズWEST CDデビュー" },
+                { id: 19, date: "2015-05-01", type: "結成", description: "SixTONES 結成" },
+                { id: 20, date: "2020-01-22", type: "デビュー", description: "Snow Man CDデビュー (SixTONESと同時)" },
+                { id: 21, date: "2021-11-12", type: "デビュー", description: "なにわ男子 CDデビュー" },
+                { id: 22, date: "2022-10-28", type: "デビュー", description: "Travis Japan 全世界配信デビュー" },
+                { id: 23, date: "2023-11-03", type: "その他", description: "嵐 デビュー25周年" },
+                { id: 24, date: "2024-04-10", type: "その他", description: "STARTO ENTERTAINMENT合同ライブ「WE ARE!」開催" },
+                { id: 25, date: "2024-05-15", type: "デビュー", description: "Aぇ! group CDデビュー" },
+                { id: 26, date: "2006-03-22", type: "その他", description: "KAT-TUN シングル・アルバム・DVD同時発売ミリオン達成" },
+                { id: 27, date: "2022-12-03", type: "その他", description: "King & Prince 「ツキヨミ」ミリオンセラー達成" }
+            ]
+        };
+
+        let counters = { agency: 3, group: 18, idol: 90, affiliation: 92, groupHistory: 3, work: 147, participation: 30, live: 8, venue: 8, liveCast: 8, event: 28 };
+
+        // --- 2. オブジェクト設計 (メタデータスキーマ) ---
+        const meta = {
+            dashboard: { label: 'ダッシュボード', icon: '📊', color: '#0176D3', listFields: [] },
+            agency: {
+                label: '事務所', icon: '🏢', color: '#7E8BE4',
+                fields: [
+                    { name: 'name', label: '事務所名', type: 'text' },
+                    { name: 'foundedYear', label: '設立年', type: 'number' },
+                    { name: 'location', label: '所在地', type: 'text' }
+                ],
+                listFields: ['id', 'name', 'foundedYear', 'location']
+            },
+            idol: {
+                label: 'アイドル', icon: '🎤', color: '#34A853',
+                fields: [
+                    { name: 'name', label: '名前', type: 'text' },
+                    { name: 'birthday', label: '生年月日', type: 'date' },
+                    { name: 'status', label: '活動ステータス', type: 'select', options: ['活動中', '活動休止', '卒業', '引退', '脱退'] },
+                    { name: 'agencyId', label: '所属事務所', type: 'lookup', target: 'agency' },
+                    { name: 'memberColor', label: 'メンバーカラー', type: 'text' }
+                ],
+                listFields: ['id', 'name', 'status', 'agencyId', 'memberColor']
+            },
+            group: {
+                label: 'グループ', icon: '👥', color: '#F2994A',
+                fields: [
+                    { name: 'name', label: 'グループ名', type: 'text' },
+                    { name: 'debutDate', label: 'デビュー日', type: 'date' },
+                    { name: 'status', label: '活動ステータス', type: 'select', options: ['活動中', '活動休止', '解散'] }
+                ],
+                listFields: ['id', 'name', 'debutDate', 'status']
+            },
+            work: {
+                label: '作品', icon: '🎬', color: '#9B51E0',
+                fields: [
+                    { name: 'title', label: 'タイトル / 番組名', type: 'text' },
+                    { name: 'type', label: '種別', type: 'select', options: ['シングル', 'アルバム', '映像作品', '映画', 'ドラマ', 'バラエティ', 'ラジオ', '音楽番組', '報道'] },
+                    { name: 'publisher', label: 'レーベル / 放送局', type: 'text' },
+                    { name: 'ownerRecord', label: '所有者(メイン)', type: 'polymorphic', targets: ['idol', 'group'] },
+                    { name: 'releaseDate', label: '発売日 / 開始日', type: 'date' }
+                ],
+                listFields: ['id', 'title', 'type', 'publisher', 'ownerRecord', 'releaseDate']
+            },
+            live: {
+                label: 'ライブ', icon: '🎸', color: '#E25858',
+                fields: [
+                    { name: 'name', label: 'ライブ名', type: 'text' },
+                    { name: 'date', label: '開催日', type: 'date' },
+                    { name: 'venueId', label: '会場', type: 'lookup', target: 'venue' }
+                ],
+                listFields: ['id', 'name', 'date', 'venueId']
+            },
+            venue: {
+                label: '会場', icon: '🏟️', color: '#4A90E2',
+                fields: [
+                    { name: 'name', label: '会場名', type: 'text' },
+                    { name: 'location', label: '所在地', type: 'text' },
+                    { name: 'capacity', label: '収容人数', type: 'number' }
+                ],
+                listFields: ['id', 'name', 'location', 'capacity']
+            },
+            event: {
+                label: 'イベント', icon: '📅', color: '#F1C40F',
+                fields: [
+                    { name: 'date', label: '日付', type: 'date' },
+                    { name: 'type', label: 'イベント種別', type: 'select', options: ['結成', 'デビュー', '改名', '活動休止', '卒業', '脱退', 'その他'] },
+                    { name: 'description', label: '説明', type: 'text' }
+                ],
+                listFields: ['id', 'date', 'type', 'description']
+            },
+            report: { label: 'レポート', icon: '📊', color: '#0176D3', listFields: [] },
+            affiliation: {
+                label: '所属管理', icon: '🔗', color: '#546E7A',
+                fields: [
+                    { name: 'idolId', label: 'アイドル', type: 'lookup', target: 'idol' },
+                    { name: 'groupId', label: 'グループ', type: 'lookup', target: 'group' },
+                    { name: 'status', label: '所属ステータス', type: 'select', options: ['在籍中', '活動休止', '脱退'] },
+                    { name: 'role', label: '役職', type: 'text' },
+                    { name: 'isConcurrent', label: '兼務フラグ', type: 'select', options: ['true', 'false'] }
+                ],
+                listFields: ['id', 'idolId', 'groupId', 'status', 'isConcurrent']
+            },
+            settings: { label: '設定 (ER図)', icon: '⚙️', color: '#747474', listFields: [] }
+        };
+
+        // UI表示用のタブ定義 (所属管理オブジェクトは非表示化を継続)
+        const TABS = ['dashboard', 'agency', 'idol', 'group', 'work', 'live', 'venue', 'event', 'report', 'settings'];
+
+        // --- 3. アプリケーション制御コア ---
+        const app = {
+            currentTab: 'dashboard',
+            currentDetailId: null,
+            sortCol: 'id',
+            sortAsc: true,
+
+            init: function() {
+                this.renderGlobalNav();
+                document.getElementById('search-input').addEventListener('input', function() { app.renderTable(); });
+                document.getElementById('filter-select').addEventListener('change', function() { app.renderTable(); });
+                this.switchTab('dashboard'); 
+            },
+
+            renderGlobalNav: function() {
+                const nav = document.getElementById('global-nav');
+                let html = '';
+                for (let i = 0; i < TABS.length; i++) {
+                    const tab = TABS[i];
+                    const isActive = (tab === this.currentTab) ? 'active' : '';
+                    html += `<li class="${isActive}" onclick="app.switchTab('${tab}')">${meta[tab].label}</li>`;
+                }
+                nav.innerHTML = html;
+            },
+
+            switchView: function(viewId) {
+                const views = document.querySelectorAll('.view-section');
+                for (let i = 0; i < views.length; i++) {
+                    views[i].classList.remove('active');
+                }
+                const target = document.getElementById(viewId);
+                if (target) {
+                    target.classList.add('active');
+                }
+            },
+
+            switchTab: function(tab) {
+                if (tab === 'settings') {
+                    this.openSettingsWindow();
+                    return;
+                }
+                this.currentTab = tab;
+                this.renderGlobalNav();
+                
+                if (tab === 'dashboard') {
+                    this.switchView('view-dashboard');
+                    this.renderDashboard();
+                } else if (tab === 'report') {
+                    this.switchView('view-report');
+                    this.onReportObjectChange();
+                    this.runReport();
+                } else {
+                    this.switchView('view-list');
+                    this.showList();
+                }
+            },
+
+            getLookupName: function(targetObj, id) {
+                if (!id) return '-';
+                const targetDb = db[targetObj];
+                if (!targetDb) return '-';
+                const record = targetDb.find(function(r) { return r.id == id; });
+                return record ? (record.name || record.title || `ID:${id}`) : '-';
+            },
+
+            getPolymorphicDisplay: function(val) {
+                if (!val) return '-';
+                const parts = val.split('_');
+                if (parts.length !== 2) return val;
+                const targetObj = parts[0];
+                const targetId = parseInt(parts[1], 10);
+                const targetDb = db[targetObj];
+                if (!targetDb) return val;
+                const record = targetDb.find(function(r) { return r.id === targetId; });
+                if (!record) return val;
+                const name = record.name || record.title;
+                return `<span class="action-link" onclick="app.changeTabAndShowDetail('${targetObj}', ${targetId})">[${meta[targetObj].label}] ${name}</span>`;
+            },
+
+            getPolymorphicNameOnly: function(val) {
+                if (!val) return '-';
+                const parts = val.split('_');
+                if (parts.length !== 2) return val;
+                const targetObj = parts[0];
+                const targetId = parseInt(parts[1], 10);
+                const targetDb = db[targetObj];
+                if (!targetDb) return val;
+                const record = targetDb.find(function(r) { return r.id === targetId; });
+                if (!record) return val;
+                return `[${meta[targetObj].label}] ${record.name || record.title}`;
+            },
+
+            getBadgeHtml: function(status) {
+                if (!status) return '-';
+                let cls = 'badge-pause';
+                if (status === '活動中' || status === '在籍中') cls = 'badge-active';
+                if (status === '卒業' || status === '引退' || status === '脱退' || status === '解散') cls = 'badge-grad';
+                return `<span class="badge ${cls}">${status}</span>`;
+            },
+
+            // ==========================================
+            // リストビュー
+            // ==========================================
+            showList: function() {
+                const m = meta[this.currentTab];
+                if (!m || !m.listFields || m.listFields.length === 0) return;
+
+                document.getElementById('list-title').innerHTML = `${m.icon} ${m.label} 一覧`;
+                
+                const filter = document.getElementById('filter-select');
+                filter.innerHTML = '<option value="all">すべて表示</option>';
+                if(this.currentTab === 'idol' || this.currentTab === 'group') {
+                    filter.innerHTML += '<option value="活動中">活動中のみ</option><option value="活動休止">活動休止のみ</option><option value="脱退">脱退/解散</option>';
+                }
+                this.renderTable();
+            },
+
+            renderTable: function() {
+                const m = meta[this.currentTab];
+                if (!m || !m.listFields) return;
+
+                const thead = document.getElementById('list-thead');
+                const tbody = document.getElementById('list-tbody');
+                const search = document.getElementById('search-input').value.toLowerCase();
+                const filterVal = document.getElementById('filter-select').value;
+
+                let theadHtml = '';
+                for (let i = 0; i < m.listFields.length; i++) {
+                    const f = m.listFields[i];
+                    const fieldMeta = m.fields.find(function(x) { return x.name === f; }) || {label: 'ID'};
+                    const arrow = this.sortCol === f ? (this.sortAsc ? '▲' : '▼') : '';
+                    theadHtml += `<th onclick="app.sortData('${f}')">${fieldMeta.label} <span style="font-size:10px">${arrow}</span></th>`;
+                }
+                theadHtml += '<th style="width:100px;">アクション</th>';
+                thead.innerHTML = theadHtml;
+
+                let data = [];
+                if (db[this.currentTab]) {
+                    data = db[this.currentTab].slice(); 
+                }
+
+                if (filterVal !== 'all' && (this.currentTab === 'idol' || this.currentTab === 'group')) {
+                    if (filterVal === '脱退') {
+                        data = data.filter(function(r) { return r.status === '脱退' || r.status === '解散'; });
+                    } else {
+                        data = data.filter(function(r) { return r.status === filterVal; });
+                    }
+                }
+
+                if (search) {
+                    data = data.filter(function(r) {
+                        return Object.values(r).some(function(val) {
+                            return String(val).toLowerCase().includes(search);
+                        });
+                    });
+                }
+
+                data.sort(function(a, b) {
+                    let valA = a[app.sortCol]; let valB = b[app.sortCol];
+                    if (valA < valB) return app.sortAsc ? -1 : 1;
+                    if (valA > valB) return app.sortAsc ? 1 : -1;
+                    return 0;
+                });
+
+                let tbodyHtml = '';
+                if (data.length === 0) {
+                    tbodyHtml = `<tr><td colspan="${m.listFields.length + 1}" style="text-align:center; padding:20px;">レコードが存在しません</td></tr>`;
+                } else {
+                    for (let i = 0; i < data.length; i++) {
+                        const record = data[i];
+                        tbodyHtml += '<tr>';
+                        for (let j = 0; j < m.listFields.length; j++) {
+                            const f = m.listFields[j];
+                            const fieldMeta = m.fields.find(function(x) { return x.name === f; });
+                            let val = record[f];
+                            
+                            if (fieldMeta && fieldMeta.type === 'lookup') {
+                                val = this.getLookupName(fieldMeta.target, val);
+                            } else if (fieldMeta && fieldMeta.type === 'polymorphic') {
+                                val = this.getPolymorphicNameOnly(val);
+                            } else if (f === 'status') {
+                                val = this.getBadgeHtml(val);
+                            } else if (f === 'isConcurrent') {
+                                val = val === 'true' ? '✅ 兼務' : '-';
+                            }
+
+                            let displayVal = (val !== undefined && val !== null && val !== '') ? val : '-';
+
+                            if (f === 'name' || f === 'title' || f === 'description') {
+                                tbodyHtml += `<td><span class="action-link" onclick="app.showDetail(${record.id})" style="font-weight:bold;">${displayVal}</span></td>`;
+                            } else {
+                                tbodyHtml += `<td>${displayVal}</td>`;
+                            }
+                        }
+                        tbodyHtml += `<td><span class="action-link" style="font-size:12px; margin-right:8px;" onclick="app.openModal('edit', ${record.id})">編集</span></td></tr>`;
+                    }
+                }
+                tbody.innerHTML = tbodyHtml;
+            },
+
+            sortData: function(col) {
+                if(this.sortCol === col) this.sortAsc = !this.sortAsc;
+                else { this.sortCol = col; this.sortAsc = true; }
+                this.renderTable();
+            },
+
+            // ==========================================
+            // レコード詳細画面 & 関連リスト
+            // ==========================================
+            showDetail: function(id) {
+                this.currentDetailId = id;
+                this.switchView('view-detail');
+
+                const m = meta[this.currentTab];
+                const record = db[this.currentTab].find(function(r) { return r.id === id; });
+                
+                document.getElementById('breadcrumb-text').innerText = `${m.label}一覧`;
+                const iconEl = document.getElementById('detail-icon');
+                iconEl.innerText = m.icon;
+                iconEl.style.background = m.color;
+                
+                document.getElementById('detail-obj-name').innerText = m.label;
+                document.getElementById('detail-title').innerText = record.name || record.title || record.description || `ID: ${record.id}`;
+
+                let hpFieldsHtml = '';
+                let count = 0;
+                for (let i = 0; i < m.fields.length; i++) {
+                    if (count >= 4) break;
+                    const f = m.fields[i];
+                    let val = record[f.name];
+                    if(f.type === 'lookup') val = this.getLookupName(f.target, val);
+                    if(f.type === 'polymorphic') val = this.getPolymorphicNameOnly(val);
+                    if(f.name === 'status') val = this.getBadgeHtml(val);
+                    
+                    let displayVal = (val !== undefined && val !== null && val !== '') ? val : '-';
+                    hpFieldsHtml += `<div class="hp-field"><div class="hp-field-label">${f.label}</div><div class="hp-field-value">${displayVal}</div></div>`;
+                    count++;
+                }
+                document.getElementById('detail-hp-fields').innerHTML = hpFieldsHtml;
+
+                let infoHtml = '';
+                for (let i = 0; i < m.fields.length; i++) {
+                    const f = m.fields[i];
+                    let val = record[f.name];
+                    if (f.type === 'lookup') {
+                        val = `<span class="action-link" onclick="app.jumpToDetail('${f.target}', ${record[f.name]})">${this.getLookupName(f.target, val)}</span>`;
+                    } else if (f.type === 'polymorphic') {
+                        val = this.getPolymorphicDisplay(record[f.name]);
+                    } else if(f.name === 'status') {
+                        val = this.getBadgeHtml(val);
+                    }
+                    let displayVal = (val !== undefined && val !== null && val !== '') ? val : '-';
+                    infoHtml += `<div class="field-item"><div class="field-label">${f.label}</div><div class="field-value">${displayVal}</div></div>`;
+                }
+                document.getElementById('detail-info').innerHTML = infoHtml;
+
+                this.renderRelatedLists(id);
+            },
+
+            jumpToDetail: function(targetObj, id) {
+                if(!id) return;
+                if(TABS.indexOf(targetObj) > -1) {
+                    this.currentTab = targetObj;
+                    this.renderGlobalNav();
+                } else {
+                    this.currentTab = targetObj;
+                }
+                this.showDetail(id);
+            },
+
+            renderRelatedLists: function(id) {
+                const container = document.getElementById('related-lists-container');
+                container.innerHTML = '';
+
+                if(this.currentTab === 'agency') {
+                    this.buildRelatedList(container, 'idol', '所属アイドル一覧', function(r) { return r.agencyId === id; }, ['name', 'status', 'memberColor']);
+                }
+                else if(this.currentTab === 'idol') {
+                    this.buildRelatedList(container, 'affiliation', '所属グループ履歴', function(r) { return r.idolId === id; }, ['groupId', 'status', 'role', 'isConcurrent']);
+                    this.buildRelatedList(container, 'work', '所有・メイン 作品/番組', function(r) { return r.ownerRecord === `idol_${id}`; }, ['title', 'type', 'publisher']);
+                    this.buildRelatedList(container, 'participation', '作品/番組 出演・参加実績', function(r) { return r.idolId === id; }, ['workId', 'role']);
+                }
+                else if(this.currentTab === 'group') {
+                    this.buildRelatedList(container, 'affiliation', '在籍タレント・所属メンバー', function(r) { return r.groupId === id; }, ['idolId', 'status', 'role']);
+                    this.buildRelatedList(container, 'work', 'グループ名義 作品/番組', function(r) { return r.ownerRecord === `group_${id}`; }, ['title', 'type', 'publisher']);
+                    this.buildRelatedList(container, 'groupHistory', '改名履歴・名称変遷', function(r) { return r.groupId === id; }, ['oldName', 'newName', 'changeDate']);
+                    this.buildRelatedList(container, 'liveCast', '出演ライブ履歴', function(r) { return r.groupId === id; }, ['liveId']);
+                }
+                else if(this.currentTab === 'work') {
+                    this.buildRelatedList(container, 'participation', '作品/番組 参加キャスト', function(r) { return r.workId === id; }, ['idolId', 'role']);
+                    
+                    var workRec = db.work.find(function(r) { return r.id === id; });
+                    if (workRec && workRec.ownerRecord) {
+                        var parts = workRec.ownerRecord.split('_');
+                        if (parts.length === 2 && parts[0] === 'group') {
+                            var gId = parseInt(parts[1], 10);
+                            var gName = app.getLookupName('group', gId);
+                            this.buildRelatedList(container, 'affiliation', gName + ' 所属タレント一覧 (所有グループ連動)', function(r) { return r.groupId === gId; }, ['idolId', 'status', 'role']);
+                        }
+                    }
+                }
+                else if(this.currentTab === 'venue') {
+                    this.buildRelatedList(container, 'live', '会場開催ライブ一覧', function(r) { return r.venueId === id; }, ['name', 'date']);
+                }
+            },
+
+            buildRelatedList: function(container, objName, title, filterFunc, displayCols) {
+                const relMeta = meta[objName] || { icon: '📄', fields: [] };
+                let targetSrc = db[objName];
+                if(!targetSrc) return;
+
+                const data = targetSrc.filter(filterFunc);
+                
+                let html = `<div class="card related-list-card">
+                                <div class="rl-header">
+                                    <h3><span style="margin-right:6px">${relMeta.icon || '🔗'}</span>${title} (${data.length})</h3>
+                                </div>
+                                <table class="rl-table"><thead><tr>`;
+                
+                for (let i = 0; i < displayCols.length; i++) {
+                    const col = displayCols[i];
+                    const f = relMeta.fields ? relMeta.fields.find(function(x) { return x.name === col; }) : null;
+                    const label = f ? f.label : (col === 'groupId' ? 'グループ' : col === 'idolId' ? 'アイドル' : col === 'workId' ? '作品(番組)' : col === 'liveId' ? 'ライブ' : col);
+                    html += `<th>${label}</th>`;
+                }
+                html += `</tr></thead><tbody>`;
+
+                if(data.length === 0) {
+                    html += `<tr><td colspan="${displayCols.length}" style="text-align:center; color:#888;">関連レコードはありません</td></tr>`;
+                } else {
+                    for (let i = 0; i < data.length; i++) {
+                        const record = data[i];
+                        html += `<tr>`;
+                        for (let j = 0; j < displayCols.length; j++) {
+                            const col = displayCols[j];
+                            let val = record[col];
+                            
+                            if (col === 'groupId') {
+                                val = `<span class="action-link" onclick="app.changeTabAndShowDetail('group', ${val})">${this.getLookupName('group', val)}</span>`;
+                            } else if(col === 'idolId') {
+                                val = `<span class="action-link" onclick="app.changeTabAndShowDetail('idol', ${val})">${this.getLookupName('idol', val)}</span>`;
+                            } else if(col === 'workId') {
+                                val = `<span class="action-link" onclick="app.changeTabAndShowDetail('work', ${val})">${this.getLookupName('work', val)}</span>`;
+                            } else if(col === 'liveId') {
+                                val = `<span class="action-link" onclick="app.changeTabAndShowDetail('live', ${val})">${this.getLookupName('live', val)}</span>`;
+                            } else if(col === 'ownerRecord') {
+                                val = this.getPolymorphicDisplay(val);
+                            } else if(col === 'status') {
+                                val = this.getBadgeHtml(val);
+                            } else if(col === 'isConcurrent') {
+                                val = val === 'true' ? '✅ 兼務' : '単独所属';
+                            }
+
+                            let displayVal = (val !== undefined && val !== null && val !== '') ? val : '-';
+                            html += `<td>${displayVal}</td>`;
+                        }
+                        html += `</tr>`;
+                    }
+                }
+                html += `</tbody></table></div>`;
+                container.innerHTML += html;
+            },
+
+            // ==========================================
+            // ★新設: レポート機能ロジック
+            // ==========================================
+            onReportObjectChange: function() {
+                const obj = document.getElementById('report-object-select').value;
+                const m = meta[obj];
+                if (!m || !m.fields) return;
+
+                const fieldSelect = document.getElementById('report-field-select');
+                let html = '<option value="id">レコードID</option>';
+                for (let i = 0; i < m.fields.length; i++) {
+                    html += `<option value="${m.fields[i].name}">${m.fields[i].label}</option>`;
+                }
+                fieldSelect.innerHTML = html;
+            },
+
+            runReport: function() {
+                const obj = document.getElementById('report-object-select').value;
+                const field = document.getElementById('report-field-select').value;
+                const op = document.getElementById('report-operator-select').value;
+                const val = document.getElementById('report-value-input').value.toLowerCase();
+
+                const m = meta[obj];
+                if (!m || !m.listFields) return;
+
+                document.getElementById('report-result-title').innerText = `${m.label} オブジェクトのカスタムレポート`;
+
+                // ヘッダー生成
+                const thead = document.getElementById('report-result-thead');
+                let theadHtml = '';
+                for (let i = 0; i < m.listFields.length; i++) {
+                    const f = m.listFields[i];
+                    const fieldMeta = m.fields.find(function(x) { return x.name === f; }) || {label: 'ID'};
+                    theadHtml += `<th>${fieldMeta.label}</th>`;
+                }
+                thead.innerHTML = theadHtml;
+
+                // フィルタリング
+                let data = [];
+                if (db[obj]) {
+                    data = db[obj].slice();
+                }
+
+                if (val) {
+                    data = data.filter(function(record) {
+                        let targetVal = record[field];
+                        if (field === 'agencyId' || field === 'venueId') {
+                            targetVal = app.getLookupName(field === 'agencyId' ? 'agency' : 'venue', targetVal);
+                        } else if (field === 'ownerRecord') {
+                            targetVal = app.getPolymorphicNameOnly(targetVal);
+                        }
+                        targetVal = String(targetVal).toLowerCase();
+
+                        if (op === 'contains') {
+                            return targetVal.indexOf(val) !== -1;
+                        } else if (op === 'equals') {
+                            return targetVal === val;
+                        }
+                        return true;
+                    });
+                }
+
+                document.getElementById('report-result-count').innerText = `${data.length} レコード`;
+
+                // テーブル結果生成
+                const tbody = document.getElementById('report-result-tbody');
+                let tbodyHtml = '';
+                if (data.length === 0) {
+                    tbodyHtml = `<tr><td colspan="${m.listFields.length}" style="text-align:center; padding:20px; color:gray;">条件に一致する結果は見つかりませんでした</td></tr>`;
+                } else {
+                    for (let i = 0; i < data.length; i++) {
+                        const record = data[i];
+                        tbodyHtml += '<tr>';
+                        for (let j = 0; j < m.listFields.length; j++) {
+                            const f = m.listFields[j];
+                            const fieldMeta = m.fields.find(function(x) { return x.name === f; });
+                            let cellVal = record[f];
+
+                            if (fieldMeta && fieldMeta.type === 'lookup') {
+                                cellVal = this.getLookupName(fieldMeta.target, cellVal);
+                            } else if (fieldMeta && fieldMeta.type === 'polymorphic') {
+                                cellVal = this.getPolymorphicNameOnly(cellVal);
+                            } else if (f === 'status') {
+                                cellVal = this.getBadgeHtml(cellVal);
+                            } else if (f === 'isConcurrent') {
+                                cellVal = cellVal === 'true' ? '✅ 兼務' : '-';
+                            }
+
+                            let displayVal = (cellVal !== undefined && cellVal !== null && cellVal !== '') ? cellVal : '-';
+                            
+                            if (f === 'name' || f === 'title' || f === 'description') {
+                                tbodyHtml += `<td><span class="action-link" onclick="app.showDetail(${record.id})" style="font-weight:bold;">${displayVal}</span></td>`;
+                            } else {
+                                tbodyHtml += `<td>${displayVal}</td>`;
+                            }
+                        }
+                        tbodyHtml += '</tr>';
+                    }
+                }
+                tbody.innerHTML = tbodyHtml;
+            },
+
+            // ==========================================
+            // ダッシュボード 集計解析
+            // ==========================================
+            renderDashboard: function() {
+                const totalIdols = db.idol ? db.idol.length : 0;
+                const activeIdols = db.idol ? db.idol.filter(function(i) { return i.status === '活動中'; }).length : 0;
+                const totalGroups = db.group ? db.group.length : 0;
+                const totalWorks = db.work ? db.work.length : 0;
+
+                document.getElementById('dash-kpi').innerHTML = `
+                    <div class="card kpi-card"><div class="kpi-value">${totalIdols}</div><div class="kpi-label">総タレント数</div></div>
+                    <div class="card kpi-card"><div class="kpi-value">${activeIdols}</div><div class="kpi-label">活動中タレント数</div></div>
+                    <div class="card kpi-card"><div class="kpi-value">${totalGroups}</div><div class="kpi-label">総グループ数</div></div>
+                    <div class="card kpi-card"><div class="kpi-value">${totalWorks}</div><div class="kpi-label">作品総数</div></div>
+                `;
+
+                const groupMembersCount = {};
+                if (db.group) {
+                    for (let i = 0; i < db.group.length; i++) {
+                        groupMembersCount[db.group[i].id] = 0;
+                    }
+                }
+                if (db.affiliation) {
+                    for (let i = 0; i < db.affiliation.length; i++) {
+                        const a = db.affiliation[i];
+                        if (a.status === '在籍中' || a.status === '活動中' || a.status === '活動休止') {
+                            if (groupMembersCount[a.groupId] !== undefined) {
+                                groupMembersCount[a.groupId]++;
+                            }
+                        }
+                    }
+                }
+                
+                let chart1Html = '';
+                let maxCount = 1;
+                for (const key in groupMembersCount) {
+                    if (groupMembersCount[key] > maxCount) maxCount = groupMembersCount[key];
+                }
+                
+                const sortedGroupCounts = [];
+                for (const key in groupMembersCount) {
+                    sortedGroupCounts.push({ id: key, count: groupMembersCount[key] });
+                }
+                sortedGroupCounts.sort(function(a, b) { return b.count - a.count; });
+
+                for (let i = 0; i < sortedGroupCounts.length; i++) {
+                    const gId = sortedGroupCounts[i].id;
+                    const count = sortedGroupCounts[i].count;
+                    const gName = this.getLookupName('group', gId);
+                    const width = (count / maxCount) * 100;
+                    chart1Html += `
+                        <div class="bar-row">
+                            <div class="bar-label">${gName}</div>
+                            <div class="bar-track"><div class="bar-fill" style="width:${width}%">${count}人</div></div>
+                        </div>`;
+                }
+                document.getElementById('chart-group-members').innerHTML = chart1Html;
+
+                const concurrentMap = {};
+                if (db.affiliation) {
+                    for (let i = 0; i < db.affiliation.length; i++) {
+                        const a = db.affiliation[i];
+                        if (a.isConcurrent === 'true') {
+                            if (!concurrentMap[a.idolId]) concurrentMap[a.idolId] = [];
+                            concurrentMap[a.idolId].push(this.getLookupName('group', a.groupId));
+                        }
+                    }
+                }
+
+                let chart2Html = '<ul style="padding-left:10px; font-size:13px; list-style:none;">';
+                let concurrentCount = 0;
+                for (let iId in concurrentMap) {
+                    concurrentCount++;
+                    chart2Html += `<li style="margin-bottom:10px; padding-bottom:6px; border-bottom:1px dashed var(--border-color)">
+                        <strong class="action-link" onclick="app.changeTabAndShowDetail('idol', ${iId})">🎤 ${this.getLookupName('idol', iId)}</strong><br>
+                        <span style="color:var(--brand-color); font-weight:bold; font-size:11px;">⚠️ 複数兼務所属: ${concurrentMap[iId].join(' ↔ ')}</span>
+                    </li>`;
+                }
+                chart2Html += '</ul>';
+                document.getElementById('chart-concurrent').innerHTML = concurrentCount > 0 ? chart2Html : '<p style="color:gray; padding:10px;">現在兼務中のタレントはいません</p>';
+
+                let timelineHtml = '';
+                if (db.event) {
+                    const sortedEvents = db.event.slice().sort(function(a, b) {
+                        const dateA = new Date(a.date).getTime();
+                        const dateB = new Date(b.date).getTime();
+                        return dateB - dateA;
+                    });
+                    
+                    for (let i = 0; i < sortedEvents.length; i++) {
+                        const e = sortedEvents[i];
+                        timelineHtml += `
+                            <div class="timeline-item">
+                                <div class="timeline-date">${e.date} [${e.type}]</div>
+                                <div class="timeline-desc">${e.description}</div>
+                            </div>`;
+                    }
+                }
+                document.getElementById('chart-timeline').innerHTML = timelineHtml;
+            },
+
+            // ==========================================
+            // モーダル機能 (CRUD実装)
+            // ==========================================
+            editMode: 'new',
+            editId: null,
+
+            openModal: function(mode, id) {
+                this.editMode = mode;
+                this.editId = id;
+                const m = meta[this.currentTab];
+                if(!m || !m.fields) return;
+
+                document.getElementById('modal-title').innerText = mode === 'new' ? `${m.label} レコード新規作成` : `${m.label} レコード編集`;
+                
+                let record = {};
+                if (mode === 'edit' && db[this.currentTab]) {
+                    const found = db[this.currentTab].find(function(r) { return r.id === id; });
+                    if (found) record = found;
+                }
+
+                let formHtml = '';
+                for (let i = 0; i < m.fields.length; i++) {
+                    const f = m.fields[i];
+                    let val = record[f.name] !== undefined ? record[f.name] : '';
+                    let isFullWidth = (f.type === 'text' || f.type === 'lookup' || f.type === 'polymorphic') ? 'full-width' : '';
+                    
+                    formHtml += `<div class="form-group ${isFullWidth}"><label>${f.label}</label>`;
+                    
+                    if (f.type === 'select') {
+                        formHtml += `<select id="form-${f.name}" class="input-field">`;
+                        for (let j = 0; j < f.options.length; j++) {
+                            const opt = f.options[j];
+                            const selected = (val === opt) ? 'selected' : '';
+                            formHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
+                        }
+                        formHtml += `</select>`;
+                    } 
+                    else if (f.type === 'lookup') {
+                        const targets = db[f.target] || [];
+                        formHtml += `<select id="form-${f.name}" class="input-field">
+                            <option value="">--なし--</option>`;
+                        for (let j = 0; j < targets.length; j++) {
+                            const t = targets[j];
+                            const selected = (val == t.id) ? 'selected' : '';
+                            formHtml += `<option value="${t.id}" ${selected}>${t.name || t.title}</option>`;
+                        }
+                        formHtml += `</select>`;
+                    }
+                    else if (f.type === 'polymorphic') {
+                        formHtml += `<select id="form-${f.name}" class="input-field">
+                            <option value="">--なし--</option>`;
+                        for (let j = 0; j < f.targets.length; j++) {
+                            const tObj = f.targets[j];
+                            const targets = db[tObj] || [];
+                            const labelPrefix = meta[tObj].label;
+                            for (let k = 0; k < targets.length; k++) {
+                                const t = targets[k];
+                                const optVal = `${tObj}_${t.id}`;
+                                const selected = (val === optVal) ? 'selected' : '';
+                                formHtml += `<option value="${optVal}" ${selected}>[${labelPrefix}] ${t.name || t.title}</option>`;
+                            }
+                        }
+                        formHtml += `</select>`;
+                    }
+                    else {
+                        formHtml += `<input type="${f.type}" class="input-field" id="form-${f.name}" value="${val}">`;
+                    }
+                    formHtml += `</div>`;
+                }
+
+                document.getElementById('modal-form-content').innerHTML = formHtml;
+                document.getElementById('form-modal').style.display = 'flex';
+            },
+
+            closeModal: function() {
+                document.getElementById('form-modal').style.display = 'none';
+            },
+
+            saveRecord: function() {
+                const m = meta[this.currentTab];
+                let record = {};
+                
+                if (this.editMode === 'edit') {
+                    record = db[this.currentTab].find(function(r) { return r.id === app.editId; });
+                } else {
+                    record = { id: counters[this.currentTab]++ };
+                }
+
+                for (let i = 0; i < m.fields.length; i++) {
+                    const f = m.fields[i];
+                    let val = document.getElementById(`form-${f.name}`).value;
+                    if (f.type === 'number' || f.type === 'lookup') {
+                        val = val ? parseInt(val, 10) : '';
+                    }
+                    record[f.name] = val;
+                }
+
+                if (this.editMode === 'new') {
+                    if (!db[this.currentTab]) db[this.currentTab] = [];
+                    db[this.currentTab].push(record);
+                }
+
+                this.closeModal();
+                if (document.getElementById('view-list').classList.contains('active')) {
+                    this.renderTable();
+                } else {
+                    this.showDetail(record.id);
+                }
+            },
+
+            deleteRecord: function(id) {
+                if(!confirm('このレコードを本当に物理削除しますか？\n（関連リストの整合性が失われる可能性があります）')) return;
+                db[this.currentTab] = db[this.currentTab].filter(function(r) { return r.id !== id; });
+                this.showList();
+            },
+
+            // ==========================================
+            // 設定画面 (Setup ER図)
+            // ==========================================
+            openSettingsWindow: function() {
+                const html = `<!DOCTYPE html>
+                <html lang="ja">
+                <head>
+                    <meta charset="UTF-8"><title>ER図・オブジェクト設計図 - アイドルcloud</title>
+                    <style>
+                        body { font-family: "Salesforce Sans", Arial, sans-serif; background: #F3F2F2; padding: 30px; color: #181818;}
+                        h1 { color: #0176D3; margin-bottom: 20px; font-size: 22px;}
+                        .explanation { background: #FFF9E6; padding: 15px; border-left: 4px solid #FFB700; margin-bottom: 25px; font-size: 13px; border-radius: 4px;}
+                        .er-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+                        .entity-box { background: white; border: 1px solid #DDDBDA; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; }
+                        .entity-header { background: #0176D3; color: white; padding: 8px 12px; font-weight: bold; font-size: 13px; }
+                        .entity-header.int { background: #546E7A; } 
+                        .entity-header.hist { background: #7A5474; } 
+                        .f-row { padding: 6px 12px; border-bottom: 1px solid #FAFAF9; font-size: 12px; display: flex; justify-content: space-between; }
+                        .f-row.pk { font-weight: bold; background: #F4F6F9; }
+                        .f-row.fk { color: #0176D3; font-style: italic; }
+                        .f-type { color: #747474; font-size: 11px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>☁️ アイドルcloud オブジェクト ERモデル設計図</h1>
+                    <div class="explanation">
+                        <strong>💡 学習ポイント：ポリモーフィック参照とカスタムレポート機能</strong><br>
+                        ・<b>カスタムレポート機能：</b> 新設されたレポートタブでは、オブジェクト単位のデータ抽出（SOQLクエリの擬似再現）を体験可能です。「特定のカラーのアイドル」「特定の放送局のドラマ作品」などを条件指定し、動的にデータを集計表示できます。<br>
+                        ・作品マスタの <code>ownerRecord</code> は、<b>アイドル</b> または <b>グループ</b> のどちらかを参照できるポリモーフィック（多態性）項目です。
+                    </div>
+
+                    <div class="er-grid">
+                        <div class="entity-box">
+                            <div class="entity-header">🏢 事務所オブジェクト (親)</div>
+                            <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
+                            <div class="f-row"><span>name</span><span class="f-type">Text</span></div>
+                        </div>
+
+                        <div class="entity-box">
+                            <div class="entity-header">🎤 アイドルマスタ (子/親)</div>
+                            <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
+                            <div class="f-row fk"><span>agencyId</span><span class="f-type">FK ➔ 事務所</span></div>
+                            <div class="f-row"><span>name</span><span class="f-type">Text</span></div>
+                        </div>
+
+                        <div class="entity-box">
+                            <div class="entity-header int">🔗 所属管理 (N:N 中間)</div>
+                            <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
+                            <div class="f-row fk"><span>idolId</span><span class="f-type">FK ➔ アイドル</span></div>
+                            <div class="f-row fk"><span>groupId</span><span class="f-type">FK ➔ グループ</span></div>
+                            <div class="f-row"><span>isConcurrent</span><span class="f-type">Checkbox</span></div>
+                        </div>
+
+                        <div class="entity-box">
+                            <div class="entity-header">👥 グループマスタ (子/親)</div>
+                            <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
+                            <div class="f-row"><span>name</span><span class="f-type">Text</span></div>
+                        </div>
+                    </div>
+
+                    <div class="er-grid">
+                        <div class="entity-box">
+                            <div class="entity-header">🎬 作品マスタ</div>
+                            <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
+                            <div class="f-row"><span>title</span><span class="f-type">Text</span></div>
+                            <div class="f-row"><span>type</span><span class="f-type">Picklist</span></div>
+                            <div class="f-row fk" style="background:#EBF3FC;"><span>ownerRecord</span><span class="f-type">ポリモーフィック FK</span></div>
+                        </div>
+
+                        <div class="entity-box">
+                            <div class="entity-header int">🎵 作品参加 (N:N 中間)</div>
+                            <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
+                            <div class="f-row fk"><span>workId</span><span class="f-type">FK ➔ 作品</span></div>
+                            <div class="f-row fk"><span>idolId</span><span class="f-type">FK ➔ アイドル</span></div>
+                            <div class="f-row"><span>role</span><span class="f-type">Text</span></div>
+                        </div>
+                        
+                        <div class="entity-box">
+                            <div class="entity-header hist">📜 グループ名変更履歴 (時系列)</div>
+                            <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
+                            <div class="f-row fk"><span>groupId</span><span class="f-type">FK ➔ グループ</span></div>
+                            <div class="f-row"><span>oldName</span><span class="f-type">Text</span></div>
+                            <div class="f-row"><span>newName</span><span class="f-type">Text</span></div>
+                        </div>
+                        
+                        <div class="entity-box">
+                            <div class="entity-header">🎸 ライブマスタ</div>
+                            <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
+                            <div class="f-row"><span>name</span><span class="f-type">Text</span></div>
+                            <div class="f-row fk"><span>venueId</span><span class="f-type">FK ➔ 会場</span></div>
+                        </div>
+                    </div>
+                </body>
+                </html>`;
+                
+                const win = window.open("", "_blank", "width=1300,height=850");
+                win.document.write(html);
+                win.document.close();
+                this.renderGlobalNav(); 
+            }
+        };
+
+        window.onload = function() { app.init(); };
+    </script>
+</body>
+</html>
