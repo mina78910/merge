@@ -170,20 +170,17 @@
 </head>
 <body>
 
-    <!-- ヘッダー (グローバルナビ) -->
     <header>
         <div class="header-top">
             <div class="logo">☁️ アイドルcloud </div>
             <div style="font-size: 12px; color: var(--text-sub);">擬似Salesforce CRM環境 (メモリ保持)</div>
         </div>
         <ul class="nav-tabs" id="global-nav">
-            <!-- JSで動的生成されます -->
-        </ul>
+            </ul>
     </header>
 
     <main>
         <div class="container">
-            <!-- ダッシュボード画面 -->
             <div id="view-dashboard" class="view-section">
                 <div class="dashboard-grid" id="dash-kpi"></div>
                 <div class="chart-grid">
@@ -204,7 +201,6 @@
                 </div>
             </div>
 
-            <!-- リストビュー画面 (一覧) -->
             <div id="view-list" class="view-section active">
                 <div class="card">
                     <div class="list-header">
@@ -226,10 +222,8 @@
                 </div>
             </div>
 
-            <!-- ★新設: レポート画面 -->
             <div id="view-report" class="view-section">
                 <div class="card" style="display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; padding: 20px;">
-                    <!-- 左側: レポート条件設定パネル -->
                     <div style="border-right: 1px solid var(--border-color); padding-right: 24px;">
                         <h2 style="font-size: 15px; font-weight: bold; margin-bottom: 16px; color: var(--brand-color); display: flex; align-items: center; gap: 6px;">📊 レポートビルダー</h2>
                         <div class="form-group" style="margin-bottom: 12px;">
@@ -260,7 +254,6 @@
                         </div>
                         <button class="btn btn-brand" onclick="app.runReport()" style="width: 100%;">レポートを実行</button>
                     </div>
-                    <!-- 右側: レポート結果表示テーブル -->
                     <div>
                         <div class="list-header" style="background: transparent; padding: 0 0 12px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                             <h2 id="report-result-title" style="font-size: 15px; margin: 0;">カスタムレポート結果</h2>
@@ -276,11 +269,9 @@
                 </div>
             </div>
 
-            <!-- 詳細画面 (レコード詳細 ＋ 関連リスト) -->
             <div id="view-detail" class="view-section">
                 <div class="breadcrumb" onclick="app.showList()">← <span id="breadcrumb-text">一覧へ戻る</span></div>
                 <div class="detail-page-layout">
-                    <!-- 上部: コンパクトレイアウト -->
                     <div class="card highlights-panel">
                         <div class="hp-left">
                             <div class="entity-icon" id="detail-icon">📄</div>
@@ -295,7 +286,6 @@
                             <button class="btn btn-danger" onclick="app.deleteRecord(app.currentDetailId)">削除</button>
                         </div>
                     </div>
-                    <!-- 下部: 詳細情報 ＆ 関連リスト分配 -->
                     <div class="detail-main-split">
                         <div class="card">
                             <div class="detail-tab-header">詳細情報</div>
@@ -308,7 +298,6 @@
         </div>
     </main>
 
-    <!-- モーダル (新規作成/編集) -->
     <div class="modal-overlay" id="form-modal">
         <div class="modal">
             <div class="modal-header">
@@ -323,7 +312,6 @@
         </div>
     </div>
 
-    <!-- JavaScript 制御ロジック -->
     <script>
         // === 万が一エラーが起きた場合に画面に表示する安全装置 ===
         window.onerror = function(message, source, lineno, colno, error) {
@@ -373,7 +361,7 @@
                 { id: 15, name: "向井康二", birthday: "1994-06-21", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
                 { id: 16, name: "山下智久", birthday: "1985-04-09", status: "活動中", agencyId: 1, memberColor: "赤" },
                 { id: 17, name: "錦戸亮", birthday: "1984-11-03", status: "活動中", agencyId: 1, memberColor: "黄" },
-                { id: 18, name: "内博貴", birthday: "1986-09-10", status: "活動休止", agencyId: 1, memberColor: "紫" },
+                { id: 18, name: "内博貴", birthday: "1986-09-10", status: "活動休止", agencyId: 1, memberColor: "ピンク" },
                 { id: 19, name: "岩本照", birthday: "1993-05-17", status: "活動中", agencyId: 1, memberColor: "黄" },
                 { id: 20, name: "深澤辰哉", birthday: "1992-05-05", status: "活動中", agencyId: 1, memberColor: "紫" },
                 { id: 21, name: "阿部亮平", birthday: "1993-11-27", status: "活動中", agencyId: 1, memberColor: "緑" },
@@ -401,7 +389,7 @@
                 { id: 43, name: "松岡昌宏", birthday: "1977-01-11", status: "活動中", agencyId: 1, memberColor: "紫" },
                 { id: 44, name: "有岡大貴", birthday: "1991-04-15", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
                 { id: 45, name: "髙木雄也", birthday: "1990-03-26", status: "活動中", agencyId: 1, memberColor: "紫" },
-                { id: 46, name: "伊野尾慧", birthday: "1990-06-22", status: "活動中", agencyId: 1, memberColor: "青" },
+                { id: 46, name: "伊野尾慧", birthday: "1990-06-22", status: "脱退", agencyId: 1, memberColor: "青" },
                 { id: 47, name: "八乙女光", birthday: "1990-12-02", status: "活動中", agencyId: 1, memberColor: "黄" },
                 { id: 48, name: "薮宏太", birthday: "1990-01-31", status: "活動中", agencyId: 1, memberColor: "黄緑" },
                 { id: 49, name: "佐藤勝利", birthday: "1996-10-30", status: "活動中", agencyId: 1, memberColor: "赤" },
@@ -445,11 +433,11 @@
                 { id: 87, name: "森田剛", birthday: "1979-02-20", status: "脱退", agencyId: 1, memberColor: "赤" },
                 { id: 88, name: "三宅健", birthday: "1979-07-02", status: "脱退", agencyId: 1, memberColor: "オレンジ" },
                 { id: 89, name: "岡田准一", birthday: "1980-11-18", status: "脱退", agencyId: 1, memberColor: "黄" },
-                { id: 90, name: "寺西拓人", birthday: "1993-12-31", status: "活動中", agencyId: 1, memberColor: "赤" },
-                { id: 91, name: "原嘉孝", birthday: "1995-09-25", status: "活動中", agencyId: 1, memberColor: "オレンジ" },
-                { id: 92, name: "橋本将生", birthday: "2000-01-01", status: "活動中", agencyId: 1, memberColor: "青" },
-                { id: 93, name: "猪俣周杜", birthday: "2001-02-02", status: "活動中", agencyId: 1, memberColor: "緑" },
-                { id: 94, name: "篠塚大輝", birthday: "2002-03-03", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 90, name: "寺西拓人", birthday: "1993-12-31", status: "活動中", agencyId: 1, memberColor: "水色" },
+                { id: 91, name: "原嘉孝", birthday: "1995-09-25", status: "活動中", agencyId: 1, memberColor: "黄緑" },
+                { id: 92, name: "橋本将生", birthday: "2000-01-01", status: "活動中", agencyId: 1, memberColor: "ピンク" },
+                { id: 93, name: "猪俣周杜", birthday: "2001-02-02", status: "活動中", agencyId: 1, memberColor: "黄" },
+                { id: 94, name: "篠塚大輝", birthday: "2002-03-03", status: "活動中", agencyId: 1, memberColor: "白" },
             ],
             // 中間テーブル: グループ所属 (非表示タブ)
             affiliation: [
@@ -500,7 +488,7 @@
                 { id: 45, idolId: 43, groupId: 15, status: "在籍中", role: "ドラム", isConcurrent: "false" },
                 { id: 46, idolId: 44, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
                 { id: 47, idolId: 45, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
-                { id: 48, idolId: 46, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
+                { id: 48, idolId: 46, groupId: 7, status: "脱退", role: "メンバー", isConcurrent: "false" },
                 { id: 49, idolId: 47, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
                 { id: 50, idolId: 48, groupId: 7, status: "在籍中", role: "メンバー", isConcurrent: "false" },
                 { id: 51, idolId: 49, groupId: 9, status: "在籍中", role: "メンバー", isConcurrent: "false" },
