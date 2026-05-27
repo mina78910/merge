@@ -181,6 +181,50 @@ h2 {
 }
 
 /* =========================
+   FOOTER (リリースノート)
+========================= */
+
+footer {
+  text-align: center;
+  padding: 20px 24px 40px;
+}
+
+.release-notes-link {
+  color: #6d28d9;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  padding: 8px;
+}
+
+.release-notes-link:hover {
+  opacity: 0.8;
+}
+
+/* リリースノートのテーブル */
+.release-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.release-table th, .release-table td {
+  border: 1px solid #e4e7f0;
+  padding: 12px;
+}
+
+.release-table th {
+  background-color: #f6f7fb;
+  color: #4b0ca3;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* =========================
    モダールパネル
 ========================= */
 
@@ -305,7 +349,7 @@ h2 {
 
   /* モダールのスマホサイズ調整 */
   .modal-panel {
-    width: 90%;
+    width: 95%;
     padding: 18px;
     border-width: 4px; /* スマホ時は少し線を細く */
   }
@@ -318,6 +362,14 @@ h2 {
   .modal-close svg {
     width: 28px;
     height: 28px;
+  }
+  
+  /* テーブルのスマホサイズ調整 */
+  .release-table {
+    font-size: 12px;
+  }
+  .release-table th, .release-table td {
+    padding: 8px 4px;
   }
 }
 
@@ -333,7 +385,6 @@ h2 {
 
 <section class="games">
 
-  <!-- リスキリングセンター1 -->
   <div class="card">
     <div class="slider">
       <img class="active" src="./image/riski1/riski1_1.png" alt="">
@@ -360,12 +411,8 @@ h2 {
          target="_blank">
          ▶ PLAY
       </a>
-
-
-      </div>
+    </div>
   </div>
-
-  <!-- リスキリングセンター2 -->
 
   <div class="card">
     <div class="slider">
@@ -379,7 +426,7 @@ h2 {
       <div class="title-wrap">
         <h2>リスキリングセンター2</h2>
         <div class="info-icon info-btn">i</div>
-        </div>
+      </div>
 
       <p class="desc">
         あのリスキリングセンター1が大幅リニューアル！！
@@ -423,10 +470,9 @@ h2 {
         </div>
       </div>
       
-      </div>
+    </div>
   </div>
 
-  <!-- 皇居ラン -->
   <div class="card">
     <div class="slider">
       <img class="active" src="./image/kokyorun/kokyorun1.png" alt="">
@@ -456,7 +502,6 @@ h2 {
     </div>
   </div>
 
- <!-- テラヌキー -->
   <div class="card">
     <div class="slider">
       <img class="active" src="./image/terranuky/terranuky1.png" alt="">
@@ -486,7 +531,6 @@ h2 {
     </div>
   </div>
 
-  <!-- ポケタスク -->
   <div class="card">
     <div class="slider">
       <img class="active" src="./image/poketask/poketask1.png" alt="">
@@ -516,7 +560,6 @@ h2 {
     </div>
   </div>
 
-  <!-- マッギョ -->
   <div class="card">
     <div class="slider">
       <img class="active" src="./image/poketaskmaggyo/poketaskmaggyo1.png" alt="">
@@ -546,7 +589,6 @@ h2 {
     </div>
   </div>
 
-  <!-- idlecloud -->
   <div class="card">
     <div class="slider">
       <img class="active" src="./image/idlecloud/idlecloud1.png" alt="">
@@ -578,6 +620,67 @@ h2 {
 
 </section>
 
+<footer>
+  <a href="#" class="release-notes-link" id="releaseNotesBtn">リリースノート</a>
+  
+  <div id="releaseNotesData" style="display: none;">
+    <h2 class="modal-data-title">リリースノート</h2>
+    <div class="modal-data-desc">
+      <table class="release-table">
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>件名</th>
+            <th>内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026/05/26</td>
+            <td>「アイドルCloud」<br>軽微な修正</td>
+            <td>・timeleszのメンカラ不具合修正<br>・Hey! Say! JUMPの人数不具合修正<br>・内博貴のメンカラ不具合修正</td>
+          </tr>
+          <tr>
+            <td>2026/05/26</td>
+            <td>新作リリース</td>
+            <td>アイドルCloudをリリースしました。</td>
+          </tr>
+          <tr>
+            <td>2026/05/10</td>
+            <td>新作リリース</td>
+            <td>新入社員サバイバルをリリースしました。</td>
+          </tr>
+          <tr>
+            <td>2026/05/06</td>
+            <td>新作リリース</td>
+            <td>リスキリングセンター2をリリースしました。</td>
+          </tr>
+          <tr>
+            <td>2026/05/04</td>
+            <td>新作リリース</td>
+            <td>皇居ランシミュレーターをリリースしました。</td>
+          </tr>
+          <tr>
+            <td>2026/01/18</td>
+            <td>新作リリース</td>
+            <td>ポケタスク（ALLマッギョモード）をリリースしました。</td>
+          </tr>
+          <tr>
+            <td>2025/10/04</td>
+            <td>新作リリース</td>
+            <td>ポケタスクをリリースしました。</td>
+          </tr>
+          <tr>
+            <td>2025/08/02</td>
+            <td>新作リリース</td>
+            <td>リスキリングセンター1をリリースしました。</td>
+          </tr>
+          </tbody>
+      </table>
+    </div>
+  </div>
+</footer>
+
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-panel">
     <button class="modal-close" id="closeModalBtn" aria-label="閉じる">
@@ -586,7 +689,7 @@ h2 {
       </svg>
     </button>
 
-    <div class="category">ゲーム詳細</div>
+    <div class="category">詳細情報</div>
     <h2 id="modalTitleDisplay"></h2>
     <div class="modal-body" id="modalBodyDisplay"></div>
   </div>
@@ -617,34 +720,50 @@ sliders.forEach(slider => {
 //     モダールのJavaScript
 // =========================
 
-// classで取得するように変更（複数対応）
 const infoBtns = document.querySelectorAll('.info-btn');
 const modalOverlay = document.getElementById('modalOverlay');
 const closeModalBtn = document.getElementById('closeModalBtn');
-
-// データを差し込む先の要素
 const modalTitleDisplay = document.getElementById('modalTitleDisplay');
 const modalBodyDisplay = document.getElementById('modalBodyDisplay');
 
-// 各インフォボタンにクリックイベントを設定
+// 各インフォボタン(i)にクリックイベントを設定
 infoBtns.forEach(btn => {
   btn.addEventListener('click', (e) => {
-    // クリックされたボタンの親(カードのcontent領域)を探す
     const cardContent = e.target.closest('.content');
-    
-    // その中にある隠しデータ(.modal-data-title, .modal-data-desc)を取得
     const dataTitle = cardContent.querySelector('.modal-data-title').innerHTML;
     const dataDesc = cardContent.querySelector('.modal-data-desc').innerHTML;
 
-    // モーダルの枠組みにデータを流し込む
+    modalTitleDisplay.innerHTML = dataTitle;
+    modalBodyDisplay.innerHTML = dataDesc;
+
+    modalOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; 
+  });
+});
+
+// =========================
+//   リリースノートのJavaScript
+// =========================
+const releaseNotesBtn = document.getElementById('releaseNotesBtn');
+const releaseNotesData = document.getElementById('releaseNotesData');
+
+if (releaseNotesBtn && releaseNotesData) {
+  releaseNotesBtn.addEventListener('click', (e) => {
+    e.preventDefault(); // リンクへのジャンプを防ぐ
+    
+    // 隠してあるデータを取得
+    const dataTitle = releaseNotesData.querySelector('.modal-data-title').innerHTML;
+    const dataDesc = releaseNotesData.querySelector('.modal-data-desc').innerHTML;
+
+    // モーダルへ流し込む
     modalTitleDisplay.innerHTML = dataTitle;
     modalBodyDisplay.innerHTML = dataDesc;
 
     // モーダルを開く
     modalOverlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // 背景のスクロールを一時停止
+    document.body.style.overflow = 'hidden';
   });
-});
+}
 
 // モーダルを閉じる関数
 const closeModal = () => {
