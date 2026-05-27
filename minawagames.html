@@ -31,6 +31,7 @@ body {
 
 header {
   padding: 28px 24px 12px;
+  position: relative;
 }
 
 header h1 {
@@ -38,6 +39,7 @@ header h1 {
   font-weight: 800;
   color: #4b0ca3;
   margin-bottom: 6px;
+  padding-right: 140px;
 }
 
 header p {
@@ -134,7 +136,7 @@ h2 {
 /* --- インフォマーク --- */
 .info-icon {
   background-color: white;
-  color: #ec8fb3; /* 添付画像のピンク */
+  color: #ec8fb3;
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -180,27 +182,44 @@ h2 {
   opacity: .9;
 }
 
-/* =========================
-   FOOTER (リリースノート)
-========================= */
-
-footer {
+/* --- ソースコードリンク --- */
+.source-code {
+  display: block;
   text-align: center;
-  padding: 20px 24px 40px;
+  color: #666;
+  font-size: 12px;
+  text-decoration: underline;
+  margin-top: 12px;
+  transition: .2s;
 }
 
-.release-notes-link {
+.source-code:hover {
   color: #6d28d9;
-  text-decoration: underline;
+}
+
+/* =========================
+   RELEASE NOTES BUTTON (右上配置・ピンクに変更)
+========================= */
+
+.release-notes-link {
+  position: absolute;
+  top: 28px;
+  right: 24px;
+  background: #ec8fb3; /* モダールの縁取りと同じピンクに変更 */
+  color: white;
+  text-decoration: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  display: inline-block;
-  padding: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(236, 143, 179, 0.3);
+  transition: .2s;
 }
 
 .release-notes-link:hover {
-  opacity: 0.8;
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 /* リリースノートのテーブル */
@@ -229,7 +248,7 @@ footer {
 ========================= */
 
 .modal-overlay {
-  display: none; /* 初期状態は非表示 */
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -244,18 +263,17 @@ footer {
 .modal-panel {
   background-color: white;
   border-radius: 18px;
-  border: 5px solid #ec8fb3; /* パネル全体へのピンクの縁取りを追加 */
+  border: 5px solid #ec8fb3;
   width: 85%;
   max-width: 500px;
   height: auto;
-  max-height: 80vh; /* スマホで長ければスクロール */
+  max-height: 80vh;
   padding: 24px;
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
-/* テキストエリアのスクロール */
 .modal-body {
   overflow-y: auto;
   margin-top: 10px;
@@ -272,7 +290,7 @@ footer {
 }
 
 .modal-close svg {
-  width: 32px; /* 小さすぎないサイズ */
+  width: 32px;
   height: 32px;
   fill: none;
   stroke: #ec8fb3;
@@ -290,11 +308,19 @@ footer {
   }
 
   header h1 {
-    font-size: 24px;
+    font-size: 22px;
+    padding-right: 100px;
   }
 
   header p {
     font-size: 12px;
+  }
+
+  .release-notes-link {
+    top: 16px;
+    right: 14px;
+    font-size: 11px;
+    padding: 4px 10px;
   }
 
   .games {
@@ -324,7 +350,6 @@ footer {
     font-size: 14px;
   }
 
-  /* インフォマークのスマホサイズ調整 */
   .info-icon {
     width: 24px;
     height: 24px;
@@ -347,11 +372,15 @@ footer {
     font-size: 11px;
   }
 
-  /* モダールのスマホサイズ調整 */
+  .source-code {
+    font-size: 10px;
+    margin-top: 8px;
+  }
+
   .modal-panel {
     width: 95%;
     padding: 18px;
-    border-width: 4px; /* スマホ時は少し線を細く */
+    border-width: 4px;
   }
 
   .modal-close {
@@ -364,7 +393,6 @@ footer {
     height: 28px;
   }
   
-  /* テーブルのスマホサイズ調整 */
   .release-table {
     font-size: 12px;
   }
@@ -381,6 +409,7 @@ footer {
 <header>
   <h1>Minawa Games</h1>
   <p>お仕事お疲れ様です</p>
+  <a href="#" class="release-notes-link" id="releaseNotesBtn">リリースノート</a>
 </header>
 
 <section class="games">
@@ -411,6 +440,11 @@ footer {
          target="_blank">
          ▶ PLAY
       </a>
+      <a class="source-code"
+         href="https://github.com/mina78910/merge/blob/main/reskillingcenter27.html"
+         target="_blank">
+         このゲームのソースコードはこちら
+      </a>
     </div>
   </div>
 
@@ -440,6 +474,11 @@ footer {
          href="https://mina78910.github.io/merge/reskillingcenter202605.html"
          target="_blank">
          ▶ PLAY
+      </a>
+      <a class="source-code"
+         href="https://github.com/mina78910/merge/blob/main/reskillingcenter202605.html"
+         target="_blank">
+         このゲームのソースコードはこちら
       </a>
       
        <div class="modal-data" style="display: none;">
@@ -499,6 +538,11 @@ footer {
          target="_blank">
          ▶ PLAY
       </a>
+      <a class="source-code"
+         href="https://github.com/mina78910/runningapp/blob/main/koukyorun.html"
+         target="_blank">
+         このゲームのソースコードはこちら
+      </a>
     </div>
   </div>
 
@@ -527,6 +571,11 @@ footer {
          href="https://mina78910.github.io/merge/terranuky.html"
          target="_blank">
          ▶ PLAY
+      </a>
+      <a class="source-code"
+         href="https://github.com/mina78910/merge/blob/main/terranuky.html"
+         target="_blank">
+         このゲームのソースコードはこちら
       </a>
     </div>
   </div>
@@ -557,6 +606,11 @@ footer {
          target="_blank">
          ▶ PLAY
       </a>
+      <a class="source-code"
+         href="https://github.com/mina78910/poketask/blob/main/1.html"
+         target="_blank">
+         このゲームのソースコードはこちら
+      </a>
     </div>
   </div>
 
@@ -585,6 +639,11 @@ footer {
          href="https://mina78910.github.io/poketask/maggyo_mode.html"
          target="_blank">
          ▶ PLAY
+      </a>
+      <a class="source-code"
+         href="https://github.com/mina78910/poketask/blob/main/maggyo_mode.html"
+         target="_blank">
+         このゲームのソースコードはこちら
       </a>
     </div>
   </div>
@@ -615,71 +674,77 @@ footer {
          target="_blank">
          ▶ PLAY
       </a>
+      <a class="source-code"
+         href="https://github.com/mina78910/merge/blob/main/idlecloud.html"
+         target="_blank">
+         このゲームのソースコードはこちら
+      </a>
     </div>
   </div>
 
 </section>
 
-<footer>
-  <a href="#" class="release-notes-link" id="releaseNotesBtn">リリースノート</a>
-  
-  <div id="releaseNotesData" style="display: none;">
-    <h2 class="modal-data-title">リリースノート</h2>
-    <div class="modal-data-desc">
-      <table class="release-table">
-        <thead>
-          <tr>
-            <th>日付</th>
-            <th>件名</th>
-            <th>内容</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>2026/05/26</td>
-            <td>「アイドルCloud」<br>軽微な修正</td>
-            <td>・timeleszのメンカラ不具合修正<br>・Hey! Say! JUMPの人数不具合修正<br>・内博貴のメンカラ不具合修正</td>
-          </tr>
-          <tr>
-            <td>2026/05/26</td>
-            <td>新作リリース</td>
-            <td>アイドルCloudをリリースしました。</td>
-          </tr>
-          <tr>
-            <td>2026/05/10</td>
-            <td>新作リリース</td>
-            <td>新入社員サバイバルをリリースしました。</td>
-          </tr>
-          <tr>
-            <td>2026/05/06</td>
-            <td>新作リリース</td>
-            <td>リスキリングセンター2をリリースしました。</td>
-          </tr>
-          <tr>
-            <td>2026/05/04</td>
-            <td>新作リリース</td>
-            <td>皇居ランシミュレーターをリリースしました。</td>
-          </tr>
-          <tr>
-            <td>2026/01/18</td>
-            <td>新作リリース</td>
-            <td>ポケタスク（ALLマッギョモード）をリリースしました。</td>
-          </tr>
-          <tr>
-            <td>2025/10/04</td>
-            <td>新作リリース</td>
-            <td>ポケタスクをリリースしました。</td>
-          </tr>
-          <tr>
-            <td>2025/08/02</td>
-            <td>新作リリース</td>
-            <td>リスキリングセンター1をリリースしました。</td>
-          </tr>
-          </tbody>
-      </table>
-    </div>
+<div id="releaseNotesData" style="display: none;">
+  <h2 class="modal-data-title">リリースノート</h2>
+  <div class="modal-data-desc">
+    <table class="release-table">
+      <thead>
+        <tr>
+          <th>日付</th>
+          <th>件名</th>
+          <th>内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2026/05/27</td>
+          <td>本サイト</td>
+          <td>各ゲームのソースコードを掲載</td>
+        </tr>
+        <tr>
+          <td>2026/05/27</td>
+          <td>「アイドルCloud」<br>軽微な修正</td>
+          <td>・timeleszのメンカラ不具合修正<br>・Hey! Say! JUMPの人数不具合修正<br>・内博貴のメンカラ不具合修正</td>
+        </tr>
+        <tr>
+          <td>2026/05/26</td>
+          <td>新作リリース</td>
+          <td>アイドルCloudをリリースしました。</td>
+        </tr>
+        <tr>
+          <td>2026/05/10</td>
+          <td>新作リリース</td>
+          <td>新入社員サバイバルをリリースしました。</td>
+        </tr>
+        <tr>
+          <td>2026/05/06</td>
+          <td>新作リリース</td>
+          <td>リスキリングセンター2をリリースしました。</td>
+        </tr>
+        <tr>
+          <td>2026/05/04</td>
+          <td>新作リリース</td>
+          <td>皇居ランシミュレーターをリリースしました。</td>
+        </tr>
+        <tr>
+          <td>2026/01/18</td>
+          <td>新作リリース</td>
+          <td>ポケタスク（ALLマッギョモード）をリリースしました。</td>
+        </tr>
+        <tr>
+          <td>2025/10/04</td>
+          <td>新作リリース</td>
+          <td>ポケタスクをリリースしました。</td>
+        </tr>
+        <tr>
+          <td>2025/08/02</td>
+          <td>新作リリース</td>
+          <td>リスキリングセンター1をリリースしました。</td>
+        </tr>
+        </tbody>
+    </table>
   </div>
-</footer>
+</div>
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-panel">
@@ -749,17 +814,14 @@ const releaseNotesData = document.getElementById('releaseNotesData');
 
 if (releaseNotesBtn && releaseNotesData) {
   releaseNotesBtn.addEventListener('click', (e) => {
-    e.preventDefault(); // リンクへのジャンプを防ぐ
+    e.preventDefault(); 
     
-    // 隠してあるデータを取得
     const dataTitle = releaseNotesData.querySelector('.modal-data-title').innerHTML;
     const dataDesc = releaseNotesData.querySelector('.modal-data-desc').innerHTML;
 
-    // モーダルへ流し込む
     modalTitleDisplay.innerHTML = dataTitle;
     modalBodyDisplay.innerHTML = dataDesc;
 
-    // モーダルを開く
     modalOverlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   });
@@ -768,12 +830,11 @@ if (releaseNotesBtn && releaseNotesData) {
 // モーダルを閉じる関数
 const closeModal = () => {
   modalOverlay.style.display = 'none';
-  document.body.style.overflow = ''; // 背景のスクロールを再開
+  document.body.style.overflow = ''; 
 };
 
 closeModalBtn.addEventListener('click', closeModal);
 
-// 背景クリックでも閉じるようにする
 modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) {
     closeModal();
