@@ -176,7 +176,8 @@
         // ==========================================
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf4f6f9);
-        scene.fog = new THREE.FogExp2(0xf4f6f9, 0.006);
+        // 日光表現の白みが強くなりすぎないよう、フォグは控えめにする
+        scene.fog = new THREE.FogExp2(0xf4f6f9, 0.0035);
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 200);
         camera.position.set(0, 1.6, 0); 
@@ -188,16 +189,17 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.outputEncoding = THREE.sRGBEncoding; 
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.0;
+        // 全体の露出を少し下げ、室内が白飛びしにくいバランスにする
+        renderer.toneMappingExposure = 0.86;
         document.body.appendChild(renderer.domElement);
 
         // ==========================================
         // 2. 照明の設定 
         // ==========================================
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0xaaaaaa, 0.85);
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0xaaaaaa, 0.72);
         scene.add(hemiLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.55);
         dirLight.position.set(-20, 25, -10); 
         dirLight.castShadow = true;
         dirLight.shadow.mapSize.width = 4096; 
@@ -302,6 +304,131 @@
             return texture;
         }
 
+        function createMountainMuralTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 2048;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#e8edf0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            function drawLayer(points, color) {
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height);
+                points.forEach(([x, y], index) => {
+                    if (index === 0) {
+                        ctx.lineTo(x * canvas.width, y * canvas.height);
+                    } else {
+                        ctx.lineTo(x * canvas.width, y * canvas.height);
+                    }
+                });
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+
+            drawLayer([
+                [0.00, 0.18], [0.09, 0.23], [0.18, 0.31], [0.25, 0.33],
+                [0.34, 0.45], [0.45, 0.49], [0.55, 0.53], [0.64, 0.54],
+                [0.75, 0.61], [0.88, 0.61], [1.00, 0.66]
+            ], '#dce8e3');
+
+            drawLayer([
+                [0.00, 0.32], [0.07, 0.36], [0.15, 0.43], [0.27, 0.45],
+                [0.38, 0.49], [0.50, 0.51], [0.60, 0.58], [0.72, 0.59],
+                [0.85, 0.65], [1.00, 0.66]
+            ], '#cfe4d1');
+
+            drawLayer([
+                [0.00, 0.60], [0.08, 0.57], [0.18, 0.61], [0.28, 0.58],
+                [0.40, 0.62], [0.51, 0.63], [0.63, 0.59], [0.74, 0.62],
+                [0.86, 0.60], [1.00, 0.64]
+            ], '#efe4d1');
+
+            drawLayer([
+                [0.00, 0.78], [0.11, 0.76], [0.23, 0.79], [0.35, 0.75],
+                [0.49, 0.77], [0.60, 0.72], [0.73, 0.75], [0.86, 0.73],
+                [1.00, 0.77]
+            ], '#b8d8df');
+
+            ctx.fillStyle = '#23564f';
+            for (const tree of [
+                [0.56, 0.78, 0.14], [0.60, 0.80, 0.20], [0.65, 0.77, 0.16],
+                [0.71, 0.76, 0.24], [0.77, 0.78, 0.18], [0.83, 0.75, 0.22]
+            ]) {
+                const [x, baseY, h] = tree;
+                const cx = x * canvas.width;
+                const base = baseY * canvas.height;
+                const height = h * canvas.height;
+                const width = height * 0.34;
+                ctx.beginPath();
+                ctx.moveTo(cx, base - height);
+                ctx.lineTo(cx - width, base);
+                ctx.lineTo(cx + width, base);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillRect(cx - width * 0.08, base - height * 0.1, width * 0.16, height * 0.2);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        function createCityWindowTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+
+            const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            sky.addColorStop(0, '#f7fbff');
+            sky.addColorStop(1, '#dcecf7');
+            ctx.fillStyle = sky;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const buildings = [
+                [40, 170, 210, 760], [255, 90, 170, 840], [455, 130, 210, 790],
+                [700, 60, 180, 860], [875, 190, 120, 740]
+            ];
+            buildings.forEach(([x, y, w, h], index) => {
+                ctx.fillStyle = index % 2 === 0 ? 'rgba(135, 170, 200, 0.72)' : 'rgba(115, 155, 190, 0.64)';
+                ctx.fillRect(x, y, w, h);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.86)';
+                ctx.lineWidth = 5;
+                for (let gx = x + 24; gx < x + w; gx += 42) {
+                    ctx.beginPath();
+                    ctx.moveTo(gx, y);
+                    ctx.lineTo(gx, y + h);
+                    ctx.stroke();
+                }
+                for (let gy = y + 34; gy < y + h; gy += 58) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, gy);
+                    ctx.lineTo(x + w, gy);
+                    ctx.stroke();
+                }
+            });
+
+            ctx.strokeStyle = 'rgba(70, 105, 135, 0.26)';
+            ctx.lineWidth = 6;
+            for (let x = 170; x < canvas.width; x += 260) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
         const carpetTex = createCarpetTexture();
         const floorGeo = new THREE.PlaneGeometry(roomWidth, roomDepth);
         const floorMat = new THREE.MeshStandardMaterial({ map: carpetTex, roughness: 1.0, metalness: 0.0 });
@@ -360,9 +487,44 @@
         const breakX = -roomWidth / 2 - breakWidth / 2; 
         const breakZ = -roomDepth / 4; 
         
-        createWall(0.2, roomHeight, breakDepth, -roomWidth / 2 - breakWidth, roomHeight/2, breakZ, 0x8ba6b5);
+        const cityView = new THREE.Mesh(
+            new THREE.PlaneGeometry(breakDepth, roomHeight),
+            new THREE.MeshBasicMaterial({ map: createCityWindowTexture() })
+        );
+        cityView.rotation.y = Math.PI / 2;
+        cityView.position.set(-roomWidth / 2 - breakWidth - 0.08, roomHeight / 2, breakZ);
+        scene.add(cityView);
+
+        const breakGlassMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff, transparent: true, opacity: 0.22,
+            roughness: 0.04, metalness: 0.12, emissive: 0xffffff, emissiveIntensity: 0.12
+        });
+        const breakGlass = new THREE.Mesh(new THREE.PlaneGeometry(breakDepth, roomHeight), breakGlassMat);
+        breakGlass.rotation.y = Math.PI / 2;
+        breakGlass.position.set(-roomWidth / 2 - breakWidth + 0.01, roomHeight / 2, breakZ);
+        scene.add(breakGlass);
+
+        const windowFrameMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35 });
+        for (let z = -roomDepth / 2; z <= 0.01; z += breakDepth / 3) {
+            const frame = new THREE.Mesh(new THREE.BoxGeometry(0.12, roomHeight, 0.06), windowFrameMat);
+            frame.position.set(-roomWidth / 2 - breakWidth + 0.02, roomHeight / 2, z);
+            scene.add(frame);
+        }
+        for (let y = 0; y <= roomHeight + 0.01; y += roomHeight / 2) {
+            const frame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, breakDepth), windowFrameMat);
+            frame.position.set(-roomWidth / 2 - breakWidth + 0.02, y, breakZ);
+            scene.add(frame);
+        }
         createWall(breakWidth, roomHeight, 0.2, breakX, roomHeight/2, 0);
         createWall(breakWidth, roomHeight, 0.2, breakX, roomHeight/2, -roomDepth/2, 0x98ab83); 
+
+        const mountainMural = new THREE.Mesh(
+            new THREE.PlaneGeometry(breakWidth, roomHeight),
+            new THREE.MeshStandardMaterial({ map: createMountainMuralTexture(), roughness: 1.0, side: THREE.DoubleSide })
+        );
+        mountainMural.position.set(breakX, roomHeight / 2, -0.105);
+        mountainMural.receiveShadow = true;
+        scene.add(mountainMural);
         
         const alcoveCeiling = new THREE.Mesh(new THREE.PlaneGeometry(breakWidth, breakDepth), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, emissive: 0x111111 }));
         alcoveCeiling.rotation.x = Math.PI / 2;
@@ -397,7 +559,8 @@
         const alcoveDepth = 2.0;
 
         // --- ガラス張りの出入口 ---
-        const newDoorX = -14.4;
+        // ロッカー列を少し削り、出入口を中央側へ寄せる
+        const newDoorX = -11.8;
         const newDoorWidth = 1.4;
         const newDoorHeight = 2.4;
         const newDoorStart = newDoorX - newDoorWidth / 2;
@@ -898,8 +1061,15 @@
         }
 
         for (let x = -21.6; x <= 21.6; x += 3.6) { 
+            // 観音扉（alcoveCenterX = 4.8）正面のデスク列をスキップ
+            if (Math.abs(x - 3.6) < 0.1 || Math.abs(x - 7.2) < 0.1) continue;
             createDeskRow(x, 0, 4);
         }
+
+        // デスクを抜いた中央フリースペース（x = 5.4付近）にテーブルセットを3つ配置
+        createCafeSet(5.4, -2.0);
+        createCafeSet(5.4, 0.0);
+        createCafeSet(5.4, 2.0);
 
         function createWallDeskStation(x, z, facingAngle) {
             const stationGroup = new THREE.Group();
@@ -989,7 +1159,7 @@
             }
             scene.add(lockerGroup);
         }
-        createLockerBank(-13.4, 15, roomDepth / 2 - 0.1);
+        createLockerBank(newDoorEnd + 0.3, 15, roomDepth / 2 - 0.1);
 
         // ==========================================
         // 8. ブレイクエリア（右奥の壁際）の配置
@@ -1127,6 +1297,17 @@
         let lookTouchId = null;
         let lastTouchX = 0;
         let lastTouchY = 0;
+        let isMouseLooking = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        function rotateView(deltaX, deltaY, sensitivity) {
+            euler.setFromQuaternion(camera.quaternion);
+            euler.y -= deltaX * sensitivity;
+            euler.x -= deltaY * sensitivity;
+            euler.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, euler.x));
+            camera.quaternion.setFromEuler(euler);
+        }
 
         uiLayer.addEventListener('click', () => {
             if (isTouchDevice) {
@@ -1146,7 +1327,7 @@
 
                     window.joystickManager.on('move', (evt, data) => {
                         joyMoveX = data.vector.x;
-                        joyMoveZ = -data.vector.y;
+                        joyMoveZ = data.vector.y;
                     });
 
                     window.joystickManager.on('end', () => {
@@ -1155,7 +1336,14 @@
                     });
                 }
             } else {
-                document.body.requestPointerLock();
+                isPlaying = true;
+                uiLayer.style.opacity = '0';
+                setTimeout(() => uiLayer.style.display = 'none', 300);
+                crosshair.style.display = 'block';
+                const lockRequest = document.body.requestPointerLock && document.body.requestPointerLock();
+                if (lockRequest && typeof lockRequest.catch === 'function') {
+                    lockRequest.catch(() => {});
+                }
             }
         });
 
@@ -1180,13 +1368,34 @@
             document.getElementById('mobile-exit').style.display = 'none';
         });
 
-        document.addEventListener('mousemove', (event) => {
-            if (!isPlaying || isTouchDevice) return;
-            euler.setFromQuaternion(camera.quaternion);
-            euler.y -= event.movementX * 0.002;
-            euler.x -= event.movementY * 0.002;
-            euler.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, euler.x));
-            camera.quaternion.setFromEuler(euler);
+        document.addEventListener('pointerdown', (event) => {
+            if (!isPlaying || event.pointerType !== 'mouse' || document.pointerLockElement === document.body) return;
+            if (event.clientX > window.innerWidth / 2) {
+                isMouseLooking = true;
+                lastMouseX = event.clientX;
+                lastMouseY = event.clientY;
+            }
+        });
+
+        document.addEventListener('pointermove', (event) => {
+            if (!isPlaying || event.pointerType !== 'mouse') return;
+            if (document.pointerLockElement === document.body) {
+                rotateView(event.movementX, event.movementY, 0.002);
+                return;
+            }
+            if (!isMouseLooking) return;
+
+            const deltaX = event.clientX - lastMouseX;
+            const deltaY = event.clientY - lastMouseY;
+            rotateView(deltaX, deltaY, 0.004);
+
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+        });
+
+        document.addEventListener('pointerup', (event) => {
+            if (event.pointerType !== 'mouse') return;
+            isMouseLooking = false;
         });
 
         document.addEventListener('touchstart', (e) => {
@@ -1209,12 +1418,7 @@
                 if (t.identifier === lookTouchId) {
                     let deltaX = t.clientX - lastTouchX;
                     let deltaY = t.clientY - lastTouchY;
-                    
-                    euler.setFromQuaternion(camera.quaternion);
-                    euler.y -= deltaX * 0.004; 
-                    euler.x -= deltaY * 0.004;
-                    euler.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, euler.x));
-                    camera.quaternion.setFromEuler(euler);
+                    rotateView(deltaX, deltaY, 0.004);
 
                     lastTouchX = t.clientX;
                     lastTouchY = t.clientY;
