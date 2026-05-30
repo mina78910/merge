@@ -575,8 +575,32 @@
         const leftNicheStart = leftNicheEnd - leftNicheWidth;
         const leftNicheCenterX = (leftNicheStart + leftNicheEnd) / 2;
 
-        const wall1LeftWidth = leftNicheStart - (-roomWidth / 2);
-        createWall(wall1LeftWidth, roomHeight, 0.2, -roomWidth / 2 + wall1LeftWidth / 2, roomHeight / 2, roomDepth / 2);
+        const meetingDoorWidth = newDoorWidth;
+        const meetingDoorHeight = 2.35;
+        const meetingDoorGap = 0.6;
+        const meetingDoor2Offset = newDoorWidth * 2;
+        const meetingDoor1X = leftNicheStart - meetingDoorGap - meetingDoorWidth / 2;
+        const meetingDoor2X = meetingDoor1X - meetingDoorWidth - meetingDoor2Offset;
+        const meetingDoor1Start = meetingDoor1X - meetingDoorWidth / 2;
+        const meetingDoor1End = meetingDoor1X + meetingDoorWidth / 2;
+        const meetingDoor2Start = meetingDoor2X - meetingDoorWidth / 2;
+        const meetingDoor2End = meetingDoor2X + meetingDoorWidth / 2;
+
+        const frontWallSegments = [
+            [-roomWidth / 2, meetingDoor2Start],
+            [meetingDoor2End, meetingDoor1Start],
+            [meetingDoor1End, leftNicheStart]
+        ];
+        frontWallSegments.forEach(([start, end]) => {
+            const segmentWidth = end - start;
+            if (segmentWidth > 0.01) {
+                createWall(segmentWidth, roomHeight, 0.2, start + segmentWidth / 2, roomHeight / 2, roomDepth / 2);
+            }
+        });
+        const meetingDoorHeaderHeight = roomHeight - meetingDoorHeight;
+        [meetingDoor1X, meetingDoor2X].forEach((doorX) => {
+            createWall(meetingDoorWidth, meetingDoorHeaderHeight, 0.2, doorX, meetingDoorHeight + meetingDoorHeaderHeight / 2, roomDepth / 2);
+        });
 
         const wall1DoorSideWidth = newDoorStart - leftNicheEnd;
         createWall(wall1DoorSideWidth, roomHeight, 0.2, leftNicheEnd + wall1DoorSideWidth / 2, roomHeight / 2, roomDepth / 2);
@@ -604,8 +628,6 @@
 
         function createMeetingRoomDoor(x, labelText) {
             const doorGroup = new THREE.Group();
-            const meetingDoorWidth = newDoorWidth;
-            const meetingDoorHeight = 2.35;
             const meetingDoorZ = roomDepth / 2 - 0.12;
             const meetingDoorMat = new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.12, metalness: 0.15 });
             const meetingFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
@@ -653,16 +675,69 @@
                 new THREE.MeshStandardMaterial({ map: signTexture, transparent: true, roughness: 0.6, side: THREE.DoubleSide })
             );
             sign.position.set(x, 1.5, meetingDoorZ - 0.065);
+            sign.scale.x = -1;
             doorGroup.add(sign);
 
             scene.add(doorGroup);
         }
 
-        // くぼみを背にして左側へ1枚目、さらに2枚分離した左側へ2枚目の透明な会議室ドアを配置
-        const meetingDoorGap = 0.6;
-        const meetingDoor2Offset = newDoorWidth * 2;
-        const meetingDoor1X = leftNicheStart - meetingDoorGap - newDoorWidth / 2;
-        const meetingDoor2X = meetingDoor1X - newDoorWidth - meetingDoor2Offset;
+        function createMeetingRoomInterior(x, accentColor) {
+            const meetingRoomWidth = meetingDoorWidth + 1.0;
+            const meetingRoomDepth = 3.2;
+            const meetingRoomHeight = 3.0;
+            const meetingRoomCenterZ = roomDepth / 2 + meetingRoomDepth / 2;
+            const roomFloorTex = carpetTex.clone();
+            roomFloorTex.needsUpdate = true;
+            roomFloorTex.repeat.set(meetingRoomWidth / 4, meetingRoomDepth / 4);
+            const roomFloor = new THREE.Mesh(
+                new THREE.PlaneGeometry(meetingRoomWidth, meetingRoomDepth),
+                new THREE.MeshStandardMaterial({ map: roomFloorTex, roughness: 1.0 })
+            );
+            roomFloor.rotation.x = -Math.PI / 2;
+            roomFloor.position.set(x, 0.004, meetingRoomCenterZ);
+            roomFloor.receiveShadow = true;
+            scene.add(roomFloor);
+
+            createWall(0.2, meetingRoomHeight, meetingRoomDepth, x - meetingRoomWidth / 2 - 0.1, meetingRoomHeight / 2, meetingRoomCenterZ, 0xe8edf3);
+            createWall(0.2, meetingRoomHeight, meetingRoomDepth, x + meetingRoomWidth / 2 + 0.1, meetingRoomHeight / 2, meetingRoomCenterZ, 0xe8edf3);
+            createWall(meetingRoomWidth + 0.4, meetingRoomHeight, 0.2, x, meetingRoomHeight / 2, roomDepth / 2 + meetingRoomDepth + 0.1, 0xe8edf3);
+            createWall(meetingRoomWidth + 0.4, 0.2, meetingRoomDepth, x, meetingRoomHeight + 0.1, meetingRoomCenterZ, 0xffffff);
+
+            const tableMat = new THREE.MeshStandardMaterial({ color: 0xd6b38c, roughness: 0.45 });
+            const table = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.08, 1.0), tableMat);
+            table.position.set(x, 0.72, meetingRoomCenterZ + 0.15);
+            table.castShadow = true;
+            table.receiveShadow = true;
+            scene.add(table);
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.2, roughness: 0.35 });
+            [[-0.55, -0.35], [0.55, -0.35], [-0.55, 0.35], [0.55, 0.35]].forEach(([lx, lz]) => {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.72, 0.06), legMat);
+                leg.position.set(x + lx, 0.36, meetingRoomCenterZ + 0.15 + lz);
+                leg.castShadow = true;
+                scene.add(leg);
+            });
+
+            const chairMat = new THREE.MeshStandardMaterial({ color: accentColor, roughness: 0.55 });
+            [[0, -0.85, 0], [0, 0.85, Math.PI], [-0.95, 0.15, -Math.PI / 2], [0.95, 0.15, Math.PI / 2]].forEach(([cx, cz, ry]) => {
+                const chair = new THREE.Group();
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.42), chairMat);
+                seat.position.y = 0.45;
+                chair.add(seat);
+                const back = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.55, 0.08), chairMat);
+                back.position.set(0, 0.72, -0.21);
+                chair.add(back);
+                chair.position.set(x + cx, 0, meetingRoomCenterZ + 0.15 + cz);
+                chair.rotation.y = ry;
+                scene.add(chair);
+            });
+
+            const roomLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
+            roomLight.position.set(x, meetingRoomHeight - 0.25, meetingRoomCenterZ);
+            scene.add(roomLight);
+        }
+
+        createMeetingRoomInterior(meetingDoor1X, 0x4f8fd8);
+        createMeetingRoomInterior(meetingDoor2X, 0x85a947);
         createMeetingRoomDoor(meetingDoor1X, 'value');
         createMeetingRoomDoor(meetingDoor2X, 'share');
         
