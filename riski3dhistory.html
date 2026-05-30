@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>開発の軌跡 - Minawa Games</title>
+<title>開発の変遷</title>
 
 <style>
 /* =========================
@@ -42,6 +42,7 @@ header h1 {
   font-weight: 800;
   color: #4b0ca3;
   margin-bottom: 6px;
+  padding-right: 150px; /* ボタンとの重なり防止 */
 }
 
 header p {
@@ -101,7 +102,7 @@ header p {
 
 /* 記事ヘッダー */
 .post-header {
-  padding: 20px 24px 10px;
+  padding: 20px 24px 12px;
 }
 
 .post-date {
@@ -131,6 +132,7 @@ header p {
 
 .post-image img {
   width: 100%;
+  max-width: 100%;
   height: auto;
   display: block;
 }
@@ -186,6 +188,7 @@ summary:hover {
 
 .prompt-image img {
   width: 100%;
+  max-width: 100%;
   height: auto;
   display: block;
   border: 1px solid #e4e7f0;
@@ -193,15 +196,16 @@ summary:hover {
 }
 
 /* =========================
-   MOBILE
+   MOBILE RESPONSIVE (スマホ対応)
 ========================= */
 @media (max-width:768px) {
   header {
-    padding: 18px 14px 8px;
+    padding: 20px 16px 10px;
   }
 
   header h1 {
-    font-size: 22px;
+    font-size: 24px;
+    padding-right: 110px; /* スマホ用ボタン幅に合わせる */
   }
 
   header p {
@@ -209,44 +213,40 @@ summary:hover {
   }
 
   .back-link {
-    top: 16px;
-    right: 14px;
+    top: 20px;
+    right: 16px;
     font-size: 11px;
-    padding: 4px 10px;
+    padding: 6px 14px;
   }
 
   .blog-container {
-    padding: 10px 14px 40px;
-    gap: 20px;
+    padding: 10px 12px 40px;
+    gap: 20px; /* スマホ時はカード間の隙間を少し狭く */
   }
 
   .post-card {
-    border-radius: 12px;
+    border-radius: 12px; /* スマホに合わせて角丸をスマートに */
   }
 
   .post-header {
-    padding: 16px 16px 8px;
+    padding: 16px 16px 10px;
   }
 
   .post-title {
-    font-size: 20px;
+    font-size: 18px; /* スマホで見やすい文字サイズ */
   }
 
   .post-content {
-    padding: 16px 16px 20px;
-  }
-
-  .post-desc {
-    font-size: 14px;
+    padding: 16px 16px 16px;
   }
 
   summary {
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 12px 14px;
+    font-size: 13px;
   }
 
   .prompt-image {
-    padding: 14px 16px;
+    padding: 12px 12px;
   }
 }
 </style>
@@ -255,8 +255,8 @@ summary:hover {
 <body>
 
 <header>
-  <h1>開発の軌跡</h1>
-  <p>AIと共に歩んだ改修の歴史</p>
+  <h1>ここまでの歩み</h1>
+  <p>リスキリングセンター3</p>
   <a href="index.html" class="back-link">トップへ戻る</a>
 </header>
 
@@ -267,14 +267,11 @@ summary:hover {
       <span class="post-date"></span>
       <h2 class="post-title">XXXX</h2>
     </div>
-    
     <div class="post-image">
       <img src="./image/riski3dhistory/riski3dhistory1.png" alt="XXXX">
     </div>
-
     <div class="post-content">
       <p class="post-desc"></p>
-
       <details>
         <summary>▶ 実際に使用したAIプロンプトを見る</summary>
         <div class="prompt-image">
@@ -288,18 +285,231 @@ summary:hover {
       <span class="post-date"></span>
       <h2 class="post-title">XXXX</h2>
     </div>
-    
     <div class="post-image">
       <img src="./image/riski3dhistory/riski3dhistory2.png" alt="XXXX">
     </div>
-
     <div class="post-content">
       <p class="post-desc"></p>
-
       <details>
         <summary>▶ 実際に使用したAIプロンプトを見る</summary>
         <div class="prompt-image">
           <img src="./image/riski3dhistory/riski3dhistory2_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory3.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory3_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory4.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory4_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory5.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory5_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory6.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory6_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory7.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory7_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory8.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory8_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory9.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory9_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory10.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory10_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory11.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory11_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory12.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory12_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory13.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory13_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date"></span>
+      <h2 class="post-title">XXXX</h2>
+    </div>
+    <div class="post-image">
+      <img src="./image/riski3dhistory/riski3dhistory14.png" alt="XXXX">
+    </div>
+    <div class="post-content">
+      <p class="post-desc"></p>
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory14_prompt.png" alt="使用したプロンプトのスクリーンショット">
         </div>
       </details>
     </div>
