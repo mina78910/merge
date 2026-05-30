@@ -815,55 +815,94 @@
             scene.add(boothGroup);
         }
 
+        function createTrashLabelTexture(bgColor, iconText, subText) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 82px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(iconText, canvas.width / 2, 102);
+            ctx.font = 'bold 34px sans-serif';
+            ctx.fillText(subText, canvas.width / 2, 178);
+            return new THREE.CanvasTexture(canvas);
+        }
+
         function createPetBottleTrashBin() {
-            const binRadius = 0.24;
-            const binHeight = 0.82;
-            const binX = -roomWidth / 2 + 1.25 + binRadius + 0.22;
-            const binZ = roomDepth / 2 - binRadius - 0.18;
-            const binMat = new THREE.MeshStandardMaterial({ color: 0x8f969d, roughness: 0.55, metalness: 0.15 });
-            const darkMat = new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.65 });
-            const blueMat = new THREE.MeshStandardMaterial({ color: 0x2f80d8, roughness: 0.42 });
+            const stationGroup = new THREE.Group();
+            stationGroup.position.set(-23.15, 0, roomDepth / 2 - 0.34);
 
-            const binGroup = new THREE.Group();
-            binGroup.position.set(binX, 0, binZ);
+            const offWhiteMat = new THREE.MeshStandardMaterial({ color: 0xe8e2d3, roughness: 0.56 });
+            const bagMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.72, roughness: 0.65 });
+            const grayMat = new THREE.MeshStandardMaterial({ color: 0x5f615c, roughness: 0.48, metalness: 0.08 });
+            const darkLidMat = new THREE.MeshStandardMaterial({ color: 0x383a37, roughness: 0.52, metalness: 0.08 });
+            const pedalMat = new THREE.MeshStandardMaterial({ color: 0xb7bcc1, roughness: 0.28, metalness: 0.45 });
 
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(binRadius, binRadius * 0.92, binHeight, 32), binMat);
-            body.position.y = binHeight / 2;
-            body.castShadow = true;
-            body.receiveShadow = true;
-            binGroup.add(body);
+            function addRectBin(x, labelTexture) {
+                const width = 0.42;
+                const height = 0.98;
+                const depth = 0.46;
+                const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), grayMat);
+                body.position.set(x, height / 2, 0);
+                body.castShadow = true;
+                body.receiveShadow = true;
+                stationGroup.add(body);
 
-            const lid = new THREE.Mesh(new THREE.CylinderGeometry(binRadius * 1.05, binRadius * 1.05, 0.08, 32), darkMat);
-            lid.position.y = binHeight + 0.04;
-            lid.castShadow = true;
-            binGroup.add(lid);
+                const lid = new THREE.Mesh(new THREE.BoxGeometry(width * 0.96, 0.08, depth * 0.92), darkLidMat);
+                lid.position.set(x, height + 0.04, -0.02);
+                lid.rotation.x = -0.12;
+                lid.castShadow = true;
+                stationGroup.add(lid);
 
-            const bottleSlot = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.025, 24), darkMat);
-            bottleSlot.rotation.x = Math.PI / 2;
-            bottleSlot.position.set(0, binHeight + 0.085, -0.08);
-            binGroup.add(bottleSlot);
+                const label = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.24, 0.34),
+                    new THREE.MeshStandardMaterial({ map: labelTexture, roughness: 0.5 })
+                );
+                label.position.set(x, height * 0.5, -depth / 2 - 0.006);
+                label.rotation.y = Math.PI;
+                stationGroup.add(label);
 
-            const label = new THREE.Mesh(new THREE.BoxGeometry(binRadius * 1.25, 0.18, 0.012), blueMat);
-            label.position.set(0, binHeight * 0.58, -binRadius - 0.004);
-            binGroup.add(label);
+                const pedal = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.035, 0.09), pedalMat);
+                pedal.position.set(x, 0.04, -depth / 2 - 0.11);
+                pedal.castShadow = true;
+                stationGroup.add(pedal);
+            }
 
-            const labelTextCanvas = document.createElement('canvas');
-            labelTextCanvas.width = 256;
-            labelTextCanvas.height = 96;
-            const labelCtx = labelTextCanvas.getContext('2d');
-            labelCtx.fillStyle = '#ffffff';
-            labelCtx.font = 'bold 34px sans-serif';
-            labelCtx.textAlign = 'center';
-            labelCtx.textBaseline = 'middle';
-            labelCtx.fillText('PET', labelTextCanvas.width / 2, labelTextCanvas.height / 2);
-            const labelText = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.28, 0.12),
-                new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(labelTextCanvas), transparent: true })
-            );
-            labelText.position.set(0, binHeight * 0.58, -binRadius - 0.012);
-            binGroup.add(labelText);
+            function addBagBin(x) {
+                const width = 0.44;
+                const height = 0.78;
+                const depth = 0.46;
+                const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), offWhiteMat);
+                body.position.set(x, height / 2, 0);
+                body.castShadow = true;
+                body.receiveShadow = true;
+                stationGroup.add(body);
 
-            scene.add(binGroup);
+                const slantedTop = new THREE.Mesh(new THREE.BoxGeometry(width * 0.92, 0.1, depth * 0.9), offWhiteMat);
+                slantedTop.position.set(x, height + 0.02, -0.02);
+                slantedTop.rotation.x = -0.24;
+                slantedTop.castShadow = true;
+                stationGroup.add(slantedTop);
+
+                const trashSlot = new THREE.Mesh(new THREE.BoxGeometry(width * 0.44, 0.035, 0.03), darkLidMat);
+                trashSlot.position.set(x, height + 0.08, -depth / 2 - 0.01);
+                trashSlot.rotation.x = -0.24;
+                stationGroup.add(trashSlot);
+
+                const bagFront = new THREE.Mesh(new THREE.BoxGeometry(width * 0.78, height * 0.62, 0.035), bagMat);
+                bagFront.position.set(x, height * 0.38, -depth / 2 - 0.025);
+                stationGroup.add(bagFront);
+            }
+
+            addBagBin(-0.52);
+            addRectBin(0.02, createTrashLabelTexture('#2f80d8', '♻', 'PET'));
+            addRectBin(0.46, createTrashLabelTexture('#d8483e', '火', '可燃'));
+
+            scene.add(stationGroup);
         }
 
         createMeetingRoomInterior(meetingDoor1X, 0x4f8fd8);
