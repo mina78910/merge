@@ -568,8 +568,39 @@
         const newDoorStart = newDoorX - newDoorWidth / 2;
         const newDoorEnd = newDoorX + newDoorWidth / 2;
 
-        const wall1Width = newDoorStart - (-roomWidth / 2); 
-        createWall(wall1Width, roomHeight, 0.2, -roomWidth / 2 + wall1Width / 2, roomHeight / 2, roomDepth / 2);
+        // ドアを背にして左側（-X方向）へ、ドア1枚分離した位置に2枚分幅のくぼみを追加
+        const leftNicheWidth = newDoorWidth * 2;
+        const leftNicheDepth = 1.2;
+        const leftNicheEnd = newDoorStart - newDoorWidth;
+        const leftNicheStart = leftNicheEnd - leftNicheWidth;
+        const leftNicheCenterX = (leftNicheStart + leftNicheEnd) / 2;
+
+        const wall1LeftWidth = leftNicheStart - (-roomWidth / 2);
+        createWall(wall1LeftWidth, roomHeight, 0.2, -roomWidth / 2 + wall1LeftWidth / 2, roomHeight / 2, roomDepth / 2);
+
+        const wall1DoorSideWidth = newDoorStart - leftNicheEnd;
+        createWall(wall1DoorSideWidth, roomHeight, 0.2, leftNicheEnd + wall1DoorSideWidth / 2, roomHeight / 2, roomDepth / 2);
+
+        createWall(0.2, roomHeight, leftNicheDepth, leftNicheStart - 0.1, roomHeight / 2, roomDepth / 2 + leftNicheDepth / 2);
+        createWall(0.2, roomHeight, leftNicheDepth, leftNicheEnd + 0.1, roomHeight / 2, roomDepth / 2 + leftNicheDepth / 2);
+        createWall(leftNicheWidth + 0.4, roomHeight, 0.2, leftNicheCenterX, roomHeight / 2, roomDepth / 2 + leftNicheDepth + 0.1, 0xe0e0e0);
+        createWall(leftNicheWidth + 0.4, 0.2, leftNicheDepth, leftNicheCenterX, roomHeight, roomDepth / 2 + leftNicheDepth / 2, 0xffffff);
+
+        const leftNicheTex = carpetTex.clone();
+        leftNicheTex.needsUpdate = true;
+        leftNicheTex.repeat.set(leftNicheWidth / 4, leftNicheDepth / 4);
+        const leftNicheFloor = new THREE.Mesh(
+            new THREE.PlaneGeometry(leftNicheWidth, leftNicheDepth),
+            new THREE.MeshStandardMaterial({ map: leftNicheTex, roughness: 1.0 })
+        );
+        leftNicheFloor.rotation.x = -Math.PI / 2;
+        leftNicheFloor.position.set(leftNicheCenterX, 0.003, roomDepth / 2 + leftNicheDepth / 2);
+        leftNicheFloor.receiveShadow = true;
+        scene.add(leftNicheFloor);
+
+        const leftNicheLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
+        leftNicheLight.position.set(leftNicheCenterX, roomHeight - 0.35, roomDepth / 2 + leftNicheDepth / 2);
+        scene.add(leftNicheLight);
         
         const wall2Width = alcoveStart - newDoorEnd;
         createWall(wall2Width, roomHeight, 0.2, newDoorEnd + wall2Width / 2, roomHeight / 2, roomDepth / 2);
@@ -1923,20 +1954,26 @@
                 
                 const zLockerBound = roomDepth / 2 - 2.0; 
                 const zAlcoveBound = roomDepth / 2 + alcoveDepth - 1.0; 
+                const zLeftNicheBound = roomDepth / 2 + leftNicheDepth - 0.4;
+                const zNewHallBound = roomDepth / 2 + newHallDepth - 0.6;
                 const alcoveAllowedLeft = alcoveStart + 0.6; 
                 const alcoveAllowedRight = alcoveEnd - 0.6;  
+                const leftNicheAllowedLeft = leftNicheStart + 0.4;
+                const leftNicheAllowedRight = leftNicheEnd - 0.4;
+                const newHallAllowedLeft = newDoorStart + 0.25;
+                const newHallAllowedRight = newDoorEnd - 0.25;
+                const inAlcoveMouth = camera.position.x > alcoveAllowedLeft && camera.position.x < alcoveAllowedRight;
+                const inLeftNicheMouth = camera.position.x > leftNicheAllowedLeft && camera.position.x < leftNicheAllowedRight;
+                const inNewHallMouth = camera.position.x > newHallAllowedLeft && camera.position.x < newHallAllowedRight;
 
-                if (camera.position.x > alcoveAllowedLeft && camera.position.x < alcoveAllowedRight) {
+                if (inAlcoveMouth) {
                     if (camera.position.z > zAlcoveBound) camera.position.z = zAlcoveBound;
-                } else {
-                    if (camera.position.z > zLockerBound) {
-                        if (camera.position.z > zLockerBound + 0.2) {
-                            if (camera.position.x <= alcoveAllowedLeft && camera.position.x > 2.0) camera.position.x = alcoveAllowedLeft;
-                            if (camera.position.x >= alcoveAllowedRight && camera.position.x < 7.0) camera.position.x = alcoveAllowedRight;
-                        } else {
-                            camera.position.z = zLockerBound;
-                        }
-                    }
+                } else if (inLeftNicheMouth) {
+                    if (camera.position.z > zLeftNicheBound) camera.position.z = zLeftNicheBound;
+                } else if (inNewHallMouth) {
+                    if (camera.position.z > zNewHallBound) camera.position.z = zNewHallBound;
+                } else if (camera.position.z > zLockerBound) {
+                    camera.position.z = zLockerBound;
                 }
             }
 
