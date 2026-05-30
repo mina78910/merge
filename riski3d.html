@@ -1130,6 +1130,7 @@
             const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }); 
             for(let x = startX; x <= endX; x += colWidth) {
                 if (x > alcoveStart + 0.1 && x < alcoveEnd - 0.1) continue;
+                if (x > alcoveEnd + 0.05 && x < alcoveEnd + colWidth * 3.2) continue;
                 const bodyGeo = new THREE.BoxGeometry(colWidth - 0.02, height, depth);
                 const body = new THREE.Mesh(bodyGeo, bodyMat);
                 body.position.set(x, height/2, zPos - depth/2);
@@ -1164,6 +1165,413 @@
         // ==========================================
         // 8. ブレイクエリア（右奥の壁際）の配置
         // ==========================================
+        function createOfficeGlicoPosterTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 360;
+            canvas.height = 420;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#d1d5db';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+
+            ctx.fillStyle = '#facc15';
+            ctx.fillRect(25, 28, 310, 52);
+            ctx.fillStyle = '#1f2937';
+            ctx.font = 'bold 22px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('OFFICE GLICO', 180, 62);
+
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 18px Arial, sans-serif';
+            ctx.fillText('SELF SERVICE SNACKS', 180, 112);
+
+            ctx.strokeStyle = '#9ca3af';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(34, 135, 116, 190);
+            ctx.strokeRect(210, 135, 116, 190);
+            ctx.fillStyle = '#111827';
+            ctx.fillRect(57, 160, 70, 96);
+            ctx.fillStyle = '#e5e7eb';
+            ctx.fillRect(68, 172, 48, 28);
+            ctx.fillStyle = '#fef3c7';
+            ctx.fillRect(226, 160, 84, 122);
+
+            ctx.fillStyle = '#dc2626';
+            ctx.font = 'bold 42px Arial, sans-serif';
+            ctx.fillText('KIRIN', 282, 52);
+            ctx.fillStyle = '#1d4ed8';
+            ctx.font = 'bold 30px Arial, sans-serif';
+            ctx.fillText('7541', 284, 87);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        function createOfficeGlicoPriceTexture(price) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#1264ad';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 34px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(price, 54, 42);
+            ctx.font = 'bold 16px Arial, sans-serif';
+            ctx.fillText('JPY', 102, 43);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        function createOfficeGlicoSnackTexture(baseColor, accentColor, name, stripe) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 160;
+            canvas.height = 220;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(0, 0, canvas.width, 36);
+            ctx.fillRect(0, 184, canvas.width, 36);
+
+            for (let i = 0; i < 5; i++) {
+                ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.08)';
+                ctx.fillRect(18 + i * 28, 42, 14, 130);
+            }
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(80, 82, 34, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 22px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(stripe, 80, 90);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 27px Arial, sans-serif';
+            ctx.fillText(name, 80, 145);
+            ctx.font = 'bold 15px Arial, sans-serif';
+            ctx.fillText('GLICO', 80, 205);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        function createOfficeGlicoSnackBox(w, h, d, baseColor, accentColor, name, stripe) {
+            const sideMat = new THREE.MeshStandardMaterial({ color: baseColor, roughness: 0.48 });
+            const frontMat = new THREE.MeshStandardMaterial({
+                map: createOfficeGlicoSnackTexture(baseColor, accentColor, name, stripe),
+                roughness: 0.42
+            });
+            return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [
+                sideMat, sideMat, sideMat, sideMat, sideMat, frontMat
+            ]);
+        }
+
+        function createOfficeGlicoRack(x, z) {
+            const group = new THREE.Group();
+            const rackWidth = 0.88;
+            const rackDepth = 0.38;
+            const rackHeight = 1.82;
+
+            const creamMat = new THREE.MeshStandardMaterial({ color: 0xddd2b7, roughness: 0.55, metalness: 0.25 });
+            const shelfMat = new THREE.MeshStandardMaterial({ color: 0xf4ecd9, roughness: 0.46, metalness: 0.18 });
+            const priceMat = new THREE.MeshStandardMaterial({ color: 0x1264ad, roughness: 0.5 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x171717, roughness: 0.55 });
+
+            const back = new THREE.Mesh(new THREE.BoxGeometry(rackWidth, rackHeight, 0.035), creamMat);
+            back.position.set(0, rackHeight / 2, rackDepth / 2);
+            back.receiveShadow = true;
+            group.add(back);
+
+            const sideGeo = new THREE.BoxGeometry(0.035, rackHeight, rackDepth);
+            [-rackWidth / 2, rackWidth / 2].forEach((sx) => {
+                const side = new THREE.Mesh(sideGeo, creamMat);
+                side.position.set(sx, rackHeight / 2, 0);
+                side.castShadow = true;
+                group.add(side);
+            });
+
+            const poster = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.72, 0.56),
+                new THREE.MeshStandardMaterial({ map: createOfficeGlicoPosterTexture(), roughness: 0.35, side: THREE.DoubleSide })
+            );
+            poster.position.set(0, 1.52, -rackDepth / 2 - 0.012);
+            poster.rotation.y = Math.PI;
+            group.add(poster);
+
+            const shelfYs = [1.1, 0.8, 0.5, 0.2];
+            const shelfPrices = [['100', '100', '100'], ['150', '150', '150', '150'], ['150', '150', '150'], ['250', '250', '80']];
+            shelfYs.forEach((y, row) => {
+                const shelf = new THREE.Mesh(new THREE.BoxGeometry(rackWidth + 0.08, 0.035, rackDepth + 0.08), shelfMat);
+                shelf.position.set(0, y, -0.02);
+                shelf.castShadow = true;
+                shelf.receiveShadow = true;
+                group.add(shelf);
+
+                const lip = new THREE.Mesh(new THREE.BoxGeometry(rackWidth + 0.12, 0.04, 0.035), creamMat);
+                lip.position.set(0, y + 0.04, -rackDepth / 2 - 0.08);
+                group.add(lip);
+
+                const count = shelfPrices[row].length;
+                for (let i = 0; i < count; i++) {
+                    const px = -0.3 + i * (0.6 / Math.max(1, count - 1));
+                    const tag = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.085, 0.018), priceMat);
+                    tag.position.set(px, y - 0.08, -rackDepth / 2 - 0.095);
+                    group.add(tag);
+
+                    const label = new THREE.Mesh(
+                        new THREE.PlaneGeometry(0.18, 0.085),
+                        new THREE.MeshStandardMaterial({ map: createOfficeGlicoPriceTexture(shelfPrices[row][i]), roughness: 0.5, side: THREE.DoubleSide })
+                    );
+                    label.position.set(px, y - 0.08, -rackDepth / 2 - 0.107);
+                    label.rotation.y = Math.PI;
+                    group.add(label);
+                }
+            });
+
+            const snackThemes = [
+                ['#d71920', '#fff2b2', 'POCKY', 'P'], ['#ef476f', '#ffffff', 'BERRY', 'B'], ['#b91c1c', '#facc15', 'PRETZ', 'P'],
+                ['#ef4444', '#ffffff', 'BISCO', 'B'], ['#7c2d12', '#fef3c7', 'CHIP', 'C'], ['#111827', '#fbbf24', 'CHOCO', 'C'],
+                ['#65a30d', '#ffffff', 'MATCHA', 'M'], ['#22c55e', '#fef08a', 'PRETZ', 'P'], ['#a3e635', '#166534', 'MINT', 'M'],
+                ['#f8fafc', '#2563eb', 'SEA', 'S'], ['#fef3c7', '#60a5fa', 'CUP', 'C'], ['#6b21a8', '#f9a8d4', 'BAR', 'B']
+            ];
+            let snackIndex = 0;
+            shelfYs.forEach((y, row) => {
+                const baseY = y + 0.055;
+                const h = row === 0 ? 0.26 : row === 3 ? 0.16 : 0.2;
+                for (let depthRow = 0; depthRow < 2; depthRow++) {
+                    for (let i = 0; i < 6; i++) {
+                        const sx = -0.33 + i * 0.132 + (depthRow % 2) * 0.015;
+                        const sz = -rackDepth / 2 + 0.075 + depthRow * 0.11;
+                        const w = row === 0 ? 0.105 : 0.115;
+                        const d = row === 3 ? 0.1 : 0.075;
+                        const theme = snackThemes[snackIndex % snackThemes.length];
+                        const snack = createOfficeGlicoSnackBox(w, h, d, theme[0], theme[1], theme[2], theme[3]);
+                        snack.position.set(sx, baseY + h / 2, sz);
+                        snack.rotation.z = (i % 3 - 1) * 0.035;
+                        snack.castShadow = true;
+                        group.add(snack);
+                        snackIndex++;
+                    }
+                }
+            });
+
+            const base = new THREE.Mesh(new THREE.BoxGeometry(rackWidth + 0.18, 0.055, rackDepth + 0.16), creamMat);
+            base.position.set(0, 0.035, -0.02);
+            base.castShadow = true;
+            base.receiveShadow = true;
+            group.add(base);
+
+            [-0.42, 0.42].forEach((lx) => {
+                const foot = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 0.12), darkMat);
+                foot.position.set(lx, 0.02, -rackDepth / 2 - 0.08);
+                foot.castShadow = true;
+                group.add(foot);
+            });
+
+            group.position.set(x, 0, z);
+            scene.add(group);
+        }
+
+        function createVendingFrontTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 900;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#f7f7f3';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#c62828';
+            ctx.font = 'bold 54px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('KIRIN', 185, 66);
+
+            ctx.fillStyle = '#263238';
+            ctx.fillRect(38, 78, 300, 440);
+            const shelfGradient = ctx.createLinearGradient(38, 78, 338, 518);
+            shelfGradient.addColorStop(0, 'rgba(255,255,255,0.42)');
+            shelfGradient.addColorStop(0.45, 'rgba(180,220,230,0.18)');
+            shelfGradient.addColorStop(1, 'rgba(255,255,255,0.36)');
+            ctx.fillStyle = shelfGradient;
+            ctx.fillRect(44, 84, 288, 428);
+
+            const drinkColors = ['#f6f0d0', '#82bd6e', '#f39c46', '#e7f0f4', '#6fb2d7', '#e45b4f', '#a2c767', '#fbdf5a'];
+            for (let row = 0; row < 3; row++) {
+                const y = 112 + row * 132;
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.fillRect(58, y + 92, 244, 8);
+                for (let col = 0; col < 7; col++) {
+                    const x = 60 + col * 38;
+                    const color = drinkColors[(row * 3 + col) % drinkColors.length];
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x, y, 22, 82);
+                    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                    ctx.fillRect(x + 4, y + 8, 14, 30);
+                    ctx.fillStyle = '#263238';
+                    ctx.font = 'bold 8px Arial, sans-serif';
+                    ctx.fillText(['TEA', 'MILK', 'SODA', 'COFFEE'][col % 4], x + 11, y + 55);
+                    ctx.fillStyle = '#1b5e20';
+                    ctx.beginPath();
+                    ctx.arc(x + 11, y + 96, 13, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.beginPath();
+                    ctx.arc(x + 11, y + 96, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.lineWidth = 5;
+            ctx.strokeRect(38, 78, 300, 440);
+
+            ctx.fillStyle = '#111827';
+            ctx.fillRect(365, 150, 92, 38);
+            ctx.fillStyle = '#f43f5e';
+            ctx.fillRect(383, 166, 26, 8);
+            ctx.fillStyle = '#e5e7eb';
+            ctx.fillRect(368, 230, 84, 80);
+
+            ctx.fillStyle = '#101010';
+            ctx.fillRect(356, 390, 110, 78);
+            ctx.fillStyle = '#f5a623';
+            ctx.beginPath();
+            ctx.ellipse(393, 429, 32, 16, -0.28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#d9dde3';
+            ctx.beginPath();
+            ctx.arc(438, 426, 19, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffdf4d';
+            ctx.fillRect(46, 545, 278, 95);
+            ctx.fillStyle = '#1d4ed8';
+            ctx.font = 'bold 25px Arial, sans-serif';
+            ctx.fillText('DRINKS', 185, 582);
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 18px Arial, sans-serif';
+            ctx.fillText('HOT & COLD', 185, 612);
+
+            ctx.fillStyle = '#111827';
+            ctx.fillRect(58, 665, 275, 74);
+            ctx.fillStyle = 'rgba(255,255,255,0.28)';
+            ctx.fillRect(78, 680, 235, 36);
+
+            ctx.fillStyle = '#c62828';
+            ctx.font = 'bold 64px Arial, sans-serif';
+            ctx.fillText('KIRIN', 200, 825);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        function createVendingSideTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 220;
+            canvas.height = 900;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#f7f7f3';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(110, 455);
+            ctx.rotate(Math.PI / 2);
+            ctx.fillStyle = '#c62828';
+            ctx.font = 'bold 96px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('KIRIN', 0, 34);
+            ctx.restore();
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        function createVendingMachine(x, z) {
+            const group = new THREE.Group();
+            const width = 1.15;
+            const height = 2.25;
+            const depth = 0.62;
+
+            const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf7f7f3, roughness: 0.42, metalness: 0.08 });
+            const frontMat = new THREE.MeshStandardMaterial({ map: createVendingFrontTexture(), roughness: 0.32, metalness: 0.04 });
+            const sideMat = new THREE.MeshStandardMaterial({ map: createVendingSideTexture(), roughness: 0.38, metalness: 0.06 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.55, metalness: 0.25 });
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0xbfc4c8, roughness: 0.26, metalness: 0.8 });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), [
+                sideMat, whiteMat, whiteMat, whiteMat, frontMat, whiteMat
+            ]);
+            body.position.y = height / 2;
+            body.castShadow = true;
+            body.receiveShadow = true;
+            group.add(body);
+
+            const glass = new THREE.Mesh(
+                new THREE.BoxGeometry(0.68, 1.1, 0.018),
+                new THREE.MeshStandardMaterial({ color: 0xdff6ff, transparent: true, opacity: 0.25, roughness: 0.03, metalness: 0.25 })
+            );
+            glass.position.set(-0.18, 1.52, depth / 2 + 0.014);
+            group.add(glass);
+
+            const buttonGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.014, 24);
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 7; col++) {
+                    const button = new THREE.Mesh(buttonGeo, metalMat);
+                    button.rotation.x = Math.PI / 2;
+                    button.position.set(-0.42 + col * 0.105, 1.36 - row * 0.33, depth / 2 + 0.035);
+                    group.add(button);
+                }
+            }
+
+            const coinSlot = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.05, 0.02), metalMat);
+            coinSlot.position.set(0.37, 1.0, depth / 2 + 0.035);
+            group.add(coinSlot);
+
+            const pickupLip = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.035, 0.04), darkMat);
+            pickupLip.position.set(-0.14, 0.42, depth / 2 + 0.045);
+            group.add(pickupLip);
+
+            const woodBase = new THREE.Mesh(
+                new THREE.BoxGeometry(1.65, 0.035, 1.08),
+                new THREE.MeshStandardMaterial({ color: 0xd9bd8f, roughness: 0.62 })
+            );
+            woodBase.position.set(0, 0.018, -0.02);
+            woodBase.castShadow = true;
+            woodBase.receiveShadow = true;
+            group.add(woodBase);
+
+            const footGeo = new THREE.BoxGeometry(0.46, 0.035, 0.18);
+            [[-0.35, -0.4], [0.35, -0.4], [-0.35, 0.29], [0.35, 0.29]].forEach(([fx, fz]) => {
+                const foot = new THREE.Mesh(footGeo, darkMat);
+                foot.position.set(fx, 0.055, fz);
+                foot.castShadow = true;
+                group.add(foot);
+            });
+
+            const glow = new THREE.PointLight(0xffffff, 0.16, 3);
+            glow.position.set(-0.18, 1.45, 0.48);
+            group.add(glow);
+
+            group.position.set(x, 0, z);
+            scene.add(group);
+        }
+
         function createCoffeeStation(x, z) {
             const group = new THREE.Group();
             const tableGeo = new THREE.BoxGeometry(0.8, 0.04, 2.4);
@@ -1280,6 +1688,8 @@
             scene.add(group);
         }
 
+        createOfficeGlicoRack(alcoveEnd + 0.68, roomDepth / 2 - 0.36);
+        createVendingMachine(-25.4, -6.34);
         createCoffeeStation(24.9, -3.5);
         createBoxSeatStation(24.9, 1.5, 0x459a85, 0x608ab6);
         createBoxSeatStation(24.9, 5.0, 0x608ab6, 0x459a85);
