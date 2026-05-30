@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>開発の軌跡 - Minawa Games</title>
+
+<style>
+/* =========================
+   RESET & BASE
+========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: #f6f7fb;
+  color: #222;
+  overflow-x: hidden;
+}
+
+/* =========================
+   HEADER
+========================= */
+header {
+  padding: 28px 24px 12px;
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+header h1 {
+  font-size: 34px;
+  font-weight: 800;
+  color: #4b0ca3;
+  margin-bottom: 6px;
+}
+
+header p {
+  color: #666;
+  font-size: 14px;
+}
+
+/* 戻るボタン（トップページのリリースノートボタンのデザインを踏襲） */
+.back-link {
+  position: absolute;
+  top: 28px;
+  right: 24px;
+  background: #ec8fb3;
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(236, 143, 179, 0.3);
+  transition: .2s;
+}
+
+.back-link:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* =========================
+   BLOG CONTAINER
+========================= */
+.blog-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* =========================
+   POST CARD (記事1セット)
+========================= */
+.post-card {
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #e4e7f0;
+  transition: .25s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.post-card:hover {
+  box-shadow: 0 12px 30px rgba(65, 35, 130, .08);
+}
+
+/* 記事ヘッダー */
+.post-header {
+  padding: 20px 24px 10px;
+}
+
+.post-date {
+  color: #6d28d9;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.post-title {
+  font-size: 24px;
+  line-height: 1.3;
+  color: #222;
+}
+
+/* 記事画像 */
+.post-image {
+  width: 100%;
+  background: #ddd; /* 画像がない場合のプレースホルダー色 */
+}
+
+.post-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 記事コンテンツ（説明など） */
+.post-content {
+  padding: 20px 24px 24px;
+}
+
+.post-desc {
+  color: #555;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* =========================
+   PROMPT DETAILS (折りたたみ)
+========================= */
+details {
+  background: #f9fafc;
+  border: 1px solid #e4e7f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+summary {
+  padding: 14px 20px;
+  font-weight: 600;
+  color: #4b0ca3;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+summary:hover {
+  background: #f0f2f8;
+}
+
+/* 折りたたみを開いたときの中身 */
+.prompt-content {
+  padding: 16px 20px;
+  border-top: 1px solid #e4e7f0;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.6;
+  white-space: pre-wrap; /* プロンプトの改行をそのまま表示 */
+  background: #fff;
+  font-family: monospace; /* プロンプトらしさを出すために等幅フォント */
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width:768px) {
+  header {
+    padding: 18px 14px 8px;
+  }
+
+  header h1 {
+    font-size: 22px;
+  }
+
+  header p {
+    font-size: 12px;
+  }
+
+  .back-link {
+    top: 16px;
+    right: 14px;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .blog-container {
+    padding: 10px 14px 40px;
+    gap: 20px;
+  }
+
+  .post-card {
+    border-radius: 12px;
+  }
+
+  .post-header {
+    padding: 16px 16px 8px;
+  }
+
+  .post-title {
+    font-size: 20px;
+  }
+
+  .post-content {
+    padding: 16px 16px 20px;
+  }
+
+  .post-desc {
+    font-size: 14px;
+  }
+
+  summary {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .prompt-content {
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>開発の軌跡</h1>
+  <p>AIと共に歩んだ改修の歴史</p>
+  <a href="index.html" class="back-link">トップへ戻る</a>
+</header>
+
+<main class="blog-container">
+
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date">2026年5月28日 - Ver 2.0</span>
+      <h2 class="post-title">スマートフォン対応とレイアウトの最適化</h2>
+    </div>
+    
+    <div class="post-image">
+      <img src="./image/sample_after.png" alt="改修後の画面">
+    </div>
+
+    <div class="post-content">
+      <p class="post-desc">
+        スマートフォンで閲覧した際に要素がはみ出してしまう問題があったため、AIに全体的なレスポンシブ対応を依頼しました。カードのサイズや余白が自動で調整されるようになりました。
+      </p>
+
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-content">スマホで見たときにデザインが崩れてしまいます。
+現在のコードを元に、メディアクエリ（max-width: 768px）を追加して、スマートフォンでも綺麗に表示されるようにCSSを修正してください。
+
+【要件】
+・文字サイズを少し小さくする
+・カードの余白を減らす
+・ヘッダーのボタンが被らないように位置を調整する</div>
+      </details>
+    </div>
+  </article>
+  <article class="post-card">
+    <div class="post-header">
+      <span class="post-date">2026年5月15日 - Ver 1.5</span>
+      <h2 class="post-title">リリースノートのモーダル表示機能を追加</h2>
+    </div>
+    
+    <div class="post-image">
+      <img src="./image/sample_before.png" alt="モーダル追加時の画面">
+    </div>
+
+    <div class="post-content">
+      <p class="post-desc">
+        更新履歴をページ内に直接書くと長くなってしまうため、右上のボタンを押すとポップアップ（モーダル）でリリースノートが表示されるように改修しました。
+      </p>
+
+      <details>
+        <summary>▶ 実際に使用したAIプロンプトを見る</summary>
+        <div class="prompt-content">ヘッダーの右上に「リリースノート」というボタンを追加し、それをクリックしたときに画面全体を暗くして、中央にリリースノートのテーブルが表示されるモーダルウィンドウを実装してください。
+JavaScriptも書いてください。</div>
+      </details>
+    </div>
+  </article>
+  </main>
+
+</body>
+</html>
