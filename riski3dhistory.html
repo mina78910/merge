@@ -49,7 +49,7 @@ header p {
   font-size: 14px;
 }
 
-/* 戻るボタン（トップページのリリースノートボタンのデザインを踏襲） */
+/* 戻るボタン */
 .back-link {
   position: absolute;
   top: 28px;
@@ -121,7 +121,7 @@ header p {
 /* 記事画像 */
 .post-image {
   width: 100%;
-  background: #ddd; /* 画像がない場合のプレースホルダー色 */
+  background: #ddd; 
 }
 
 .post-image img {
@@ -167,16 +167,19 @@ summary:hover {
   background: #f0f2f8;
 }
 
-/* 折りたたみを開いたときの中身 */
-.prompt-content {
+/* 折りたたみを開いたときのプロンプト画像 */
+.prompt-image {
   padding: 16px 20px;
   border-top: 1px solid #e4e7f0;
-  font-size: 14px;
-  color: #444;
-  line-height: 1.6;
-  white-space: pre-wrap; /* プロンプトの改行をそのまま表示 */
   background: #fff;
-  font-family: monospace; /* プロンプトらしさを出すために等幅フォント */
+}
+
+.prompt-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid #e4e7f0;
+  border-radius: 8px; 
 }
 
 /* =========================
@@ -232,9 +235,8 @@ summary:hover {
     font-size: 14px;
   }
 
-  .prompt-content {
+  .prompt-image {
     padding: 14px 16px;
-    font-size: 13px;
   }
 }
 </style>
@@ -267,33 +269,32 @@ summary:hover {
 
       <details>
         <summary>▶ 実際に使用したAIプロンプトを見る</summary>
-        <div class="prompt-content">html1枚で、一人称視点のサンプルゲームつくって
-
-ちょっとしたオフィスの中を歩ければいい
-
-量より質で勝負してほしい</div>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory1_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
       </details>
     </div>
   </article>
   <article class="post-card">
     <div class="post-header">
-      <span class="post-date">2026年5月15日 - Ver 1.5</span>
-      <h2 class="post-title">リリースノートのモーダル表示機能を追加</h2>
+      <span class="post-date">yyyymmdd</span>
+      <h2 class="post-title">XXXX</h2>
     </div>
     
     <div class="post-image">
-      <img src="./image/sample_before.png" alt="モーダル追加時の画面">
+      <img src="./image/riski3dhistory/riski3dhistory2.png" alt="XXXX">
     </div>
 
     <div class="post-content">
       <p class="post-desc">
-        更新履歴をページ内に直接書くと長くなってしまうため、右上のボタンを押すとポップアップ（モーダル）でリリースノートが表示されるように改修しました。
+        XXXX
       </p>
 
       <details>
         <summary>▶ 実際に使用したAIプロンプトを見る</summary>
-        <div class="prompt-content">ヘッダーの右上に「リリースノート」というボタンを追加し、それをクリックしたときに画面全体を暗くして、中央にリリースノートのテーブルが表示されるモーダルウィンドウを実装してください。
-JavaScriptも書いてください。</div>
+        <div class="prompt-image">
+          <img src="./image/riski3dhistory/riski3dhistory2_prompt.png" alt="使用したプロンプトのスクリーンショット">
+        </div>
       </details>
     </div>
   </article>
