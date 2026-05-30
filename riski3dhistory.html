@@ -112,6 +112,11 @@ header p {
   display: block;
 }
 
+/* 日付が空文字のときは余白を無くす */
+.post-date:empty {
+  margin-bottom: 0;
+}
+
 .post-title {
   font-size: 24px;
   line-height: 1.3;
@@ -140,6 +145,11 @@ header p {
   font-size: 15px;
   line-height: 1.6;
   margin-bottom: 20px;
+}
+
+/* コメントが空文字のときは余白を無くす */
+.post-desc:empty {
+  margin-bottom: 0;
 }
 
 /* =========================
@@ -254,7 +264,7 @@ summary:hover {
 
   <article class="post-card">
     <div class="post-header">
-      <span class="post-date">yyyymmdd</span>
+      <span class="post-date"></span>
       <h2 class="post-title">XXXX</h2>
     </div>
     
@@ -263,9 +273,7 @@ summary:hover {
     </div>
 
     <div class="post-content">
-      <p class="post-desc">
-        XXXX
-      </p>
+      <p class="post-desc"></p>
 
       <details>
         <summary>▶ 実際に使用したAIプロンプトを見る</summary>
@@ -277,7 +285,7 @@ summary:hover {
   </article>
   <article class="post-card">
     <div class="post-header">
-      <span class="post-date">yyyymmdd</span>
+      <span class="post-date"></span>
       <h2 class="post-title">XXXX</h2>
     </div>
     
@@ -286,9 +294,7 @@ summary:hover {
     </div>
 
     <div class="post-content">
-      <p class="post-desc">
-        XXXX
-      </p>
+      <p class="post-desc"></p>
 
       <details>
         <summary>▶ 実際に使用したAIプロンプトを見る</summary>
