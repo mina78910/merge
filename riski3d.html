@@ -834,8 +834,8 @@
 
         function createPetBottleTrashBin() {
             const stationGroup = new THREE.Group();
-            // テレカンボックスを挟んで反対側（右側の空きスペース）へ移動
-            stationGroup.position.set(-22.1, 0, roomDepth / 2 - 0.34);
+            // テレカンボックスに背を向けて左側、x=-23 / z=4 付近へ移動
+            stationGroup.position.set(-23.0, 0, 4.0);
 
             const offWhiteMat = new THREE.MeshStandardMaterial({ color: 0xe8e2d3, roughness: 0.56 });
             const bagMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.72, roughness: 0.65 });
