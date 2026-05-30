@@ -570,7 +570,7 @@
 
         // ドアを背にして左側（-X方向）へ、ドア1枚分離した位置に2枚分幅のくぼみを追加
         const leftNicheWidth = newDoorWidth * 2;
-        const leftNicheDepth = 1.2;
+        const leftNicheDepth = 3.6;
         const leftNicheEnd = newDoorStart - newDoorWidth;
         const leftNicheStart = leftNicheEnd - leftNicheWidth;
         const leftNicheCenterX = (leftNicheStart + leftNicheEnd) / 2;
@@ -607,7 +607,7 @@
             const meetingDoorWidth = newDoorWidth;
             const meetingDoorHeight = 2.35;
             const meetingDoorZ = roomDepth / 2 - 0.12;
-            const meetingDoorMat = new THREE.MeshStandardMaterial({ color: 0xf3efe6, roughness: 0.55 });
+            const meetingDoorMat = new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.12, metalness: 0.15 });
             const meetingFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
             const meetingMetalMat = new THREE.MeshStandardMaterial({ color: 0xb9b2a6, metalness: 0.7, roughness: 0.25 });
 
@@ -641,33 +641,30 @@
             signCanvas.width = 256;
             signCanvas.height = 96;
             const signCtx = signCanvas.getContext('2d');
-            signCtx.fillStyle = '#ffffff';
-            signCtx.fillRect(0, 0, signCanvas.width, signCanvas.height);
-            signCtx.strokeStyle = '#7b6a55';
-            signCtx.lineWidth = 8;
-            signCtx.strokeRect(4, 4, signCanvas.width - 8, signCanvas.height - 8);
-            signCtx.fillStyle = '#333333';
-            signCtx.font = 'bold 28px sans-serif';
+            signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+            signCtx.fillStyle = '#000000';
+            signCtx.font = 'bold 42px sans-serif';
             signCtx.textAlign = 'center';
             signCtx.textBaseline = 'middle';
             signCtx.fillText(labelText, signCanvas.width / 2, signCanvas.height / 2);
             const signTexture = new THREE.CanvasTexture(signCanvas);
             const sign = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.7, 0.26),
-                new THREE.MeshStandardMaterial({ map: signTexture, roughness: 0.6 })
+                new THREE.PlaneGeometry(0.9, 0.34),
+                new THREE.MeshStandardMaterial({ map: signTexture, transparent: true, roughness: 0.6, side: THREE.DoubleSide })
             );
-            sign.position.set(x, 1.75, meetingDoorZ - 0.065);
+            sign.position.set(x, 1.5, meetingDoorZ - 0.065);
             doorGroup.add(sign);
 
             scene.add(doorGroup);
         }
 
-        // くぼみを背にして左側へ、会議室ドアを2枚連続で配置
+        // くぼみを背にして左側へ1枚目、さらに2枚分離した左側へ2枚目の透明な会議室ドアを配置
         const meetingDoorGap = 0.6;
+        const meetingDoor2Offset = newDoorWidth * 2;
         const meetingDoor1X = leftNicheStart - meetingDoorGap - newDoorWidth / 2;
-        const meetingDoor2X = meetingDoor1X - newDoorWidth - meetingDoorGap;
-        createMeetingRoomDoor(meetingDoor1X, 'MEETING ROOM A');
-        createMeetingRoomDoor(meetingDoor2X, 'MEETING ROOM B');
+        const meetingDoor2X = meetingDoor1X - newDoorWidth - meetingDoor2Offset;
+        createMeetingRoomDoor(meetingDoor1X, 'value');
+        createMeetingRoomDoor(meetingDoor2X, 'share');
         
         const wall2Width = alcoveStart - newDoorEnd;
         createWall(wall2Width, roomHeight, 0.2, newDoorEnd + wall2Width / 2, roomHeight / 2, roomDepth / 2);
