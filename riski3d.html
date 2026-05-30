@@ -736,10 +736,83 @@
             scene.add(roomLight);
         }
 
+        function createTeleconferenceBox() {
+            const boothWidth = 0.95;
+            const boothDepth = 0.95;
+            const boothHeight = meetingDoorHeight * 1.5;
+            const boothX = -roomWidth / 2 + boothWidth / 2 + 0.03;
+            const boothZ = roomDepth / 2 - boothDepth / 2 - 0.03;
+            const brownMat = new THREE.MeshStandardMaterial({ color: 0x6b3f22, roughness: 0.62 });
+            const darkBrownMat = new THREE.MeshStandardMaterial({ color: 0x3f2414, roughness: 0.7 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0xd8f4ff, transparent: true, opacity: 0.28, roughness: 0.08, metalness: 0.12 });
+
+            const boothGroup = new THREE.Group();
+            boothGroup.position.set(boothX, 0, boothZ);
+
+            const panelThickness = 0.06;
+            const backPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, boothHeight, panelThickness), brownMat);
+            backPanel.position.set(0, boothHeight / 2, boothDepth / 2 - panelThickness / 2);
+            backPanel.castShadow = true;
+            backPanel.receiveShadow = true;
+            boothGroup.add(backPanel);
+
+            const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), brownMat);
+            leftPanel.position.set(-boothWidth / 2 + panelThickness / 2, boothHeight / 2, 0);
+            leftPanel.castShadow = true;
+            leftPanel.receiveShadow = true;
+            boothGroup.add(leftPanel);
+
+            const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), brownMat);
+            rightPanel.position.set(boothWidth / 2 - panelThickness / 2, boothHeight / 2, 0);
+            rightPanel.castShadow = true;
+            rightPanel.receiveShadow = true;
+            boothGroup.add(rightPanel);
+
+            const topPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, panelThickness, boothDepth), darkBrownMat);
+            topPanel.position.set(0, boothHeight - panelThickness / 2, 0);
+            topPanel.castShadow = true;
+            boothGroup.add(topPanel);
+
+            const basePanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, 0.05, boothDepth), darkBrownMat);
+            basePanel.position.set(0, 0.025, 0);
+            basePanel.receiveShadow = true;
+            boothGroup.add(basePanel);
+
+            const frontGlass = new THREE.Mesh(new THREE.BoxGeometry(boothWidth - panelThickness * 2, boothHeight - 0.28, 0.035), glassMat);
+            frontGlass.position.set(0, (boothHeight - 0.28) / 2 + 0.12, -boothDepth / 2 + 0.035);
+            boothGroup.add(frontGlass);
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.18), new THREE.MeshStandardMaterial({ color: 0xbba27a, metalness: 0.7, roughness: 0.25 }));
+            handle.rotation.z = Math.PI / 2;
+            handle.position.set(boothWidth / 2 - 0.2, 1.1, -boothDepth / 2 + 0.01);
+            boothGroup.add(handle);
+
+            const stool = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.42, 24), darkBrownMat);
+            stool.position.set(0, 0.21, 0.03);
+            stool.castShadow = true;
+            boothGroup.add(stool);
+
+            const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.05, 0.24), darkBrownMat);
+            shelf.position.set(0, 0.88, boothDepth / 2 - 0.18);
+            shelf.castShadow = true;
+            boothGroup.add(shelf);
+
+            const monitor = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.22, 0.025), new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.4 }));
+            monitor.position.set(0, 1.05, boothDepth / 2 - 0.32);
+            boothGroup.add(monitor);
+
+            const boothLight = new THREE.PointLight(0xffd7a8, 0.22, 2.0);
+            boothLight.position.set(0, boothHeight - 0.28, 0);
+            boothGroup.add(boothLight);
+
+            scene.add(boothGroup);
+        }
+
         createMeetingRoomInterior(meetingDoor1X, 0x4f8fd8);
         createMeetingRoomInterior(meetingDoor2X, 0x85a947);
         createMeetingRoomDoor(meetingDoor1X, 'value');
         createMeetingRoomDoor(meetingDoor2X, 'share');
+        createTeleconferenceBox();
         
         const wall2Width = alcoveStart - newDoorEnd;
         createWall(wall2Width, roomHeight, 0.2, newDoorEnd + wall2Width / 2, roomHeight / 2, roomDepth / 2);
