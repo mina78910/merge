@@ -601,6 +601,73 @@
         const leftNicheLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
         leftNicheLight.position.set(leftNicheCenterX, roomHeight - 0.35, roomDepth / 2 + leftNicheDepth / 2);
         scene.add(leftNicheLight);
+
+        function createMeetingRoomDoor(x, labelText) {
+            const doorGroup = new THREE.Group();
+            const meetingDoorWidth = newDoorWidth;
+            const meetingDoorHeight = 2.35;
+            const meetingDoorZ = roomDepth / 2 - 0.12;
+            const meetingDoorMat = new THREE.MeshStandardMaterial({ color: 0xf3efe6, roughness: 0.55 });
+            const meetingFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
+            const meetingMetalMat = new THREE.MeshStandardMaterial({ color: 0xb9b2a6, metalness: 0.7, roughness: 0.25 });
+
+            const slab = new THREE.Mesh(new THREE.BoxGeometry(meetingDoorWidth, meetingDoorHeight, 0.08), meetingDoorMat);
+            slab.position.set(x, meetingDoorHeight / 2, meetingDoorZ);
+            slab.castShadow = true;
+            slab.receiveShadow = true;
+            doorGroup.add(slab);
+
+            const frameThickness = 0.08;
+            const frameDepth = 0.12;
+            const leftFrame = new THREE.Mesh(new THREE.BoxGeometry(frameThickness, meetingDoorHeight + frameThickness, frameDepth), meetingFrameMat);
+            leftFrame.position.set(x - meetingDoorWidth / 2 - frameThickness / 2, (meetingDoorHeight + frameThickness) / 2, meetingDoorZ - 0.01);
+            doorGroup.add(leftFrame);
+            const rightFrame = leftFrame.clone();
+            rightFrame.position.x = x + meetingDoorWidth / 2 + frameThickness / 2;
+            doorGroup.add(rightFrame);
+            const topFrame = new THREE.Mesh(new THREE.BoxGeometry(meetingDoorWidth + frameThickness * 2, frameThickness, frameDepth), meetingFrameMat);
+            topFrame.position.set(x, meetingDoorHeight + frameThickness / 2, meetingDoorZ - 0.01);
+            doorGroup.add(topFrame);
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.18), meetingMetalMat);
+            handle.rotation.z = Math.PI / 2;
+            handle.position.set(x + meetingDoorWidth / 2 - 0.22, 1.05, meetingDoorZ - 0.06);
+            doorGroup.add(handle);
+            const handleBase = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.025), meetingMetalMat);
+            handleBase.position.set(x + meetingDoorWidth / 2 - 0.28, 1.05, meetingDoorZ - 0.055);
+            doorGroup.add(handleBase);
+
+            const signCanvas = document.createElement('canvas');
+            signCanvas.width = 256;
+            signCanvas.height = 96;
+            const signCtx = signCanvas.getContext('2d');
+            signCtx.fillStyle = '#ffffff';
+            signCtx.fillRect(0, 0, signCanvas.width, signCanvas.height);
+            signCtx.strokeStyle = '#7b6a55';
+            signCtx.lineWidth = 8;
+            signCtx.strokeRect(4, 4, signCanvas.width - 8, signCanvas.height - 8);
+            signCtx.fillStyle = '#333333';
+            signCtx.font = 'bold 28px sans-serif';
+            signCtx.textAlign = 'center';
+            signCtx.textBaseline = 'middle';
+            signCtx.fillText(labelText, signCanvas.width / 2, signCanvas.height / 2);
+            const signTexture = new THREE.CanvasTexture(signCanvas);
+            const sign = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.7, 0.26),
+                new THREE.MeshStandardMaterial({ map: signTexture, roughness: 0.6 })
+            );
+            sign.position.set(x, 1.75, meetingDoorZ - 0.065);
+            doorGroup.add(sign);
+
+            scene.add(doorGroup);
+        }
+
+        // くぼみを背にして左側へ、会議室ドアを2枚連続で配置
+        const meetingDoorGap = 0.6;
+        const meetingDoor1X = leftNicheStart - meetingDoorGap - newDoorWidth / 2;
+        const meetingDoor2X = meetingDoor1X - newDoorWidth - meetingDoorGap;
+        createMeetingRoomDoor(meetingDoor1X, 'MEETING ROOM A');
+        createMeetingRoomDoor(meetingDoor2X, 'MEETING ROOM B');
         
         const wall2Width = alcoveStart - newDoorEnd;
         createWall(wall2Width, roomHeight, 0.2, newDoorEnd + wall2Width / 2, roomHeight / 2, roomDepth / 2);
