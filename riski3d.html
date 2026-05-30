@@ -635,8 +635,29 @@
         scene.add(dFrameGroup);
 
         // --- 中央のアルコーブ構築 ---
-        const rightWallWidth = roomWidth / 2 - alcoveEnd; 
-        createWall(rightWallWidth, roomHeight, 0.2, alcoveEnd + rightWallWidth / 2, roomHeight / 2, roomDepth / 2);
+        // 玄関扉を室内側から見た「向かって右側」は +X 方向。
+        // 右側の壁を分割して、植物置き場のさらに右に収納兼通路風の凹みを作る。
+        const entranceRightPlantX = alcoveEnd + 0.55;
+        const storageNicheWidth = 2.5;
+        const storageNicheDepth = 2.1;
+        const storageNicheHeight = 2.65;
+        const storageNicheCenterX = alcoveEnd + 2.55;
+        const storageNicheStart = storageNicheCenterX - storageNicheWidth / 2;
+        const storageNicheEnd = storageNicheCenterX + storageNicheWidth / 2;
+        const frontWallZ = roomDepth / 2;
+
+        const rightWallLeftWidth = storageNicheStart - alcoveEnd;
+        if (rightWallLeftWidth > 0) {
+            createWall(rightWallLeftWidth, roomHeight, 0.2, alcoveEnd + rightWallLeftWidth / 2, roomHeight / 2, frontWallZ);
+        }
+
+        const rightWallRightWidth = roomWidth / 2 - storageNicheEnd;
+        if (rightWallRightWidth > 0) {
+            createWall(rightWallRightWidth, roomHeight, 0.2, storageNicheEnd + rightWallRightWidth / 2, roomHeight / 2, frontWallZ);
+        }
+
+        const storageNicheHeaderHeight = roomHeight - storageNicheHeight;
+        createWall(storageNicheWidth, storageNicheHeaderHeight, 0.2, storageNicheCenterX, storageNicheHeight + storageNicheHeaderHeight / 2, frontWallZ);
         
         const headerHeight = roomHeight - alcoveHeight;
         createWall(alcoveWidth, headerHeight, 0.2, alcoveCenterX, alcoveHeight + headerHeight / 2, roomDepth / 2);
@@ -685,6 +706,152 @@
         doorGroup.add(handleR);
 
         scene.add(doorGroup);
+
+        function createEntrancePottedPlant(x, z) {
+            const plantGroup = new THREE.Group();
+            const potMat = new THREE.MeshStandardMaterial({ color: 0x6d7176, roughness: 0.86, metalness: 0.05 });
+            const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.18, 0.38, 32), potMat);
+            pot.position.y = 0.19;
+            pot.castShadow = true;
+            pot.receiveShadow = true;
+            plantGroup.add(pot);
+
+            const soil = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.205, 0.205, 0.025, 32),
+                new THREE.MeshStandardMaterial({ color: 0x2d2118, roughness: 1.0 })
+            );
+            soil.position.y = 0.395;
+            plantGroup.add(soil);
+
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2f, roughness: 0.95 });
+            const leafColors = [0x244d2f, 0x2f6b3a, 0x3f7f45, 0x5d944f];
+            const leafGeo = new THREE.IcosahedronGeometry(0.105, 0);
+
+            for (let i = 0; i < 7; i++) {
+                const height = 0.8 + Math.random() * 0.7;
+                const angle = -0.45 + i * 0.15 + (Math.random() - 0.5) * 0.12;
+                const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.02, height, 8), trunkMat);
+                stem.position.set(Math.sin(angle) * 0.12, 0.4 + height / 2, Math.cos(angle) * 0.08);
+                stem.rotation.z = angle * 0.22;
+                stem.castShadow = true;
+                plantGroup.add(stem);
+
+                for (let j = 0; j < 8; j++) {
+                    const leafMat = new THREE.MeshStandardMaterial({
+                        color: leafColors[Math.floor(Math.random() * leafColors.length)],
+                        roughness: 0.82,
+                        flatShading: true
+                    });
+                    const leaf = new THREE.Mesh(leafGeo, leafMat);
+                    const sideAngle = Math.random() * Math.PI * 2;
+                    leaf.position.set(
+                        stem.position.x + Math.cos(sideAngle) * (0.12 + Math.random() * 0.16),
+                        0.62 + height * (0.35 + Math.random() * 0.62),
+                        stem.position.z + Math.sin(sideAngle) * (0.10 + Math.random() * 0.16)
+                    );
+                    const leafScale = 0.85 + Math.random() * 0.8;
+                    leaf.scale.set(leafScale * 1.2, leafScale * 0.65, leafScale);
+                    leaf.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                    leaf.castShadow = true;
+                    plantGroup.add(leaf);
+                }
+            }
+
+            plantGroup.position.set(x, 0, z);
+            scene.add(plantGroup);
+        }
+
+        function createStoragePassageNiche() {
+            const nicheFloorTex = carpetTex.clone();
+            nicheFloorTex.needsUpdate = true;
+            nicheFloorTex.repeat.set(storageNicheWidth / 4, storageNicheDepth / 4);
+            const nicheFloor = new THREE.Mesh(
+                new THREE.PlaneGeometry(storageNicheWidth, storageNicheDepth),
+                new THREE.MeshStandardMaterial({ map: nicheFloorTex, roughness: 1.0 })
+            );
+            nicheFloor.rotation.x = -Math.PI / 2;
+            nicheFloor.position.set(storageNicheCenterX, 0.002, frontWallZ + storageNicheDepth / 2);
+            nicheFloor.receiveShadow = true;
+            scene.add(nicheFloor);
+
+            createWall(0.18, storageNicheHeight, storageNicheDepth, storageNicheStart - 0.09, storageNicheHeight / 2, frontWallZ + storageNicheDepth / 2, 0xd9d5cc);
+            createWall(0.18, storageNicheHeight, storageNicheDepth, storageNicheEnd + 0.09, storageNicheHeight / 2, frontWallZ + storageNicheDepth / 2, 0xd9d5cc);
+            createWall(storageNicheWidth + 0.36, storageNicheHeight, 0.18, storageNicheCenterX, storageNicheHeight / 2, frontWallZ + storageNicheDepth + 0.09, 0xdedbd4);
+            createWall(storageNicheWidth + 0.18, 0.18, storageNicheDepth, storageNicheCenterX, storageNicheHeight + 0.09, frontWallZ + storageNicheDepth / 2, 0xfafafa);
+
+            const trimMat = new THREE.MeshStandardMaterial({ color: 0xc7b79f, roughness: 0.55 });
+            const trimGeo = new THREE.BoxGeometry(0.09, storageNicheHeight, 0.1);
+            [storageNicheStart, storageNicheEnd].forEach(edgeX => {
+                const trim = new THREE.Mesh(trimGeo, trimMat);
+                trim.position.set(edgeX, storageNicheHeight / 2, frontWallZ - 0.02);
+                trim.castShadow = true;
+                scene.add(trim);
+            });
+            const topTrim = new THREE.Mesh(new THREE.BoxGeometry(storageNicheWidth, 0.08, 0.1), trimMat);
+            topTrim.position.set(storageNicheCenterX, storageNicheHeight - 0.04, frontWallZ - 0.02);
+            topTrim.castShadow = true;
+            scene.add(topTrim);
+
+            const nicheLight = new THREE.PointLight(0xfff0d8, 0.32, 5);
+            nicheLight.position.set(storageNicheCenterX, storageNicheHeight - 0.18, frontWallZ + storageNicheDepth * 0.42);
+            scene.add(nicheLight);
+
+            const cardboardMat = new THREE.MeshStandardMaterial({ color: 0xb88755, roughness: 0.92 });
+            const tapeMat = new THREE.MeshStandardMaterial({ color: 0xd7b071, roughness: 0.8 });
+            const boxSpecs = [
+                [storageNicheCenterX + 0.58, 0.25, frontWallZ + 1.55, 0.62, 0.50, 0.52],
+                [storageNicheCenterX + 0.16, 0.19, frontWallZ + 1.68, 0.48, 0.38, 0.46],
+                [storageNicheCenterX + 0.50, 0.70, frontWallZ + 1.52, 0.46, 0.40, 0.42]
+            ];
+            boxSpecs.forEach(([x, y, z, w, h, d]) => {
+                const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cardboardMat);
+                box.position.set(x, y, z);
+                box.castShadow = true;
+                box.receiveShadow = true;
+                scene.add(box);
+
+                const tape = new THREE.Mesh(new THREE.BoxGeometry(w * 0.16, h + 0.01, d + 0.01), tapeMat);
+                tape.position.copy(box.position);
+                tape.castShadow = true;
+                scene.add(tape);
+            });
+
+            const rackMat = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.65, roughness: 0.35 });
+            const rackGroup = new THREE.Group();
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 1.7, 16), rackMat);
+            pole.position.set(0, 0.85, 0);
+            rackGroup.add(pole);
+            const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 1.0, 16), rackMat);
+            bar.rotation.z = Math.PI / 2;
+            bar.position.set(0, 1.58, 0);
+            rackGroup.add(bar);
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.025, 24), rackMat);
+            base.position.set(0, 0.012, 0);
+            rackGroup.add(base);
+
+            const coatColors = [0x1f2937, 0x334155, 0x5b4738];
+            coatColors.forEach((color, index) => {
+                const coat = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.26, 0.72, 0.055),
+                    new THREE.MeshStandardMaterial({ color, roughness: 0.9 })
+                );
+                coat.position.set(-0.28 + index * 0.28, 1.18 - index * 0.02, 0.03);
+                coat.rotation.z = (-0.08 + index * 0.08);
+                coat.castShadow = true;
+                rackGroup.add(coat);
+
+                const hanger = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.008, 8, 18, Math.PI), rackMat);
+                hanger.position.set(coat.position.x, 1.53, 0.03);
+                hanger.rotation.x = Math.PI;
+                rackGroup.add(hanger);
+            });
+            rackGroup.position.set(storageNicheCenterX - 0.48, 0, frontWallZ + 1.28);
+            scene.add(rackGroup);
+        }
+
+        // 玄関扉の向かって右側（+X）に植物、そのさらに右側に収納兼通路風の凹みを配置。
+        createEntrancePottedPlant(entranceRightPlantX, frontWallZ - 0.55);
+        createStoragePassageNiche();
 
         // ==========================================
         // メイン天井 
@@ -1133,6 +1300,9 @@
             for(let x = startX; x <= endX; x += colWidth) {
                 if (x > alcoveStart + 0.1 && x < alcoveEnd - 0.1) continue;
                 if (x > alcoveEnd + 0.05 && x < alcoveEnd + colWidth * 3.2) continue;
+                // 玄関扉の向かって右側に追加した収納兼通路風の凹みと植物を塞がない。
+                if (x > storageNicheStart - 0.2 && x < storageNicheEnd + 0.2) continue;
+                if (x > storageNicheEnd + 0.25 && x < storageNicheEnd + 1.45) continue;
                 const bodyGeo = new THREE.BoxGeometry(colWidth - 0.02, height, depth);
                 const body = new THREE.Mesh(bodyGeo, bodyMat);
                 body.position.set(x, height/2, zPos - depth/2);
@@ -1690,7 +1860,7 @@
             scene.add(group);
         }
 
-        createOfficeGlicoRack(alcoveEnd + 0.68, roomDepth / 2 - 0.36);
+        createOfficeGlicoRack(storageNicheEnd + 0.85, roomDepth / 2 - 0.36);
         createVendingMachine(-25.4, -6.34);
         createCoffeeStation(24.9, -3.5);
         createBoxSeatStation(24.9, 1.5, 0x459a85, 0x608ab6);
@@ -1926,8 +2096,14 @@
                 const alcoveAllowedLeft = alcoveStart + 0.6; 
                 const alcoveAllowedRight = alcoveEnd - 0.6;  
 
+                const storageAllowedLeft = storageNicheStart + 0.42;
+                const storageAllowedRight = storageNicheEnd - 0.42;
+                const zStorageNicheBound = frontWallZ + storageNicheDepth - 0.75;
+
                 if (camera.position.x > alcoveAllowedLeft && camera.position.x < alcoveAllowedRight) {
                     if (camera.position.z > zAlcoveBound) camera.position.z = zAlcoveBound;
+                } else if (camera.position.x > storageAllowedLeft && camera.position.x < storageAllowedRight) {
+                    if (camera.position.z > zStorageNicheBound) camera.position.z = zStorageNicheBound;
                 } else {
                     if (camera.position.z > zLockerBound) {
                         if (camera.position.z > zLockerBound + 0.2) {
