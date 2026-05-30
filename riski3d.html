@@ -737,32 +737,34 @@
         }
 
         function createTeleconferenceBox() {
-            const boothWidth = 0.95;
-            const boothDepth = 0.95;
+            const boothWidth = 1.25;
+            const boothDepth = 1.18;
             const boothHeight = meetingDoorHeight * 1.5;
             const boothX = -roomWidth / 2 + boothWidth / 2 + 0.03;
             const boothZ = roomDepth / 2 - boothDepth / 2 - 0.03;
-            const brownMat = new THREE.MeshStandardMaterial({ color: 0x6b3f22, roughness: 0.62 });
-            const darkBrownMat = new THREE.MeshStandardMaterial({ color: 0x3f2414, roughness: 0.7 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0xd8f4ff, transparent: true, opacity: 0.28, roughness: 0.08, metalness: 0.12 });
+            const boothWoodTex = createWoodTexture();
+            boothWoodTex.repeat.set(1.4, 3.0);
+            const lightWoodMat = new THREE.MeshStandardMaterial({ map: boothWoodTex, color: 0xf2d8b8, roughness: 0.48 });
+            const darkBrownMat = new THREE.MeshStandardMaterial({ color: 0x5a351f, roughness: 0.7 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0xd8f4ff, transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0.12 });
 
             const boothGroup = new THREE.Group();
             boothGroup.position.set(boothX, 0, boothZ);
 
             const panelThickness = 0.06;
-            const backPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, boothHeight, panelThickness), brownMat);
+            const backPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, boothHeight, panelThickness), lightWoodMat);
             backPanel.position.set(0, boothHeight / 2, boothDepth / 2 - panelThickness / 2);
             backPanel.castShadow = true;
             backPanel.receiveShadow = true;
             boothGroup.add(backPanel);
 
-            const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), brownMat);
+            const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), lightWoodMat);
             leftPanel.position.set(-boothWidth / 2 + panelThickness / 2, boothHeight / 2, 0);
             leftPanel.castShadow = true;
             leftPanel.receiveShadow = true;
             boothGroup.add(leftPanel);
 
-            const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), brownMat);
+            const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), lightWoodMat);
             rightPanel.position.set(boothWidth / 2 - panelThickness / 2, boothHeight / 2, 0);
             rightPanel.castShadow = true;
             rightPanel.receiveShadow = true;
@@ -778,13 +780,18 @@
             basePanel.receiveShadow = true;
             boothGroup.add(basePanel);
 
-            const frontGlass = new THREE.Mesh(new THREE.BoxGeometry(boothWidth - panelThickness * 2, boothHeight - 0.28, 0.035), glassMat);
-            frontGlass.position.set(0, (boothHeight - 0.28) / 2 + 0.12, -boothDepth / 2 + 0.035);
-            boothGroup.add(frontGlass);
+            const frontPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth - panelThickness * 2, boothHeight - 0.28, 0.045), lightWoodMat);
+            frontPanel.position.set(0, (boothHeight - 0.28) / 2 + 0.12, -boothDepth / 2 + 0.035);
+            frontPanel.castShadow = true;
+            frontPanel.receiveShadow = true;
+            boothGroup.add(frontPanel);
 
-            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.18), new THREE.MeshStandardMaterial({ color: 0xbba27a, metalness: 0.7, roughness: 0.25 }));
-            handle.rotation.z = Math.PI / 2;
-            handle.position.set(boothWidth / 2 - 0.2, 1.1, -boothDepth / 2 + 0.01);
+            const windowPane = new THREE.Mesh(new THREE.BoxGeometry(boothWidth * 0.48, boothHeight * 0.32, 0.02), glassMat);
+            windowPane.position.set(0, boothHeight * 0.63, -boothDepth / 2 + 0.065);
+            boothGroup.add(windowPane);
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.26), new THREE.MeshStandardMaterial({ color: 0xbba27a, metalness: 0.7, roughness: 0.25 }));
+            handle.position.set(boothWidth / 2 + 0.025, 1.1, -boothDepth / 2 + 0.26);
             boothGroup.add(handle);
 
             const stool = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.42, 24), darkBrownMat);
@@ -808,11 +815,63 @@
             scene.add(boothGroup);
         }
 
+        function createPetBottleTrashBin() {
+            const binRadius = 0.24;
+            const binHeight = 0.82;
+            const binX = -roomWidth / 2 + 1.25 + binRadius + 0.22;
+            const binZ = roomDepth / 2 - binRadius - 0.18;
+            const binMat = new THREE.MeshStandardMaterial({ color: 0x8f969d, roughness: 0.55, metalness: 0.15 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.65 });
+            const blueMat = new THREE.MeshStandardMaterial({ color: 0x2f80d8, roughness: 0.42 });
+
+            const binGroup = new THREE.Group();
+            binGroup.position.set(binX, 0, binZ);
+
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(binRadius, binRadius * 0.92, binHeight, 32), binMat);
+            body.position.y = binHeight / 2;
+            body.castShadow = true;
+            body.receiveShadow = true;
+            binGroup.add(body);
+
+            const lid = new THREE.Mesh(new THREE.CylinderGeometry(binRadius * 1.05, binRadius * 1.05, 0.08, 32), darkMat);
+            lid.position.y = binHeight + 0.04;
+            lid.castShadow = true;
+            binGroup.add(lid);
+
+            const bottleSlot = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.025, 24), darkMat);
+            bottleSlot.rotation.x = Math.PI / 2;
+            bottleSlot.position.set(0, binHeight + 0.085, -0.08);
+            binGroup.add(bottleSlot);
+
+            const label = new THREE.Mesh(new THREE.BoxGeometry(binRadius * 1.25, 0.18, 0.012), blueMat);
+            label.position.set(0, binHeight * 0.58, -binRadius - 0.004);
+            binGroup.add(label);
+
+            const labelTextCanvas = document.createElement('canvas');
+            labelTextCanvas.width = 256;
+            labelTextCanvas.height = 96;
+            const labelCtx = labelTextCanvas.getContext('2d');
+            labelCtx.fillStyle = '#ffffff';
+            labelCtx.font = 'bold 34px sans-serif';
+            labelCtx.textAlign = 'center';
+            labelCtx.textBaseline = 'middle';
+            labelCtx.fillText('PET', labelTextCanvas.width / 2, labelTextCanvas.height / 2);
+            const labelText = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.28, 0.12),
+                new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(labelTextCanvas), transparent: true })
+            );
+            labelText.position.set(0, binHeight * 0.58, -binRadius - 0.012);
+            binGroup.add(labelText);
+
+            scene.add(binGroup);
+        }
+
         createMeetingRoomInterior(meetingDoor1X, 0x4f8fd8);
         createMeetingRoomInterior(meetingDoor2X, 0x85a947);
         createMeetingRoomDoor(meetingDoor1X, 'value');
         createMeetingRoomDoor(meetingDoor2X, 'share');
         createTeleconferenceBox();
+        createPetBottleTrashBin();
         
         const wall2Width = alcoveStart - newDoorEnd;
         createWall(wall2Width, roomHeight, 0.2, newDoorEnd + wall2Width / 2, roomHeight / 2, roomDepth / 2);
