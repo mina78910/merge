@@ -567,9 +567,38 @@
         const newDoorHeight = 2.4;
         const newDoorStart = newDoorX - newDoorWidth / 2;
         const newDoorEnd = newDoorX + newDoorWidth / 2;
+        const greenPatchMat = new THREE.MeshStandardMaterial({ color: 0xebf2e3, roughness: 0.9 });
 
-        const wall1Width = newDoorStart - (-roomWidth / 2); 
-        createWall(wall1Width, roomHeight, 0.2, -roomWidth / 2 + wall1Width / 2, roomHeight / 2, roomDepth / 2);
+        // ドアを背にして左側へ、ドア1つ分離した位置に2枚分幅のくぼみを追加
+        const sideRecessGap = newDoorWidth;
+        const sideRecessWidth = newDoorWidth * 2;
+        const sideRecessDepth = 1.3;
+        const sideRecessHeight = 2.55;
+        const sideRecessEnd = newDoorStart - sideRecessGap;
+        const sideRecessStart = sideRecessEnd - sideRecessWidth;
+        const sideRecessCenterX = (sideRecessStart + sideRecessEnd) / 2;
+
+        const wall1LeftWidth = sideRecessStart - (-roomWidth / 2);
+        createWall(wall1LeftWidth, roomHeight, 0.2, -roomWidth / 2 + wall1LeftWidth / 2, roomHeight / 2, roomDepth / 2);
+
+        const wall1MiddleWidth = newDoorStart - sideRecessEnd;
+        createWall(wall1MiddleWidth, roomHeight, 0.2, sideRecessEnd + wall1MiddleWidth / 2, roomHeight / 2, roomDepth / 2);
+
+        createWall(sideRecessWidth, roomHeight - sideRecessHeight, 0.2, sideRecessCenterX, sideRecessHeight + (roomHeight - sideRecessHeight) / 2, roomDepth / 2);
+        createWall(0.2, sideRecessHeight, sideRecessDepth, sideRecessStart - 0.1, sideRecessHeight / 2, roomDepth / 2 + sideRecessDepth / 2);
+        createWall(0.2, sideRecessHeight, sideRecessDepth, sideRecessEnd + 0.1, sideRecessHeight / 2, roomDepth / 2 + sideRecessDepth / 2);
+        createWall(sideRecessWidth + 0.4, sideRecessHeight, 0.2, sideRecessCenterX, sideRecessHeight / 2, roomDepth / 2 + sideRecessDepth + 0.1);
+        createWall(sideRecessWidth, 0.2, sideRecessDepth, sideRecessCenterX, sideRecessHeight + 0.1, roomDepth / 2 + sideRecessDepth / 2, 0xfafafa);
+
+        const sideRecessFloor = new THREE.Mesh(new THREE.PlaneGeometry(sideRecessWidth, sideRecessDepth), greenPatchMat);
+        sideRecessFloor.rotation.x = -Math.PI / 2;
+        sideRecessFloor.position.set(sideRecessCenterX, 0.006, roomDepth / 2 + sideRecessDepth / 2);
+        sideRecessFloor.receiveShadow = true;
+        scene.add(sideRecessFloor);
+
+        const sideRecessLight = new THREE.PointLight(0xfff5e6, 0.32, 4.5);
+        sideRecessLight.position.set(sideRecessCenterX, sideRecessHeight - 0.2, roomDepth / 2 + sideRecessDepth / 2);
+        scene.add(sideRecessLight);
         
         const wall2Width = alcoveStart - newDoorEnd;
         createWall(wall2Width, roomHeight, 0.2, newDoorEnd + wall2Width / 2, roomHeight / 2, roomDepth / 2);
@@ -579,7 +608,6 @@
 
         // --- 出入口の奥の空間（廊下） ---
         const newHallDepth = 2.5;
-        const greenPatchMat = new THREE.MeshStandardMaterial({ color: 0xebf2e3, roughness: 0.9 });
         const newHallFloor = new THREE.Mesh(new THREE.PlaneGeometry(newDoorWidth, newHallDepth), greenPatchMat);
         newHallFloor.rotation.x = -Math.PI / 2;
         newHallFloor.position.set(newDoorX, 0.005, roomDepth / 2 + newHallDepth / 2);
@@ -1923,16 +1951,23 @@
                 
                 const zLockerBound = roomDepth / 2 - 2.0; 
                 const zAlcoveBound = roomDepth / 2 + alcoveDepth - 1.0; 
+                const zSideRecessBound = roomDepth / 2 + sideRecessDepth - 0.45;
                 const alcoveAllowedLeft = alcoveStart + 0.6; 
                 const alcoveAllowedRight = alcoveEnd - 0.6;  
+                const sideRecessAllowedLeft = sideRecessStart + 0.45;
+                const sideRecessAllowedRight = sideRecessEnd - 0.45;
 
                 if (camera.position.x > alcoveAllowedLeft && camera.position.x < alcoveAllowedRight) {
                     if (camera.position.z > zAlcoveBound) camera.position.z = zAlcoveBound;
+                } else if (camera.position.x > sideRecessAllowedLeft && camera.position.x < sideRecessAllowedRight) {
+                    if (camera.position.z > zSideRecessBound) camera.position.z = zSideRecessBound;
                 } else {
                     if (camera.position.z > zLockerBound) {
                         if (camera.position.z > zLockerBound + 0.2) {
                             if (camera.position.x <= alcoveAllowedLeft && camera.position.x > 2.0) camera.position.x = alcoveAllowedLeft;
                             if (camera.position.x >= alcoveAllowedRight && camera.position.x < 7.0) camera.position.x = alcoveAllowedRight;
+                            if (camera.position.x <= sideRecessAllowedLeft && camera.position.x > sideRecessStart - 1.0) camera.position.x = sideRecessAllowedLeft;
+                            if (camera.position.x >= sideRecessAllowedRight && camera.position.x < sideRecessEnd + 1.0) camera.position.x = sideRecessAllowedRight;
                         } else {
                             camera.position.z = zLockerBound;
                         }
