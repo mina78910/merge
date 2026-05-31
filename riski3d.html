@@ -1584,7 +1584,7 @@
         // ==========================================
         function createLockerBank(startX, endX, zPos) {
             const lockerGroup = new THREE.Group();
-            const depth = 1.5;
+            const depth = 1.0;
             const height = 2.0 + wallFixtureHeightBoost;
             const rows = 4;
             const doorHeight = height / rows;
@@ -1690,11 +1690,15 @@
             ctx.fillStyle = '#1264ad';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 34px Arial, sans-serif';
+            ctx.fillRect(0, 0, canvas.width, 7);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 30px Arial, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(price, 54, 42);
-            ctx.font = 'bold 16px Arial, sans-serif';
-            ctx.fillText('JPY', 102, 43);
+            ctx.fillText(price, 50, 42);
+            ctx.font = 'bold 14px Arial, sans-serif';
+            ctx.fillText('円', 94, 42);
+            ctx.font = 'bold 7px Arial, sans-serif';
+            ctx.fillText('KIRIN', 105, 16);
 
             const texture = new THREE.CanvasTexture(canvas);
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -1758,6 +1762,8 @@
             const creamMat = new THREE.MeshStandardMaterial({ color: 0xddd2b7, roughness: 0.55, metalness: 0.25 });
             const shelfMat = new THREE.MeshStandardMaterial({ color: 0xf4ecd9, roughness: 0.46, metalness: 0.18 });
             const priceMat = new THREE.MeshStandardMaterial({ color: 0x1264ad, roughness: 0.5 });
+            const wireMat = new THREE.MeshStandardMaterial({ color: 0xc8b894, roughness: 0.32, metalness: 0.45 });
+            const trayBlueMat = new THREE.MeshStandardMaterial({ color: 0x0f8fc5, roughness: 0.52 });
             const darkMat = new THREE.MeshStandardMaterial({ color: 0x171717, roughness: 0.55 });
 
             const back = new THREE.Mesh(new THREE.BoxGeometry(rackWidth, rackHeight, 0.035), creamMat);
@@ -1772,6 +1778,16 @@
                 side.castShadow = true;
                 group.add(side);
             });
+            [-0.28, 0, 0.28].forEach((sx) => {
+                const wire = new THREE.Mesh(new THREE.BoxGeometry(0.012, rackHeight - 0.16, 0.012), wireMat);
+                wire.position.set(sx, rackHeight / 2 - 0.02, rackDepth / 2 + 0.02);
+                group.add(wire);
+            });
+            for (let y = 0.28; y < rackHeight - 0.1; y += 0.18) {
+                const wire = new THREE.Mesh(new THREE.BoxGeometry(rackWidth - 0.08, 0.01, 0.012), wireMat);
+                wire.position.set(0, y, rackDepth / 2 + 0.025);
+                group.add(wire);
+            }
 
             const poster = new THREE.Mesh(
                 new THREE.PlaneGeometry(0.72, 0.56),
@@ -1794,18 +1810,30 @@
                 lip.position.set(0, y + 0.04, -rackDepth / 2 - 0.08);
                 group.add(lip);
 
+                const frontRail = new THREE.Mesh(new THREE.BoxGeometry(rackWidth + 0.08, 0.018, 0.018), wireMat);
+                frontRail.position.set(0, y + 0.13, -rackDepth / 2 - 0.055);
+                group.add(frontRail);
+
+                if (row === 0) {
+                    [-0.24, 0, 0.24].forEach((tx) => {
+                        const tray = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 0.08), trayBlueMat);
+                        tray.position.set(tx, y + 0.105, -rackDepth / 2 + 0.035);
+                        group.add(tray);
+                    });
+                }
+
                 const count = shelfPrices[row].length;
                 for (let i = 0; i < count; i++) {
                     const px = -0.3 + i * (0.6 / Math.max(1, count - 1));
-                    const tag = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.085, 0.018), priceMat);
-                    tag.position.set(px, y - 0.08, -rackDepth / 2 - 0.095);
+                    const tag = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.052, 0.014), priceMat);
+                    tag.position.set(px, y - 0.035, -rackDepth / 2 - 0.105);
                     group.add(tag);
 
                     const label = new THREE.Mesh(
-                        new THREE.PlaneGeometry(0.18, 0.085),
+                        new THREE.PlaneGeometry(0.14, 0.052),
                         new THREE.MeshStandardMaterial({ map: createOfficeGlicoPriceTexture(shelfPrices[row][i]), roughness: 0.5, side: THREE.DoubleSide })
                     );
-                    label.position.set(px, y - 0.08, -rackDepth / 2 - 0.107);
+                    label.position.set(px, y - 0.035, -rackDepth / 2 - 0.114);
                     label.rotation.y = Math.PI;
                     group.add(label);
                 }
