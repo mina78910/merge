@@ -221,6 +221,8 @@
         const roomWidth = 50; 
         const roomDepth = 14; 
         const roomHeight = 5;
+        const wallFixtureHeightBoost = 0.6;
+        const baseMeetingDoorHeight = 2.35;
 
         function createCarpetTexture() {
             const size = 512;
@@ -485,7 +487,7 @@
         // x=-25側の壁は、追加会議室ドア用に z=2 付近だけ開口を残して分割
         const sideWallDoorZ = 2.0;
         const sideWallDoorWidth = 1.4;
-        const sideWallDoorHeight = 2.35;
+        const sideWallDoorHeight = baseMeetingDoorHeight + wallFixtureHeightBoost;
         const sideWallDoorStart = sideWallDoorZ - sideWallDoorWidth / 2;
         const sideWallDoorEnd = sideWallDoorZ + sideWallDoorWidth / 2;
         [[0, sideWallDoorStart], [sideWallDoorEnd, roomDepth / 2]].forEach(([startZ, endZ]) => {
@@ -570,14 +572,14 @@
         const alcoveWidth = 2.8;   
         const alcoveStart = alcoveCenterX - alcoveWidth / 2; 
         const alcoveEnd = alcoveCenterX + alcoveWidth / 2;   
-        const alcoveHeight = 2.8;
+        const alcoveHeight = 2.8 + wallFixtureHeightBoost;
         const alcoveDepth = 2.0;
 
         // --- ガラス張りの出入口 ---
         // ロッカー列を少し削り、出入口を中央側へ寄せる
         const newDoorX = -11.8;
         const newDoorWidth = 1.4;
-        const newDoorHeight = 2.4;
+        const newDoorHeight = 2.4 + wallFixtureHeightBoost;
         const newDoorStart = newDoorX - newDoorWidth / 2;
         const newDoorEnd = newDoorX + newDoorWidth / 2;
 
@@ -589,7 +591,7 @@
         const leftNicheCenterX = (leftNicheStart + leftNicheEnd) / 2;
 
         const meetingDoorWidth = newDoorWidth;
-        const meetingDoorHeight = 2.35;
+        const meetingDoorHeight = baseMeetingDoorHeight + wallFixtureHeightBoost;
         const meetingDoorGap = 0.6;
         const meetingDoor2Offset = newDoorWidth * 2;
         const meetingDoor1X = leftNicheStart - meetingDoorGap - meetingDoorWidth / 2;
@@ -853,7 +855,7 @@
         function createTeleconferenceBox() {
             const boothWidth = 1.25;
             const boothDepth = 1.18;
-            const boothHeight = meetingDoorHeight * 1.5;
+            const boothHeight = baseMeetingDoorHeight * 1.5;
             const boothX = -roomWidth / 2 + boothWidth / 2 + 0.03;
             const boothZ = roomDepth / 2 - boothDepth / 2 - 0.03;
             const boothWoodTex = createWoodTexture();
@@ -1583,7 +1585,7 @@
         function createLockerBank(startX, endX, zPos) {
             const lockerGroup = new THREE.Group();
             const depth = 0.5;
-            const height = 2.0; 
+            const height = 2.0 + wallFixtureHeightBoost;
             const colWidth = 0.4; 
             const rows = 4; 
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.7 });
