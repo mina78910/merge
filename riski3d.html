@@ -681,6 +681,62 @@
             scene.add(doorGroup);
         }
 
+        function createSideWallMeetingDoor() {
+            const sideDoorX = -roomWidth / 2 + 0.12;
+            const sideDoorZ = 2.0;
+            const sideDoorMat = new THREE.MeshStandardMaterial({ color: 0xf4efe4, roughness: 0.48 });
+            const sideFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
+            const sideMetalMat = new THREE.MeshStandardMaterial({ color: 0xb9b2a6, metalness: 0.7, roughness: 0.25 });
+            const sideDoorGroup = new THREE.Group();
+
+            const slab = new THREE.Mesh(new THREE.BoxGeometry(0.08, meetingDoorHeight, meetingDoorWidth), sideDoorMat);
+            slab.position.set(sideDoorX, meetingDoorHeight / 2, sideDoorZ);
+            slab.castShadow = true;
+            slab.receiveShadow = true;
+            sideDoorGroup.add(slab);
+
+            const frameThickness = 0.08;
+            const frameDepth = 0.12;
+            const frontFrame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, meetingDoorHeight + frameThickness, frameThickness), sideFrameMat);
+            frontFrame.position.set(sideDoorX + 0.01, (meetingDoorHeight + frameThickness) / 2, sideDoorZ - meetingDoorWidth / 2 - frameThickness / 2);
+            sideDoorGroup.add(frontFrame);
+            const backFrame = frontFrame.clone();
+            backFrame.position.z = sideDoorZ + meetingDoorWidth / 2 + frameThickness / 2;
+            sideDoorGroup.add(backFrame);
+            const topFrame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, frameThickness, meetingDoorWidth + frameThickness * 2), sideFrameMat);
+            topFrame.position.set(sideDoorX + 0.01, meetingDoorHeight + frameThickness / 2, sideDoorZ);
+            sideDoorGroup.add(topFrame);
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.18), sideMetalMat);
+            handle.rotation.z = Math.PI / 2;
+            handle.position.set(sideDoorX + 0.06, 1.05, sideDoorZ + meetingDoorWidth / 2 - 0.22);
+            sideDoorGroup.add(handle);
+
+            const signCanvas = document.createElement('canvas');
+            signCanvas.width = 256;
+            signCanvas.height = 96;
+            const signCtx = signCanvas.getContext('2d');
+            signCtx.fillStyle = '#ffffff';
+            signCtx.fillRect(0, 0, signCanvas.width, signCanvas.height);
+            signCtx.strokeStyle = '#7b6a55';
+            signCtx.lineWidth = 8;
+            signCtx.strokeRect(4, 4, signCanvas.width - 8, signCanvas.height - 8);
+            signCtx.fillStyle = '#333333';
+            signCtx.font = 'bold 28px sans-serif';
+            signCtx.textAlign = 'center';
+            signCtx.textBaseline = 'middle';
+            signCtx.fillText('MEETING', signCanvas.width / 2, signCanvas.height / 2);
+            const sign = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.72, 0.26),
+                new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(signCanvas), roughness: 0.6, side: THREE.DoubleSide })
+            );
+            sign.rotation.y = Math.PI / 2;
+            sign.position.set(sideDoorX + 0.05, 1.5, sideDoorZ);
+            sideDoorGroup.add(sign);
+
+            scene.add(sideDoorGroup);
+        }
+
         function createMeetingRoomInterior(x, accentColor) {
             const meetingRoomWidth = meetingDoorWidth + 1.0;
             const meetingRoomDepth = 3.2;
@@ -834,8 +890,8 @@
 
         function createPetBottleTrashBin() {
             const stationGroup = new THREE.Group();
-            // 画像の座標付近（x=-23.31 / z=5.00）で、テレカンボックス側の壁を背にして室内側を向ける
-            stationGroup.position.set(-23.31, 0, 5.0);
+            // x=-25 / z=5 付近で、テレカンボックス側の壁を背にして室内側を向ける
+            stationGroup.position.set(-25.0, 0, 5.0);
             stationGroup.rotation.y = -Math.PI / 2;
 
             const offWhiteMat = new THREE.MeshStandardMaterial({ color: 0xe8e2d3, roughness: 0.56 });
@@ -911,6 +967,7 @@
         createMeetingRoomInterior(meetingDoor2X, 0x85a947);
         createMeetingRoomDoor(meetingDoor1X, 'value');
         createMeetingRoomDoor(meetingDoor2X, 'share');
+        createSideWallMeetingDoor();
         createTeleconferenceBox();
         createPetBottleTrashBin();
         
