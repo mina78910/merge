@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
+  
+  <!-- PR preview test -->
 
 <head>
   <meta charset="UTF-8">
@@ -480,7 +482,20 @@
 
         createWall(0.2, roomHeight, roomDepth, roomWidth / 2, roomHeight/2, 0);  
         
-        createWall(0.2, roomHeight, roomDepth / 2, -roomWidth / 2, roomHeight/2, roomDepth / 4);
+        // x=-25側の壁は、追加会議室ドア用に z=2 付近だけ開口を残して分割
+        const sideWallDoorZ = 2.0;
+        const sideWallDoorWidth = 1.4;
+        const sideWallDoorHeight = 2.35;
+        const sideWallDoorStart = sideWallDoorZ - sideWallDoorWidth / 2;
+        const sideWallDoorEnd = sideWallDoorZ + sideWallDoorWidth / 2;
+        [[0, sideWallDoorStart], [sideWallDoorEnd, roomDepth / 2]].forEach(([startZ, endZ]) => {
+            const segmentDepth = endZ - startZ;
+            if (segmentDepth > 0.01) {
+                createWall(0.2, roomHeight, segmentDepth, -roomWidth / 2, roomHeight / 2, startZ + segmentDepth / 2);
+            }
+        });
+        const sideWallDoorHeaderHeight = roomHeight - sideWallDoorHeight;
+        createWall(0.2, sideWallDoorHeaderHeight, sideWallDoorWidth, -roomWidth / 2, sideWallDoorHeight + sideWallDoorHeaderHeight / 2, sideWallDoorZ);
 
         const breakWidth = 10; 
         const breakDepth = roomDepth / 2; 
@@ -566,8 +581,454 @@
         const newDoorStart = newDoorX - newDoorWidth / 2;
         const newDoorEnd = newDoorX + newDoorWidth / 2;
 
-        const wall1Width = newDoorStart - (-roomWidth / 2); 
-        createWall(wall1Width, roomHeight, 0.2, -roomWidth / 2 + wall1Width / 2, roomHeight / 2, roomDepth / 2);
+        // ドアを背にして左側（-X方向）へ、ドア1枚分離した位置に2枚分幅のくぼみを追加
+        const leftNicheWidth = newDoorWidth * 2;
+        const leftNicheDepth = 3.6;
+        const leftNicheEnd = newDoorStart - newDoorWidth;
+        const leftNicheStart = leftNicheEnd - leftNicheWidth;
+        const leftNicheCenterX = (leftNicheStart + leftNicheEnd) / 2;
+
+        const meetingDoorWidth = newDoorWidth;
+        const meetingDoorHeight = 2.35;
+        const meetingDoorGap = 0.6;
+        const meetingDoor2Offset = newDoorWidth * 2;
+        const meetingDoor1X = leftNicheStart - meetingDoorGap - meetingDoorWidth / 2;
+        const meetingDoor2X = meetingDoor1X - meetingDoorWidth - meetingDoor2Offset;
+        const meetingDoor1Start = meetingDoor1X - meetingDoorWidth / 2;
+        const meetingDoor1End = meetingDoor1X + meetingDoorWidth / 2;
+        const meetingDoor2Start = meetingDoor2X - meetingDoorWidth / 2;
+        const meetingDoor2End = meetingDoor2X + meetingDoorWidth / 2;
+
+        const frontWallSegments = [
+            [-roomWidth / 2, meetingDoor2Start],
+            [meetingDoor2End, meetingDoor1Start],
+            [meetingDoor1End, leftNicheStart]
+        ];
+        frontWallSegments.forEach(([start, end]) => {
+            const segmentWidth = end - start;
+            if (segmentWidth > 0.01) {
+                createWall(segmentWidth, roomHeight, 0.2, start + segmentWidth / 2, roomHeight / 2, roomDepth / 2);
+            }
+        });
+        const meetingDoorHeaderHeight = roomHeight - meetingDoorHeight;
+        [meetingDoor1X, meetingDoor2X].forEach((doorX) => {
+            createWall(meetingDoorWidth, meetingDoorHeaderHeight, 0.2, doorX, meetingDoorHeight + meetingDoorHeaderHeight / 2, roomDepth / 2);
+        });
+
+        const wall1DoorSideWidth = newDoorStart - leftNicheEnd;
+        createWall(wall1DoorSideWidth, roomHeight, 0.2, leftNicheEnd + wall1DoorSideWidth / 2, roomHeight / 2, roomDepth / 2);
+
+        createWall(0.2, roomHeight, leftNicheDepth, leftNicheStart - 0.1, roomHeight / 2, roomDepth / 2 + leftNicheDepth / 2);
+        createWall(0.2, roomHeight, leftNicheDepth, leftNicheEnd + 0.1, roomHeight / 2, roomDepth / 2 + leftNicheDepth / 2);
+        createWall(leftNicheWidth + 0.4, roomHeight, 0.2, leftNicheCenterX, roomHeight / 2, roomDepth / 2 + leftNicheDepth + 0.1, 0xe0e0e0);
+        createWall(leftNicheWidth + 0.4, 0.2, leftNicheDepth, leftNicheCenterX, roomHeight, roomDepth / 2 + leftNicheDepth / 2, 0xffffff);
+
+        const leftNicheTex = carpetTex.clone();
+        leftNicheTex.needsUpdate = true;
+        leftNicheTex.repeat.set(leftNicheWidth / 4, leftNicheDepth / 4);
+        const leftNicheFloor = new THREE.Mesh(
+            new THREE.PlaneGeometry(leftNicheWidth, leftNicheDepth),
+            new THREE.MeshStandardMaterial({ map: leftNicheTex, roughness: 1.0 })
+        );
+        leftNicheFloor.rotation.x = -Math.PI / 2;
+        leftNicheFloor.position.set(leftNicheCenterX, 0.003, roomDepth / 2 + leftNicheDepth / 2);
+        leftNicheFloor.receiveShadow = true;
+        scene.add(leftNicheFloor);
+
+        const leftNicheLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
+        leftNicheLight.position.set(leftNicheCenterX, roomHeight - 0.35, roomDepth / 2 + leftNicheDepth / 2);
+        scene.add(leftNicheLight);
+
+        function createMeetingRoomDoor(x, labelText) {
+            const doorGroup = new THREE.Group();
+            const meetingDoorZ = roomDepth / 2 - 0.12;
+            const meetingDoorMat = new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.12, metalness: 0.15 });
+            const meetingFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
+            const meetingMetalMat = new THREE.MeshStandardMaterial({ color: 0xb9b2a6, metalness: 0.7, roughness: 0.25 });
+
+            const slab = new THREE.Mesh(new THREE.BoxGeometry(meetingDoorWidth, meetingDoorHeight, 0.08), meetingDoorMat);
+            slab.position.set(x, meetingDoorHeight / 2, meetingDoorZ);
+            slab.castShadow = true;
+            slab.receiveShadow = true;
+            doorGroup.add(slab);
+
+            const frameThickness = 0.08;
+            const frameDepth = 0.12;
+            const leftFrame = new THREE.Mesh(new THREE.BoxGeometry(frameThickness, meetingDoorHeight + frameThickness, frameDepth), meetingFrameMat);
+            leftFrame.position.set(x - meetingDoorWidth / 2 - frameThickness / 2, (meetingDoorHeight + frameThickness) / 2, meetingDoorZ - 0.01);
+            doorGroup.add(leftFrame);
+            const rightFrame = leftFrame.clone();
+            rightFrame.position.x = x + meetingDoorWidth / 2 + frameThickness / 2;
+            doorGroup.add(rightFrame);
+            const topFrame = new THREE.Mesh(new THREE.BoxGeometry(meetingDoorWidth + frameThickness * 2, frameThickness, frameDepth), meetingFrameMat);
+            topFrame.position.set(x, meetingDoorHeight + frameThickness / 2, meetingDoorZ - 0.01);
+            doorGroup.add(topFrame);
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.18), meetingMetalMat);
+            handle.rotation.z = Math.PI / 2;
+            handle.position.set(x + meetingDoorWidth / 2 - 0.22, 1.05, meetingDoorZ - 0.06);
+            doorGroup.add(handle);
+            const handleBase = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.025), meetingMetalMat);
+            handleBase.position.set(x + meetingDoorWidth / 2 - 0.28, 1.05, meetingDoorZ - 0.055);
+            doorGroup.add(handleBase);
+
+            const signCanvas = document.createElement('canvas');
+            signCanvas.width = 256;
+            signCanvas.height = 96;
+            const signCtx = signCanvas.getContext('2d');
+            signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+            signCtx.fillStyle = '#000000';
+            signCtx.font = 'bold 42px sans-serif';
+            signCtx.textAlign = 'center';
+            signCtx.textBaseline = 'middle';
+            signCtx.fillText(labelText, signCanvas.width / 2, signCanvas.height / 2);
+            const signTexture = new THREE.CanvasTexture(signCanvas);
+            const sign = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.9, 0.34),
+                new THREE.MeshStandardMaterial({ map: signTexture, transparent: true, roughness: 0.6, side: THREE.DoubleSide })
+            );
+            sign.position.set(x, 1.5, meetingDoorZ - 0.065);
+            sign.scale.x = -1;
+            doorGroup.add(sign);
+
+            scene.add(doorGroup);
+        }
+
+        function createSideWallMeetingDoor(labelText = 'value') {
+            const sideDoorX = -roomWidth / 2 + 0.12;
+            const sideDoorZ = 2.0;
+            const sideDoorMat = new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.12, metalness: 0.15 });
+            const sideFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
+            const sideMetalMat = new THREE.MeshStandardMaterial({ color: 0xb9b2a6, metalness: 0.7, roughness: 0.25 });
+            const sideDoorGroup = new THREE.Group();
+
+            const slab = new THREE.Mesh(new THREE.BoxGeometry(0.08, meetingDoorHeight, meetingDoorWidth), sideDoorMat);
+            slab.position.set(sideDoorX, meetingDoorHeight / 2, sideDoorZ);
+            slab.castShadow = true;
+            slab.receiveShadow = true;
+            sideDoorGroup.add(slab);
+
+            const frameThickness = 0.08;
+            const frameDepth = 0.12;
+            const frontFrame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, meetingDoorHeight + frameThickness, frameThickness), sideFrameMat);
+            frontFrame.position.set(sideDoorX + 0.01, (meetingDoorHeight + frameThickness) / 2, sideDoorZ - meetingDoorWidth / 2 - frameThickness / 2);
+            sideDoorGroup.add(frontFrame);
+            const backFrame = frontFrame.clone();
+            backFrame.position.z = sideDoorZ + meetingDoorWidth / 2 + frameThickness / 2;
+            sideDoorGroup.add(backFrame);
+            const topFrame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, frameThickness, meetingDoorWidth + frameThickness * 2), sideFrameMat);
+            topFrame.position.set(sideDoorX + 0.01, meetingDoorHeight + frameThickness / 2, sideDoorZ);
+            sideDoorGroup.add(topFrame);
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.18), sideMetalMat);
+            handle.rotation.z = Math.PI / 2;
+            handle.position.set(sideDoorX + 0.06, 1.05, sideDoorZ + meetingDoorWidth / 2 - 0.22);
+            sideDoorGroup.add(handle);
+
+            const signCanvas = document.createElement('canvas');
+            signCanvas.width = 256;
+            signCanvas.height = 96;
+            const signCtx = signCanvas.getContext('2d');
+            signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+            signCtx.fillStyle = '#000000';
+            signCtx.font = 'bold 42px sans-serif';
+            signCtx.textAlign = 'center';
+            signCtx.textBaseline = 'middle';
+            signCtx.fillText(labelText, signCanvas.width / 2, signCanvas.height / 2);
+            const sign = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.9, 0.34),
+                new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(signCanvas), transparent: true, roughness: 0.6, side: THREE.DoubleSide })
+            );
+            sign.rotation.y = Math.PI / 2;
+            sign.position.set(sideDoorX + 0.055, 1.5, sideDoorZ);
+            sideDoorGroup.add(sign);
+
+            scene.add(sideDoorGroup);
+        }
+
+        function createSideWallMeetingRoomInterior() {
+            const sideRoomWidth = 3.0;
+            const sideRoomDepth = 2.5;
+            const sideRoomHeight = 3.0;
+            const sideRoomCenterX = -roomWidth / 2 - sideRoomWidth / 2;
+            const sideRoomCenterZ = 2.0;
+            const roomFloorTex = carpetTex.clone();
+            roomFloorTex.needsUpdate = true;
+            roomFloorTex.repeat.set(sideRoomWidth / 4, sideRoomDepth / 4);
+            const roomFloor = new THREE.Mesh(
+                new THREE.PlaneGeometry(sideRoomWidth, sideRoomDepth),
+                new THREE.MeshStandardMaterial({ map: roomFloorTex, roughness: 1.0 })
+            );
+            roomFloor.rotation.x = -Math.PI / 2;
+            roomFloor.position.set(sideRoomCenterX, 0.004, sideRoomCenterZ);
+            roomFloor.receiveShadow = true;
+            scene.add(roomFloor);
+
+            createWall(sideRoomWidth, sideRoomHeight, 0.2, sideRoomCenterX, sideRoomHeight / 2, sideRoomCenterZ - sideRoomDepth / 2 - 0.1, 0xe8edf3);
+            createWall(sideRoomWidth, sideRoomHeight, 0.2, sideRoomCenterX, sideRoomHeight / 2, sideRoomCenterZ + sideRoomDepth / 2 + 0.1, 0xe8edf3);
+            createWall(0.2, sideRoomHeight, sideRoomDepth + 0.4, sideRoomCenterX - sideRoomWidth / 2 - 0.1, sideRoomHeight / 2, sideRoomCenterZ, 0xe8edf3);
+            createWall(sideRoomWidth, 0.2, sideRoomDepth, sideRoomCenterX, sideRoomHeight + 0.1, sideRoomCenterZ, 0xffffff);
+
+            const tableMat = new THREE.MeshStandardMaterial({ color: 0xd6b38c, roughness: 0.45 });
+            const table = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.9), tableMat);
+            table.position.set(sideRoomCenterX, 0.72, sideRoomCenterZ);
+            table.castShadow = true;
+            table.receiveShadow = true;
+            scene.add(table);
+
+            const chairMat = new THREE.MeshStandardMaterial({ color: 0xb783bd, roughness: 0.55 });
+            [[0, -0.75, 0], [0, 0.75, Math.PI], [-0.75, 0, -Math.PI / 2], [0.75, 0, Math.PI / 2]].forEach(([cx, cz, ry]) => {
+                const chair = new THREE.Group();
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.08, 0.38), chairMat);
+                seat.position.y = 0.45;
+                chair.add(seat);
+                const back = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.5, 0.08), chairMat);
+                back.position.set(0, 0.7, -0.19);
+                chair.add(back);
+                chair.position.set(sideRoomCenterX + cx, 0, sideRoomCenterZ + cz);
+                chair.rotation.y = ry;
+                scene.add(chair);
+            });
+
+            const roomLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
+            roomLight.position.set(sideRoomCenterX, sideRoomHeight - 0.25, sideRoomCenterZ);
+            scene.add(roomLight);
+        }
+
+        function createMeetingRoomInterior(x, accentColor) {
+            const meetingRoomWidth = meetingDoorWidth + 1.0;
+            const meetingRoomDepth = 3.2;
+            const meetingRoomHeight = 3.0;
+            const meetingRoomCenterZ = roomDepth / 2 + meetingRoomDepth / 2;
+            const roomFloorTex = carpetTex.clone();
+            roomFloorTex.needsUpdate = true;
+            roomFloorTex.repeat.set(meetingRoomWidth / 4, meetingRoomDepth / 4);
+            const roomFloor = new THREE.Mesh(
+                new THREE.PlaneGeometry(meetingRoomWidth, meetingRoomDepth),
+                new THREE.MeshStandardMaterial({ map: roomFloorTex, roughness: 1.0 })
+            );
+            roomFloor.rotation.x = -Math.PI / 2;
+            roomFloor.position.set(x, 0.004, meetingRoomCenterZ);
+            roomFloor.receiveShadow = true;
+            scene.add(roomFloor);
+
+            createWall(0.2, meetingRoomHeight, meetingRoomDepth, x - meetingRoomWidth / 2 - 0.1, meetingRoomHeight / 2, meetingRoomCenterZ, 0xe8edf3);
+            createWall(0.2, meetingRoomHeight, meetingRoomDepth, x + meetingRoomWidth / 2 + 0.1, meetingRoomHeight / 2, meetingRoomCenterZ, 0xe8edf3);
+            createWall(meetingRoomWidth + 0.4, meetingRoomHeight, 0.2, x, meetingRoomHeight / 2, roomDepth / 2 + meetingRoomDepth + 0.1, 0xe8edf3);
+            createWall(meetingRoomWidth + 0.4, 0.2, meetingRoomDepth, x, meetingRoomHeight + 0.1, meetingRoomCenterZ, 0xffffff);
+
+            const tableMat = new THREE.MeshStandardMaterial({ color: 0xd6b38c, roughness: 0.45 });
+            const table = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.08, 1.0), tableMat);
+            table.position.set(x, 0.72, meetingRoomCenterZ + 0.15);
+            table.castShadow = true;
+            table.receiveShadow = true;
+            scene.add(table);
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.2, roughness: 0.35 });
+            [[-0.55, -0.35], [0.55, -0.35], [-0.55, 0.35], [0.55, 0.35]].forEach(([lx, lz]) => {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.72, 0.06), legMat);
+                leg.position.set(x + lx, 0.36, meetingRoomCenterZ + 0.15 + lz);
+                leg.castShadow = true;
+                scene.add(leg);
+            });
+
+            const chairMat = new THREE.MeshStandardMaterial({ color: accentColor, roughness: 0.55 });
+            [[0, -0.85, 0], [0, 0.85, Math.PI], [-0.95, 0.15, -Math.PI / 2], [0.95, 0.15, Math.PI / 2]].forEach(([cx, cz, ry]) => {
+                const chair = new THREE.Group();
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.42), chairMat);
+                seat.position.y = 0.45;
+                chair.add(seat);
+                const back = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.55, 0.08), chairMat);
+                back.position.set(0, 0.72, -0.21);
+                chair.add(back);
+                chair.position.set(x + cx, 0, meetingRoomCenterZ + 0.15 + cz);
+                chair.rotation.y = ry;
+                scene.add(chair);
+            });
+
+            const roomLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
+            roomLight.position.set(x, meetingRoomHeight - 0.25, meetingRoomCenterZ);
+            scene.add(roomLight);
+        }
+
+        function createTeleconferenceBox() {
+            const boothWidth = 1.25;
+            const boothDepth = 1.18;
+            const boothHeight = meetingDoorHeight * 1.5;
+            const boothX = -roomWidth / 2 + boothWidth / 2 + 0.03;
+            const boothZ = roomDepth / 2 - boothDepth / 2 - 0.03;
+            const boothWoodTex = createWoodTexture();
+            boothWoodTex.repeat.set(1.4, 3.0);
+            const lightWoodMat = new THREE.MeshStandardMaterial({ map: boothWoodTex, color: 0xf2d8b8, roughness: 0.48 });
+            const darkBrownMat = new THREE.MeshStandardMaterial({ color: 0x5a351f, roughness: 0.7 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0xd8f4ff, transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0.12 });
+
+            const boothGroup = new THREE.Group();
+            boothGroup.position.set(boothX, 0, boothZ);
+
+            const panelThickness = 0.06;
+            const backPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, boothHeight, panelThickness), lightWoodMat);
+            backPanel.position.set(0, boothHeight / 2, boothDepth / 2 - panelThickness / 2);
+            backPanel.castShadow = true;
+            backPanel.receiveShadow = true;
+            boothGroup.add(backPanel);
+
+            const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), lightWoodMat);
+            leftPanel.position.set(-boothWidth / 2 + panelThickness / 2, boothHeight / 2, 0);
+            leftPanel.castShadow = true;
+            leftPanel.receiveShadow = true;
+            boothGroup.add(leftPanel);
+
+            const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), lightWoodMat);
+            rightPanel.position.set(boothWidth / 2 - panelThickness / 2, boothHeight / 2, 0);
+            rightPanel.castShadow = true;
+            rightPanel.receiveShadow = true;
+            boothGroup.add(rightPanel);
+
+            const topPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, panelThickness, boothDepth), darkBrownMat);
+            topPanel.position.set(0, boothHeight - panelThickness / 2, 0);
+            topPanel.castShadow = true;
+            boothGroup.add(topPanel);
+
+            const basePanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, 0.05, boothDepth), darkBrownMat);
+            basePanel.position.set(0, 0.025, 0);
+            basePanel.receiveShadow = true;
+            boothGroup.add(basePanel);
+
+            const frontPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth - panelThickness * 2, boothHeight - 0.28, 0.045), lightWoodMat);
+            frontPanel.position.set(0, (boothHeight - 0.28) / 2 + 0.12, -boothDepth / 2 + 0.035);
+            frontPanel.castShadow = true;
+            frontPanel.receiveShadow = true;
+            boothGroup.add(frontPanel);
+
+            const windowPane = new THREE.Mesh(new THREE.BoxGeometry(boothWidth * 0.48, boothHeight * 0.32, 0.02), glassMat);
+            windowPane.position.set(0, boothHeight * 0.63, -boothDepth / 2 + 0.065);
+            boothGroup.add(windowPane);
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.26), new THREE.MeshStandardMaterial({ color: 0xbba27a, metalness: 0.7, roughness: 0.25 }));
+            handle.position.set(boothWidth / 2 + 0.025, 1.1, -boothDepth / 2 + 0.26);
+            boothGroup.add(handle);
+
+            const stool = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.42, 24), darkBrownMat);
+            stool.position.set(0, 0.21, 0.03);
+            stool.castShadow = true;
+            boothGroup.add(stool);
+
+            const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.05, 0.24), darkBrownMat);
+            shelf.position.set(0, 0.88, boothDepth / 2 - 0.18);
+            shelf.castShadow = true;
+            boothGroup.add(shelf);
+
+            const monitor = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.22, 0.025), new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.4 }));
+            monitor.position.set(0, 1.05, boothDepth / 2 - 0.32);
+            boothGroup.add(monitor);
+
+            const boothLight = new THREE.PointLight(0xffd7a8, 0.22, 2.0);
+            boothLight.position.set(0, boothHeight - 0.28, 0);
+            boothGroup.add(boothLight);
+
+            scene.add(boothGroup);
+        }
+
+        function createTrashLabelTexture(bgColor, iconText, subText) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 82px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(iconText, canvas.width / 2, 102);
+            ctx.font = 'bold 34px sans-serif';
+            ctx.fillText(subText, canvas.width / 2, 178);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createPetBottleTrashBin() {
+            const stationGroup = new THREE.Group();
+            // x=-25 / z=5 付近で、テレカンボックス側の壁を背にして室内側を向ける
+            stationGroup.position.set(-25.0, 0, 5.0);
+            stationGroup.rotation.y = -Math.PI / 2;
+
+            const offWhiteMat = new THREE.MeshStandardMaterial({ color: 0xe8e2d3, roughness: 0.56 });
+            const bagMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.72, roughness: 0.65 });
+            const grayMat = new THREE.MeshStandardMaterial({ color: 0x5f615c, roughness: 0.48, metalness: 0.08 });
+            const darkLidMat = new THREE.MeshStandardMaterial({ color: 0x383a37, roughness: 0.52, metalness: 0.08 });
+            const pedalMat = new THREE.MeshStandardMaterial({ color: 0xb7bcc1, roughness: 0.28, metalness: 0.45 });
+
+            function addRectBin(x, labelTexture) {
+                const width = 0.42;
+                const height = 0.98;
+                const depth = 1.0;
+                const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), grayMat);
+                body.position.set(x, height / 2, 0);
+                body.castShadow = true;
+                body.receiveShadow = true;
+                stationGroup.add(body);
+
+                const lid = new THREE.Mesh(new THREE.BoxGeometry(width * 0.96, 0.08, depth * 0.92), darkLidMat);
+                lid.position.set(x, height + 0.04, -0.02);
+                lid.rotation.x = -0.12;
+                lid.castShadow = true;
+                stationGroup.add(lid);
+
+                const label = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.24, 0.34),
+                    new THREE.MeshStandardMaterial({ map: labelTexture, roughness: 0.5 })
+                );
+                label.position.set(x, height * 0.5, -depth / 2 - 0.006);
+                label.rotation.y = Math.PI;
+                stationGroup.add(label);
+
+                const pedal = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.035, 0.09), pedalMat);
+                pedal.position.set(x, 0.04, -depth / 2 - 0.11);
+                pedal.castShadow = true;
+                stationGroup.add(pedal);
+            }
+
+            function addBagBin(x) {
+                const width = 0.44;
+                const height = 0.78;
+                const depth = 1.0;
+                const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), offWhiteMat);
+                body.position.set(x, height / 2, 0);
+                body.castShadow = true;
+                body.receiveShadow = true;
+                stationGroup.add(body);
+
+                const slantedTop = new THREE.Mesh(new THREE.BoxGeometry(width * 0.92, 0.1, depth * 0.9), offWhiteMat);
+                slantedTop.position.set(x, height + 0.02, -0.02);
+                slantedTop.rotation.x = -0.24;
+                slantedTop.castShadow = true;
+                stationGroup.add(slantedTop);
+
+                const trashSlot = new THREE.Mesh(new THREE.BoxGeometry(width * 0.44, 0.035, 0.03), darkLidMat);
+                trashSlot.position.set(x, height + 0.08, -depth / 2 - 0.01);
+                trashSlot.rotation.x = -0.24;
+                stationGroup.add(trashSlot);
+
+                const bagFront = new THREE.Mesh(new THREE.BoxGeometry(width * 0.78, height * 0.62, 0.035), bagMat);
+                bagFront.position.set(x, height * 0.38, -depth / 2 - 0.025);
+                stationGroup.add(bagFront);
+            }
+
+            addBagBin(-0.52);
+            addRectBin(0.02, createTrashLabelTexture('#2f80d8', '♻', 'PET'));
+            addRectBin(0.46, createTrashLabelTexture('#d8483e', '火', '可燃'));
+
+            scene.add(stationGroup);
+        }
+
+        createMeetingRoomInterior(meetingDoor1X, 0x4f8fd8);
+        createMeetingRoomInterior(meetingDoor2X, 0x85a947);
+        createMeetingRoomDoor(meetingDoor1X, 'curious');
+        createMeetingRoomDoor(meetingDoor2X, 'share');
+        createSideWallMeetingRoomInterior();
+        createSideWallMeetingDoor('value');
+        createTeleconferenceBox();
+        createPetBottleTrashBin();
         
         const wall2Width = alcoveStart - newDoorEnd;
         createWall(wall2Width, roomHeight, 0.2, newDoorEnd + wall2Width / 2, roomHeight / 2, roomDepth / 2);
@@ -1921,20 +2382,26 @@
                 
                 const zLockerBound = roomDepth / 2 - 2.0; 
                 const zAlcoveBound = roomDepth / 2 + alcoveDepth - 1.0; 
+                const zLeftNicheBound = roomDepth / 2 + leftNicheDepth - 0.4;
+                const zNewHallBound = roomDepth / 2 + newHallDepth - 0.6;
                 const alcoveAllowedLeft = alcoveStart + 0.6; 
                 const alcoveAllowedRight = alcoveEnd - 0.6;  
+                const leftNicheAllowedLeft = leftNicheStart + 0.4;
+                const leftNicheAllowedRight = leftNicheEnd - 0.4;
+                const newHallAllowedLeft = newDoorStart + 0.25;
+                const newHallAllowedRight = newDoorEnd - 0.25;
+                const inAlcoveMouth = camera.position.x > alcoveAllowedLeft && camera.position.x < alcoveAllowedRight;
+                const inLeftNicheMouth = camera.position.x > leftNicheAllowedLeft && camera.position.x < leftNicheAllowedRight;
+                const inNewHallMouth = camera.position.x > newHallAllowedLeft && camera.position.x < newHallAllowedRight;
 
-                if (camera.position.x > alcoveAllowedLeft && camera.position.x < alcoveAllowedRight) {
+                if (inAlcoveMouth) {
                     if (camera.position.z > zAlcoveBound) camera.position.z = zAlcoveBound;
-                } else {
-                    if (camera.position.z > zLockerBound) {
-                        if (camera.position.z > zLockerBound + 0.2) {
-                            if (camera.position.x <= alcoveAllowedLeft && camera.position.x > 2.0) camera.position.x = alcoveAllowedLeft;
-                            if (camera.position.x >= alcoveAllowedRight && camera.position.x < 7.0) camera.position.x = alcoveAllowedRight;
-                        } else {
-                            camera.position.z = zLockerBound;
-                        }
-                    }
+                } else if (inLeftNicheMouth) {
+                    if (camera.position.z > zLeftNicheBound) camera.position.z = zLeftNicheBound;
+                } else if (inNewHallMouth) {
+                    if (camera.position.z > zNewHallBound) camera.position.z = zNewHallBound;
+                } else if (camera.position.z > zLockerBound) {
+                    camera.position.z = zLockerBound;
                 }
             }
 
