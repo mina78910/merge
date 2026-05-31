@@ -309,6 +309,91 @@
             return texture;
         }
 
+
+
+        function createGenkanFloorTexture() {
+            const size = 768;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#d7d2c3';
+            ctx.fillRect(0, 0, size, size);
+
+            const colors = ['rgba(75, 105, 57, 0.82)', 'rgba(93, 124, 69, 0.68)', 'rgba(222, 203, 174, 0.76)', 'rgba(184, 176, 157, 0.55)'];
+            for (let i = 0; i < 5200; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const radius = 1.5 + Math.random() * 7.5;
+                const stretch = 0.45 + Math.random() * 1.8;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(Math.random() * Math.PI);
+                ctx.scale(stretch, 1 / stretch);
+                ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+            ctx.lineWidth = 1;
+            const tile = 96;
+            for (let i = 0; i <= size; i += tile) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, size);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(size, i);
+                ctx.stroke();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        function createStrawCushionTexture() {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#c9b080';
+            ctx.fillRect(0, 0, size, size);
+            ctx.strokeStyle = 'rgba(95, 70, 36, 0.26)';
+            ctx.lineWidth = 1.1;
+            for (let i = 0; i < 900; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const len = 10 + Math.random() * 46;
+                const angle = Math.random() * Math.PI;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+                ctx.stroke();
+            }
+            ctx.strokeStyle = 'rgba(255, 239, 190, 0.24)';
+            for (let r = 36; r < size / 2; r += 28) {
+                ctx.beginPath();
+                ctx.arc(size / 2, size / 2, r, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
         function createMountainMuralTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 2048;
@@ -1040,23 +1125,66 @@
         const doorHeaderHeight = roomHeight - newDoorHeight;
         createWall(newDoorWidth, doorHeaderHeight, 0.2, newDoorX, newDoorHeight + doorHeaderHeight / 2, roomDepth / 2);
 
-        // --- 出入口の奥の空間（廊下） ---
-        const newHallDepth = 2.5;
-        const greenPatchMat = new THREE.MeshStandardMaterial({ color: 0xebf2e3, roughness: 0.9 });
-        const newHallFloor = new THREE.Mesh(new THREE.PlaneGeometry(newDoorWidth, newHallDepth), greenPatchMat);
-        newHallFloor.rotation.x = -Math.PI / 2;
-        newHallFloor.position.set(newDoorX, 0.005, roomDepth / 2 + newHallDepth / 2);
-        newHallFloor.receiveShadow = true;
-        scene.add(newHallFloor);
+        // --- 出入口の奥の空間（玄関） ---
+        const genkanDepth = 3.2;
+        const genkanWidth = newDoorWidth + 2.2;
+        const genkanStart = newDoorX - genkanWidth / 2;
+        const genkanEnd = newDoorX + genkanWidth / 2;
+        const genkanCenterZ = roomDepth / 2 + genkanDepth / 2;
+        const genkanFloorTex = createGenkanFloorTexture();
+        genkanFloorTex.repeat.set(genkanWidth / 2.4, genkanDepth / 2.4);
+        const genkanFloorMat = new THREE.MeshStandardMaterial({ map: genkanFloorTex, roughness: 0.92 });
+        const genkanFloor = new THREE.Mesh(new THREE.PlaneGeometry(genkanWidth, genkanDepth), genkanFloorMat);
+        genkanFloor.rotation.x = -Math.PI / 2;
+        genkanFloor.position.set(newDoorX, 0.005, genkanCenterZ);
+        genkanFloor.receiveShadow = true;
+        scene.add(genkanFloor);
 
-        createWall(0.2, roomHeight, newHallDepth, newDoorStart - 0.1, roomHeight / 2, roomDepth / 2 + newHallDepth / 2);
-        createWall(0.2, roomHeight, newHallDepth, newDoorEnd + 0.1, roomHeight / 2, roomDepth / 2 + newHallDepth / 2);
-        createWall(newDoorWidth, roomHeight, 0.2, newDoorX, roomHeight / 2, roomDepth / 2 + newHallDepth, 0xe0e0e0);
-        createWall(newDoorWidth, 0.2, newHallDepth, newDoorX, roomHeight, roomDepth / 2 + newHallDepth / 2, 0xffffff);
+        createWall(0.2, roomHeight, genkanDepth, genkanStart - 0.1, roomHeight / 2, genkanCenterZ, 0xf4f1e8);
+        createWall(0.2, roomHeight, genkanDepth, genkanEnd + 0.1, roomHeight / 2, genkanCenterZ, 0xf4f1e8);
+        createWall(genkanWidth + 0.4, roomHeight, 0.2, newDoorX, roomHeight / 2, roomDepth / 2 + genkanDepth, 0xe8e3d6);
+        createWall(genkanWidth + 0.4, 0.2, genkanDepth, newDoorX, roomHeight, genkanCenterZ, 0xffffff);
 
-        const newHallLight = new THREE.PointLight(0xfff5e6, 0.5, 6);
-        newHallLight.position.set(newDoorX, roomHeight - 0.2, roomDepth / 2 + newHallDepth / 2);
-        scene.add(newHallLight);
+        const genkanBenchGroup = new THREE.Group();
+        const benchMat = new THREE.MeshStandardMaterial({ color: 0x0f1719, roughness: 0.58 });
+        const benchWidth = 0.62;
+        const benchLength = genkanDepth - 0.45;
+        const benchHeight = 0.46;
+        const benchTop = new THREE.Mesh(new THREE.BoxGeometry(benchWidth, 0.12, benchLength), benchMat);
+        benchTop.position.set(0, benchHeight, 0);
+        benchTop.castShadow = true;
+        benchTop.receiveShadow = true;
+        genkanBenchGroup.add(benchTop);
+        const benchBase = new THREE.Mesh(new THREE.BoxGeometry(benchWidth, benchHeight, benchLength), benchMat);
+        benchBase.position.set(0, benchHeight / 2 - 0.02, 0);
+        benchBase.castShadow = true;
+        benchBase.receiveShadow = true;
+        genkanBenchGroup.add(benchBase);
+
+        const strawMat = new THREE.MeshStandardMaterial({ map: createStrawCushionTexture(), color: 0xd7bf8f, roughness: 0.88 });
+        [-0.85, 0.0, 0.85].forEach((offsetZ) => {
+            const cushion = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.3, 0.075, 48), strawMat);
+            cushion.position.set(0, benchHeight + 0.105, offsetZ);
+            cushion.scale.set(1.18, 1, 0.9);
+            cushion.castShadow = true;
+            cushion.receiveShadow = true;
+            genkanBenchGroup.add(cushion);
+        });
+
+        const ledMat = new THREE.MeshBasicMaterial({ color: 0xffd56a, transparent: true, opacity: 0.85 });
+        const underBenchLightStrip = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, benchLength * 0.94), ledMat);
+        underBenchLightStrip.position.set(-benchWidth / 2 - 0.015, 0.12, 0);
+        genkanBenchGroup.add(underBenchLightStrip);
+        const benchGlow = new THREE.PointLight(0xffd36b, 0.42, 2.2);
+        benchGlow.position.set(-benchWidth / 2 - 0.12, 0.18, 0);
+        genkanBenchGroup.add(benchGlow);
+
+        genkanBenchGroup.position.set(genkanEnd - benchWidth / 2 - 0.16, 0, genkanCenterZ + 0.05);
+        scene.add(genkanBenchGroup);
+
+        const genkanLight = new THREE.PointLight(0xfff1d8, 0.65, 7);
+        genkanLight.position.set(newDoorX, roomHeight - 0.3, genkanCenterZ);
+        scene.add(genkanLight);
 
         // --- ドアフレームとガラス ---
         const dFrameGroup = new THREE.Group();
