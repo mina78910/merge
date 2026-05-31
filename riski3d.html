@@ -603,10 +603,18 @@
         const meetingDoor2Start = meetingDoor2X - meetingDoorWidth / 2;
         const meetingDoor2End = meetingDoor2X + meetingDoorWidth / 2;
 
+        const nicheWindowBottomY = 0.5;
+        const nicheWindowHeight = newDoorHeight;
+        const nicheWindowTopY = nicheWindowBottomY + nicheWindowHeight;
+        const nicheSideWindowDepth = leftNicheDepth / 2;
+        const nicheFrontWindowWidth = Math.min(0.55, leftNicheStart - meetingDoor1End);
+        const nicheFrontWindowStart = leftNicheStart - nicheFrontWindowWidth;
+        const nicheFrontWindowEnd = leftNicheStart;
+
         const frontWallSegments = [
             [-roomWidth / 2, meetingDoor2Start],
             [meetingDoor2End, meetingDoor1Start],
-            [meetingDoor1End, leftNicheStart]
+            [meetingDoor1End, nicheFrontWindowStart]
         ];
         frontWallSegments.forEach(([start, end]) => {
             const segmentWidth = end - start;
@@ -622,10 +630,65 @@
         const wall1DoorSideWidth = newDoorStart - leftNicheEnd;
         createWall(wall1DoorSideWidth, roomHeight, 0.2, leftNicheEnd + wall1DoorSideWidth / 2, roomHeight / 2, roomDepth / 2);
 
-        createWall(0.2, roomHeight, leftNicheDepth, leftNicheStart - 0.1, roomHeight / 2, roomDepth / 2 + leftNicheDepth / 2);
+        // x=-16付近のL字壁は、外の出入口が見えるように正面と奥行き半分をガラス張りにする
+        const nicheFrontWindowCenterX = (nicheFrontWindowStart + nicheFrontWindowEnd) / 2;
+        createWall(nicheFrontWindowWidth, nicheWindowBottomY, 0.2, nicheFrontWindowCenterX, nicheWindowBottomY / 2, roomDepth / 2);
+        createWall(nicheFrontWindowWidth, roomHeight - nicheWindowTopY, 0.2, nicheFrontWindowCenterX, nicheWindowTopY + (roomHeight - nicheWindowTopY) / 2, roomDepth / 2);
+
+        const leftNicheWallX = leftNicheStart - 0.1;
+        const nicheSideWindowCenterZ = roomDepth / 2 + nicheSideWindowDepth / 2;
+        createWall(0.2, nicheWindowBottomY, nicheSideWindowDepth, leftNicheWallX, nicheWindowBottomY / 2, nicheSideWindowCenterZ);
+        createWall(0.2, roomHeight - nicheWindowTopY, nicheSideWindowDepth, leftNicheWallX, nicheWindowTopY + (roomHeight - nicheWindowTopY) / 2, nicheSideWindowCenterZ);
+        createWall(0.2, roomHeight, leftNicheDepth - nicheSideWindowDepth, leftNicheWallX, roomHeight / 2, roomDepth / 2 + nicheSideWindowDepth + (leftNicheDepth - nicheSideWindowDepth) / 2);
         createWall(0.2, roomHeight, leftNicheDepth, leftNicheEnd + 0.1, roomHeight / 2, roomDepth / 2 + leftNicheDepth / 2);
         createWall(leftNicheWidth + 0.4, roomHeight, 0.2, leftNicheCenterX, roomHeight / 2, roomDepth / 2 + leftNicheDepth + 0.1, 0xe0e0e0);
         createWall(leftNicheWidth + 0.4, 0.2, leftNicheDepth, leftNicheCenterX, roomHeight, roomDepth / 2 + leftNicheDepth / 2, 0xffffff);
+
+        function addNicheGlassWindow() {
+            const windowGroup = new THREE.Group();
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0xcff6ff, transparent: true, opacity: 0.34, roughness: 0.08, metalness: 0.15 });
+            const blackFrameMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.45, metalness: 0.25 });
+            const frameThickness = 0.06;
+            const frameDepth = 0.08;
+            const windowCenterY = nicheWindowBottomY + nicheWindowHeight / 2;
+            const frontWindowZ = roomDepth / 2 + 0.015;
+            const sideWindowX = leftNicheWallX + 0.015;
+            const sideWindowStartZ = roomDepth / 2;
+            const sideWindowEndZ = roomDepth / 2 + nicheSideWindowDepth;
+
+            const frontGlass = new THREE.Mesh(new THREE.BoxGeometry(nicheFrontWindowWidth, nicheWindowHeight, 0.025), glassMat);
+            frontGlass.position.set(nicheFrontWindowCenterX, windowCenterY, frontWindowZ);
+            windowGroup.add(frontGlass);
+
+            [nicheFrontWindowStart, nicheFrontWindowEnd].forEach((frameX) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(frameThickness, nicheWindowHeight + frameThickness * 2, frameDepth), blackFrameMat);
+                frame.position.set(frameX, windowCenterY, frontWindowZ);
+                windowGroup.add(frame);
+            });
+            [nicheWindowBottomY, nicheWindowTopY].forEach((frameY) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(nicheFrontWindowWidth + frameThickness, frameThickness, frameDepth), blackFrameMat);
+                frame.position.set(nicheFrontWindowCenterX, frameY, frontWindowZ);
+                windowGroup.add(frame);
+            });
+
+            const sideGlass = new THREE.Mesh(new THREE.BoxGeometry(0.025, nicheWindowHeight, nicheSideWindowDepth), glassMat);
+            sideGlass.position.set(sideWindowX, windowCenterY, nicheSideWindowCenterZ);
+            windowGroup.add(sideGlass);
+
+            [sideWindowStartZ, sideWindowEndZ].forEach((frameZ) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, nicheWindowHeight + frameThickness * 2, frameThickness), blackFrameMat);
+                frame.position.set(sideWindowX, windowCenterY, frameZ);
+                windowGroup.add(frame);
+            });
+            [nicheWindowBottomY, nicheWindowTopY].forEach((frameY) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, frameThickness, nicheSideWindowDepth + frameThickness), blackFrameMat);
+                frame.position.set(sideWindowX, frameY, nicheSideWindowCenterZ);
+                windowGroup.add(frame);
+            });
+
+            scene.add(windowGroup);
+        }
+        addNicheGlassWindow();
 
         const leftNicheTex = carpetTex.clone();
         leftNicheTex.needsUpdate = true;
