@@ -482,7 +482,20 @@
 
         createWall(0.2, roomHeight, roomDepth, roomWidth / 2, roomHeight/2, 0);  
         
-        createWall(0.2, roomHeight, roomDepth / 2, -roomWidth / 2, roomHeight/2, roomDepth / 4);
+        // x=-25側の壁は、追加会議室ドア用に z=2 付近だけ開口を残して分割
+        const sideWallDoorZ = 2.0;
+        const sideWallDoorWidth = 1.4;
+        const sideWallDoorHeight = 2.35;
+        const sideWallDoorStart = sideWallDoorZ - sideWallDoorWidth / 2;
+        const sideWallDoorEnd = sideWallDoorZ + sideWallDoorWidth / 2;
+        [[0, sideWallDoorStart], [sideWallDoorEnd, roomDepth / 2]].forEach(([startZ, endZ]) => {
+            const segmentDepth = endZ - startZ;
+            if (segmentDepth > 0.01) {
+                createWall(0.2, roomHeight, segmentDepth, -roomWidth / 2, roomHeight / 2, startZ + segmentDepth / 2);
+            }
+        });
+        const sideWallDoorHeaderHeight = roomHeight - sideWallDoorHeight;
+        createWall(0.2, sideWallDoorHeaderHeight, sideWallDoorWidth, -roomWidth / 2, sideWallDoorHeight + sideWallDoorHeaderHeight / 2, sideWallDoorZ);
 
         const breakWidth = 10; 
         const breakDepth = roomDepth / 2; 
@@ -681,10 +694,10 @@
             scene.add(doorGroup);
         }
 
-        function createSideWallMeetingDoor() {
+        function createSideWallMeetingDoor(labelText = 'value') {
             const sideDoorX = -roomWidth / 2 + 0.12;
             const sideDoorZ = 2.0;
-            const sideDoorMat = new THREE.MeshStandardMaterial({ color: 0xf4efe4, roughness: 0.48 });
+            const sideDoorMat = new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.12, metalness: 0.15 });
             const sideFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
             const sideMetalMat = new THREE.MeshStandardMaterial({ color: 0xb9b2a6, metalness: 0.7, roughness: 0.25 });
             const sideDoorGroup = new THREE.Group();
@@ -716,25 +729,70 @@
             signCanvas.width = 256;
             signCanvas.height = 96;
             const signCtx = signCanvas.getContext('2d');
-            signCtx.fillStyle = '#ffffff';
-            signCtx.fillRect(0, 0, signCanvas.width, signCanvas.height);
-            signCtx.strokeStyle = '#7b6a55';
-            signCtx.lineWidth = 8;
-            signCtx.strokeRect(4, 4, signCanvas.width - 8, signCanvas.height - 8);
-            signCtx.fillStyle = '#333333';
-            signCtx.font = 'bold 28px sans-serif';
+            signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+            signCtx.fillStyle = '#000000';
+            signCtx.font = 'bold 42px sans-serif';
             signCtx.textAlign = 'center';
             signCtx.textBaseline = 'middle';
-            signCtx.fillText('MEETING', signCanvas.width / 2, signCanvas.height / 2);
+            signCtx.fillText(labelText, signCanvas.width / 2, signCanvas.height / 2);
             const sign = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.72, 0.26),
-                new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(signCanvas), roughness: 0.6, side: THREE.DoubleSide })
+                new THREE.PlaneGeometry(0.9, 0.34),
+                new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(signCanvas), transparent: true, roughness: 0.6, side: THREE.DoubleSide })
             );
             sign.rotation.y = Math.PI / 2;
-            sign.position.set(sideDoorX + 0.05, 1.5, sideDoorZ);
+            sign.position.set(sideDoorX + 0.055, 1.5, sideDoorZ);
             sideDoorGroup.add(sign);
 
             scene.add(sideDoorGroup);
+        }
+
+        function createSideWallMeetingRoomInterior() {
+            const sideRoomWidth = 3.0;
+            const sideRoomDepth = 2.5;
+            const sideRoomHeight = 3.0;
+            const sideRoomCenterX = -roomWidth / 2 - sideRoomWidth / 2;
+            const sideRoomCenterZ = 2.0;
+            const roomFloorTex = carpetTex.clone();
+            roomFloorTex.needsUpdate = true;
+            roomFloorTex.repeat.set(sideRoomWidth / 4, sideRoomDepth / 4);
+            const roomFloor = new THREE.Mesh(
+                new THREE.PlaneGeometry(sideRoomWidth, sideRoomDepth),
+                new THREE.MeshStandardMaterial({ map: roomFloorTex, roughness: 1.0 })
+            );
+            roomFloor.rotation.x = -Math.PI / 2;
+            roomFloor.position.set(sideRoomCenterX, 0.004, sideRoomCenterZ);
+            roomFloor.receiveShadow = true;
+            scene.add(roomFloor);
+
+            createWall(sideRoomWidth, sideRoomHeight, 0.2, sideRoomCenterX, sideRoomHeight / 2, sideRoomCenterZ - sideRoomDepth / 2 - 0.1, 0xe8edf3);
+            createWall(sideRoomWidth, sideRoomHeight, 0.2, sideRoomCenterX, sideRoomHeight / 2, sideRoomCenterZ + sideRoomDepth / 2 + 0.1, 0xe8edf3);
+            createWall(0.2, sideRoomHeight, sideRoomDepth + 0.4, sideRoomCenterX - sideRoomWidth / 2 - 0.1, sideRoomHeight / 2, sideRoomCenterZ, 0xe8edf3);
+            createWall(sideRoomWidth, 0.2, sideRoomDepth, sideRoomCenterX, sideRoomHeight + 0.1, sideRoomCenterZ, 0xffffff);
+
+            const tableMat = new THREE.MeshStandardMaterial({ color: 0xd6b38c, roughness: 0.45 });
+            const table = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.9), tableMat);
+            table.position.set(sideRoomCenterX, 0.72, sideRoomCenterZ);
+            table.castShadow = true;
+            table.receiveShadow = true;
+            scene.add(table);
+
+            const chairMat = new THREE.MeshStandardMaterial({ color: 0xb783bd, roughness: 0.55 });
+            [[0, -0.75, 0], [0, 0.75, Math.PI], [-0.75, 0, -Math.PI / 2], [0.75, 0, Math.PI / 2]].forEach(([cx, cz, ry]) => {
+                const chair = new THREE.Group();
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.08, 0.38), chairMat);
+                seat.position.y = 0.45;
+                chair.add(seat);
+                const back = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.5, 0.08), chairMat);
+                back.position.set(0, 0.7, -0.19);
+                chair.add(back);
+                chair.position.set(sideRoomCenterX + cx, 0, sideRoomCenterZ + cz);
+                chair.rotation.y = ry;
+                scene.add(chair);
+            });
+
+            const roomLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
+            roomLight.position.set(sideRoomCenterX, sideRoomHeight - 0.25, sideRoomCenterZ);
+            scene.add(roomLight);
         }
 
         function createMeetingRoomInterior(x, accentColor) {
@@ -903,7 +961,7 @@
             function addRectBin(x, labelTexture) {
                 const width = 0.42;
                 const height = 0.98;
-                const depth = 0.46;
+                const depth = 1.0;
                 const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), grayMat);
                 body.position.set(x, height / 2, 0);
                 body.castShadow = true;
@@ -933,7 +991,7 @@
             function addBagBin(x) {
                 const width = 0.44;
                 const height = 0.78;
-                const depth = 0.46;
+                const depth = 1.0;
                 const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), offWhiteMat);
                 body.position.set(x, height / 2, 0);
                 body.castShadow = true;
@@ -965,9 +1023,10 @@
 
         createMeetingRoomInterior(meetingDoor1X, 0x4f8fd8);
         createMeetingRoomInterior(meetingDoor2X, 0x85a947);
-        createMeetingRoomDoor(meetingDoor1X, 'value');
+        createMeetingRoomDoor(meetingDoor1X, 'curious');
         createMeetingRoomDoor(meetingDoor2X, 'share');
-        createSideWallMeetingDoor();
+        createSideWallMeetingRoomInterior();
+        createSideWallMeetingDoor('value');
         createTeleconferenceBox();
         createPetBottleTrashBin();
         
