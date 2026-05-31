@@ -494,6 +494,20 @@
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
+    const hqLobbyMap = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,84,84,84,84,84,84,84,84,84,84,84,84,84,84,87,87,87,87,87,1,1],
+      [1,84,83,83,83,83,83,83,83,83,28,83,83,83,83,88,88,88,88,88,1,1],
+      [1,84,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,1,1],
+      [1,1,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,1,1],
+      [1,1,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,1,1],
+      [1,1,83,83,83,83,83,83,83,83,83,83,83,83,83,86,86,86,86,83,1,1],
+      [1,1,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,1,1],
+      [1,1,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,1,1],
+      [1,1,1,1,1,1,1,1,1,83,85,85,83,1,1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,85,85,1,1,1,1,1,1,1,1,1,1],
+    ];
+
     const loungeMap = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -721,6 +735,7 @@
     const MAPS = {
       office: officeMap,
       hq: hqMap,
+      hq_lobby: hqLobbyMap,
       lounge: loungeMap,
       dormitory: dormitoryMap,
       elevator: elevatorMap,
@@ -774,10 +789,11 @@
           const t = map[y][x];
 
           // ベースとなる床を先に描画する（机などの下にも床を描画）
-          let isFloorTile = [0, 2, 5, 6, 7, 8, 32, 33, 34, 35, 38, 39, 41, 65, 66, 67, 68, 71, 72, 75, 77].includes(t);
+          let isFloorTile = [0, 2, 5, 6, 7, 8, 32, 33, 34, 35, 38, 39, 41, 65, 66, 67, 68, 71, 72, 75, 77, 83, 85, 86, 87, 88].includes(t);
           if(isFloorTile) {
             if(currentMapName==="office") { ctx.fillStyle=((x+y)%2===0)?"#e6ebf0":"#f5f6f7"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="hq") { ctx.fillStyle=((x+y)%2===0)?"#e1e6e0":"#ebf0ea"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); } 
+            else if(currentMapName==="hq_lobby") { ctx.fillStyle=((x*7+y*11)%5<2)?"#7fa46e":"#e7c6a1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
             else if(currentMapName==="lounge") { ctx.fillStyle=((x+y)%2===0)?"#fdf6e3":"#fcf2d9"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); } 
             else if(currentMapName==="dormitory") { ctx.fillStyle=((x+y)%2===0)?"#dcb17f":"#d4a670"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); } 
             else if(currentMapName.startsWith("outside")) { ctx.fillStyle="#c4c8cc"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize); }
@@ -792,7 +808,8 @@
           
           if(t===1) {
             if(currentMapName.startsWith("outside") || currentMapName==="yurakucho") { ctx.fillStyle="#444851"; } 
-            else if(currentMapName==="station_tokyo") { ctx.fillStyle="#8e4a3b"; } 
+            else if(currentMapName==="station_tokyo") { ctx.fillStyle="#8e4a3b"; }
+            else if(currentMapName==="hq_lobby") { ctx.fillStyle="#b7aea5"; }
             else if(currentMapName==="forum_hall") { ctx.fillStyle="#1a252f"; } 
             else { ctx.fillStyle="#adb5bd"; }
             ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
@@ -1041,9 +1058,54 @@
             ctx.fillStyle="#34495e"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
             ctx.fillStyle="#e74c3c"; ctx.font="bold 10px sans-serif"; ctx.fillText("EXIT", x*tileSize+4, y*tileSize+20);
           }
+
+          if(t===84) {
+            ctx.fillStyle="#d8d0c6"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#f6f1ea"; ctx.fillRect(x*tileSize, y*tileSize+3, tileSize, 12);
+            ctx.fillStyle="#c8beb3"; ctx.fillRect(x*tileSize, y*tileSize+24, tileSize, 4);
+          }
+          if(t===85) {
+            ctx.fillStyle=((x+y)%2===0)?"#7fa46e":"#e7c6a1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="rgba(135,206,250,0.45)"; ctx.fillRect(x*tileSize+2, y*tileSize+2, tileSize-4, tileSize-4);
+            ctx.strokeStyle="#ecf0f1"; ctx.lineWidth=2; ctx.strokeRect(x*tileSize+3, y*tileSize+2, tileSize-6, tileSize-4);
+            ctx.fillStyle="#95a5a6"; ctx.fillRect(x*tileSize+tileSize/2-1, y*tileSize+4, 2, tileSize-8);
+          }
+          if(t===86) {
+            ctx.fillStyle=((x+y)%2===0)?"#7fa46e":"#e7c6a1"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#111"; ctx.beginPath(); ctx.roundRect(x*tileSize+2, y*tileSize+12, tileSize-4, 12, 3); ctx.fill();
+            ctx.fillStyle="#d8b66a";
+            let cushionOffset = (x-15) % 2 === 0 ? 6 : 18;
+            ctx.beginPath(); ctx.roundRect(x*tileSize+cushionOffset, y*tileSize+6, 10, 10, 4); ctx.fill();
+            ctx.strokeStyle="#b28b45"; ctx.lineWidth=1; ctx.stroke();
+          }
+          if(t===87) {
+            ctx.fillStyle="#e9e0d8"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#7d3cff"; ctx.beginPath(); ctx.arc(x*tileSize+12, y*tileSize+14, 8, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle="#ff6fb1"; ctx.beginPath(); ctx.arc(x*tileSize+20, y*tileSize+14, 8, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle="#fff"; ctx.font="bold 8px sans-serif"; ctx.fillText("CO", x*tileSize+8, y*tileSize+18);
+          }
+          if(t===88) {
+            ctx.fillStyle="#e9e0d8"; ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            ctx.fillStyle="#8d5a2b"; ctx.fillRect(x*tileSize, y*tileSize+12, tileSize, 14);
+            ctx.fillStyle="#2d3436"; ctx.beginPath(); ctx.roundRect(x*tileSize+8, y*tileSize+6, 16, 10, 3); ctx.fill();
+            ctx.fillStyle="#111"; ctx.fillRect(x*tileSize+12, y*tileSize+16, 8, 8);
+          }
         }
       }
       
+      if (currentMapName === "hq_lobby") {
+        // 玄関の天井と奥行きを、床の上から重ねて強調する
+        let ceilingGrad = ctx.createLinearGradient(0, 0, 0, 3*tileSize);
+        ceilingGrad.addColorStop(0, "#f4efe8");
+        ceilingGrad.addColorStop(1, "#d4cbc0");
+        ctx.fillStyle = ceilingGrad;
+        ctx.fillRect(tileSize, tileSize, 14*tileSize, tileSize);
+        ctx.fillStyle = "rgba(255,255,255,0.55)";
+        for(let lx=3; lx<=14; lx+=4) {
+          ctx.beginPath(); ctx.arc(lx*tileSize+16, tileSize+12, 5, 0, Math.PI*2); ctx.fill();
+        }
+      }
+
       // --- 大型建物の描画（背景ループ後にまとめて大きく描画） ---
       if (currentMapName === "outside") {
         ctx.fillStyle="#444851"; ctx.fillRect(12*tileSize, 0, 2*tileSize, 2*tileSize);
@@ -1306,7 +1368,7 @@
       const t = map[y][x];
       
       if(isNpc) {
-        if([25, 26, 28, 14, 30, 18, 19, 22, 37, 40, 43, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 65, 71, 75, 82].includes(t)) return false; 
+        if([25, 26, 28, 14, 30, 18, 19, 22, 37, 40, 43, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 65, 71, 75, 82, 84, 86, 87, 88].includes(t)) return false;
         
         // オフィス入り口周辺へのNPC侵入禁止
         if(currentMapName === "office") {
@@ -1314,7 +1376,7 @@
         }
       }
 
-      const walkableTiles = [0, 2, 5, 9, 20, 21, 24, 25, 26, 18, 19, 22, 28, 14, 30, 37, 40, 43, 48, 49, 51, 52, 54, 61, 67, 68, 72, 75, 77, 82];
+      const walkableTiles = [0, 2, 5, 9, 20, 21, 24, 25, 26, 18, 19, 22, 28, 14, 30, 37, 40, 43, 48, 49, 51, 52, 54, 61, 67, 68, 72, 75, 77, 82, 83, 85];
       return walkableTiles.includes(t);
     }
 
@@ -1419,13 +1481,16 @@
         else if(elevatorFloor === "lounge") switchMap("lounge", 9, 6, "down");
         else { 
           if(currentBuilding === "office") switchMap("outside", 13, 2, "down");
-          else switchMap("outside", 16, 2, "down"); 
+          else switchMap("hq_lobby", 10, 3, "down");
         }
         return true;
       }
 
       if(currentMapName === "outside" && t === 18) { switchMap("elevator", 10, 6, "up"); currentBuilding = "office"; elevatorFloor = "1F"; showMsg("第一三木ビルに入りました.\nエレベーターに乗ります."); return true; }
-      if(currentMapName === "outside" && t === 19) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "1F"; showMsg("太陽生命日本橋ビルに入りました.\nエレベーターに乗ります."); return true; }
+      if(currentMapName === "outside" && t === 19) { switchMap("hq_lobby", 10, 8, "up"); currentBuilding = "hq"; elevatorFloor = "1F"; showMsg("ガラス出入口の向こうに、玄関が広がっています。"); return true; }
+
+      if(currentMapName === "hq_lobby" && t === 85) { switchMap("outside", 17, 2, "down"); return true; }
+      if(currentMapName === "hq_lobby" && t === 28) { switchMap("elevator", 10, 6, "up"); currentBuilding = "hq"; elevatorFloor = "1F"; showMsg("玄関奥のエレベーターに乗りました。"); return true; }
 
       if(currentMapName === "outside" && t === 54) { switchMap("gusto", 11, 9, "up"); showMsg("ガストに入りました！\n美味しい匂いがします。"); return true; }
       if(currentMapName === "gusto" && t === 61) { switchMap("outside", 9, 2, "down"); return true; }
@@ -1536,7 +1601,7 @@
           let floorName = "";
           if(elevatorFloor === "hq") floorName = "本社階";
           else if(elevatorFloor === "lounge") floorName = "ラウンジ階";
-          else floorName = "1階(外)";
+          else floorName = "1階(玄関)";
           showMsg(`ウィーン... ${floorName}に到着しました.`);
         }
         return;
@@ -1551,6 +1616,12 @@
           if(currentMapName === "office") {
             if(checkTile === 65) { openGlicoDialog(); return; }
             if(checkTile === 71) { openHoodieDialog(); return; }
+          }
+
+          if(currentMapName === "hq_lobby") {
+            if(checkTile === 87) { showMsg("紫とピンクの会社ロゴが、玄関の目線の高さで光っています。"); return; }
+            if(checkTile === 88) { showMsg("茶色い受付板の上に受付電話があります。\n受話器を取れば担当者につながりそうです。"); return; }
+            if(checkTile === 86) { showMsg("背もたれなしの黒い横長ベンチに、麦わら色のクッションが3つ並んでいます。"); return; }
           }
 
           // 新規追加：フォーラム ホール内アクション
