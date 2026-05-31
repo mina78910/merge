@@ -1040,23 +1040,164 @@
         const doorHeaderHeight = roomHeight - newDoorHeight;
         createWall(newDoorWidth, doorHeaderHeight, 0.2, newDoorX, newDoorHeight + doorHeaderHeight / 2, roomDepth / 2);
 
-        // --- 出入口の奥の空間（廊下） ---
-        const newHallDepth = 2.5;
-        const greenPatchMat = new THREE.MeshStandardMaterial({ color: 0xebf2e3, roughness: 0.9 });
-        const newHallFloor = new THREE.Mesh(new THREE.PlaneGeometry(newDoorWidth, newHallDepth), greenPatchMat);
-        newHallFloor.rotation.x = -Math.PI / 2;
-        newHallFloor.position.set(newDoorX, 0.005, roomDepth / 2 + newHallDepth / 2);
-        newHallFloor.receiveShadow = true;
-        scene.add(newHallFloor);
+        // --- ガラス出入口の奥に広がる玄関 ---
+        const entranceDepth = 3.6;
+        const entranceLeft = newDoorStart - 0.25;
+        const entranceRight = newDoorEnd + 3.1;
+        const entranceWidth = entranceRight - entranceLeft;
+        const entranceCenterX = (entranceLeft + entranceRight) / 2;
+        const entranceCenterZ = roomDepth / 2 + entranceDepth / 2;
+        const entranceBackZ = roomDepth / 2 + entranceDepth + 0.1;
 
-        createWall(0.2, roomHeight, newHallDepth, newDoorStart - 0.1, roomHeight / 2, roomDepth / 2 + newHallDepth / 2);
-        createWall(0.2, roomHeight, newHallDepth, newDoorEnd + 0.1, roomHeight / 2, roomDepth / 2 + newHallDepth / 2);
-        createWall(newDoorWidth, roomHeight, 0.2, newDoorX, roomHeight / 2, roomDepth / 2 + newHallDepth, 0xe0e0e0);
-        createWall(newDoorWidth, 0.2, newHallDepth, newDoorX, roomHeight, roomDepth / 2 + newHallDepth / 2, 0xffffff);
+        function createEntranceFloorTexture() {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#d7c3a3';
+            ctx.fillRect(0, 0, size, size);
+            for (let i = 0; i < 900; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const radius = 10 + Math.random() * 42;
+                const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                const isGreen = Math.random() > 0.45;
+                grad.addColorStop(0, isGreen ? 'rgba(114, 151, 102, 0.48)' : 'rgba(235, 202, 166, 0.45)');
+                grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.strokeStyle = 'rgba(120, 106, 82, 0.18)';
+            ctx.lineWidth = 2;
+            for (let x = 0; x <= size; x += 64) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, size);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= size; y += 64) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(size, y);
+                ctx.stroke();
+            }
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(entranceWidth / 2.2, entranceDepth / 2.2);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
 
-        const newHallLight = new THREE.PointLight(0xfff5e6, 0.5, 6);
-        newHallLight.position.set(newDoorX, roomHeight - 0.2, roomDepth / 2 + newHallDepth / 2);
-        scene.add(newHallLight);
+        function createCompanyLogoTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 220;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            grad.addColorStop(0, '#6b2cff');
+            grad.addColorStop(1, '#ff4faf');
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = grad;
+            ctx.font = 'bold 72px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('RisKi LOGO', canvas.width / 2, 92);
+            ctx.font = 'bold 34px sans-serif';
+            ctx.fillText('RESKILLING CENTER', canvas.width / 2, 154);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        const entranceFloor = new THREE.Mesh(
+            new THREE.PlaneGeometry(entranceWidth, entranceDepth),
+            new THREE.MeshStandardMaterial({ map: createEntranceFloorTexture(), roughness: 0.92 })
+        );
+        entranceFloor.rotation.x = -Math.PI / 2;
+        entranceFloor.position.set(entranceCenterX, 0.006, entranceCenterZ);
+        entranceFloor.receiveShadow = true;
+        scene.add(entranceFloor);
+
+        createWall(0.2, roomHeight, entranceDepth, entranceLeft - 0.1, roomHeight / 2, entranceCenterZ, 0xe7edf0);
+        createWall(0.2, roomHeight, entranceDepth, entranceRight + 0.1, roomHeight / 2, entranceCenterZ, 0xe7edf0);
+        createWall(entranceWidth + 0.4, roomHeight, 0.2, entranceCenterX, roomHeight / 2, entranceBackZ, 0xe2e7dc);
+        createWall(entranceWidth + 0.4, 0.2, entranceDepth, entranceCenterX, roomHeight, entranceCenterZ, 0xffffff);
+
+        const entranceLight = new THREE.PointLight(0xfff5e6, 0.65, 8);
+        entranceLight.position.set(entranceCenterX, roomHeight - 0.25, entranceCenterZ);
+        scene.add(entranceLight);
+
+        const entranceCeilingPanel = new THREE.Mesh(
+            new THREE.PlaneGeometry(entranceWidth, entranceDepth),
+            new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.75, emissive: 0x181818 })
+        );
+        entranceCeilingPanel.rotation.x = Math.PI / 2;
+        entranceCeilingPanel.position.set(entranceCenterX, roomHeight - 0.08, entranceCenterZ);
+        entranceCeilingPanel.receiveShadow = true;
+        scene.add(entranceCeilingPanel);
+
+        const benchMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.58 });
+        const strawMat = new THREE.MeshStandardMaterial({ color: 0xd7b46a, roughness: 0.95 });
+        const benchGroup = new THREE.Group();
+        benchGroup.position.set(entranceRight - 0.65, 0, roomDepth / 2 + 1.25);
+        benchGroup.rotation.y = Math.PI / 2;
+        const benchSeat = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.18, 0.52), benchMat);
+        benchSeat.position.y = 0.48;
+        benchSeat.castShadow = true;
+        benchSeat.receiveShadow = true;
+        benchGroup.add(benchSeat);
+        for (const x of [-0.72, 0, 0.72]) {
+            const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.12, 0.42), strawMat);
+            cushion.position.set(x, 0.64, 0);
+            cushion.castShadow = true;
+            cushion.receiveShadow = true;
+            benchGroup.add(cushion);
+        }
+        for (const x of [-0.78, 0.78]) {
+            for (const z of [-0.18, 0.18]) {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.48, 0.06), benchMat);
+                leg.position.set(x, 0.24, z);
+                leg.castShadow = true;
+                benchGroup.add(leg);
+            }
+        }
+        scene.add(benchGroup);
+
+        const logoPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.65, 0.58),
+            new THREE.MeshStandardMaterial({ map: createCompanyLogoTexture(), roughness: 0.35 })
+        );
+        logoPlane.position.set(entranceRight - 1.0, 1.62, entranceBackZ - 0.006);
+        logoPlane.rotation.y = Math.PI;
+        scene.add(logoPlane);
+
+        const boardMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.58 });
+        const receptionBoard = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.12, 0.46), boardMat);
+        receptionBoard.position.set(entranceRight - 1.0, 1.05, entranceBackZ - 0.25);
+        receptionBoard.castShadow = true;
+        receptionBoard.receiveShadow = true;
+        scene.add(receptionBoard);
+
+        const phoneGroup = new THREE.Group();
+        phoneGroup.position.set(entranceRight - 1.0, 1.15, entranceBackZ - 0.27);
+        const phoneMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.42, metalness: 0.12 });
+        const phoneBase = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.28), phoneMat);
+        phoneBase.castShadow = true;
+        phoneGroup.add(phoneBase);
+        const phoneHandset = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.07, 0.09), phoneMat);
+        phoneHandset.position.set(0, 0.09, -0.02);
+        phoneHandset.castShadow = true;
+        phoneGroup.add(phoneHandset);
+        const phoneCord = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.006, 8, 32), phoneMat);
+        phoneCord.position.set(0.26, 0.03, 0.0);
+        phoneCord.rotation.x = Math.PI / 2;
+        phoneGroup.add(phoneCord);
+        scene.add(phoneGroup);
 
         // --- ドアフレームとガラス ---
         const dFrameGroup = new THREE.Group();
