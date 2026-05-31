@@ -1584,7 +1584,7 @@
         // ==========================================
         function createLockerBank(startX, endX, zPos) {
             const lockerGroup = new THREE.Group();
-            const depth = 0.5;
+            const depth = 1.5;
             const height = 2.0 + wallFixtureHeightBoost;
             const rows = 4;
             const doorHeight = height / rows;
@@ -1593,12 +1593,15 @@
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.7 });
             const handleMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 }); 
             const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }); 
-            // x=3付近の空き幅は維持しつつ、ロッカー単体を正方形に近づける
+            // x=3付近からアルコーブ右側までを一続きで空け、端に1列だけ残らないようにする
             const leftAlcoveLockerRemovalStart = alcoveStart - originalColWidth * 5;
+            const rightAlcoveLockerRemovalEnd = alcoveEnd + originalColWidth * 3.2;
+            const lockerHalfWidth = colWidth / 2;
             for(let x = startX; x <= endX; x += colWidth) {
-                if (x > leftAlcoveLockerRemovalStart && x < alcoveStart + 0.1) continue;
-                if (x > alcoveStart + 0.1 && x < alcoveEnd - 0.1) continue;
-                if (x > alcoveEnd + 0.05 && x < alcoveEnd + originalColWidth * 3.2) continue;
+                const overlapsAlcoveClearance =
+                    x + lockerHalfWidth > leftAlcoveLockerRemovalStart &&
+                    x - lockerHalfWidth < rightAlcoveLockerRemovalEnd;
+                if (overlapsAlcoveClearance) continue;
                 const bodyGeo = new THREE.BoxGeometry(colWidth, height, depth);
                 const body = new THREE.Mesh(bodyGeo, bodyMat);
                 body.position.set(x, height / 2, zPos - depth / 2);
