@@ -1591,7 +1591,10 @@
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.7 });
             const handleMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 }); 
             const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }); 
+            // x=3付近のアルコーブ左側から5列分を空ける
+            const leftAlcoveLockerRemovalStart = alcoveStart - colWidth * 5;
             for(let x = startX; x <= endX; x += colWidth) {
+                if (x > leftAlcoveLockerRemovalStart && x < alcoveStart + 0.1) continue;
                 if (x > alcoveStart + 0.1 && x < alcoveEnd - 0.1) continue;
                 if (x > alcoveEnd + 0.05 && x < alcoveEnd + colWidth * 3.2) continue;
                 const bodyGeo = new THREE.BoxGeometry(colWidth - 0.02, height, depth);
