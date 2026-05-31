@@ -1586,37 +1586,38 @@
             const lockerGroup = new THREE.Group();
             const depth = 0.5;
             const height = 2.0 + wallFixtureHeightBoost;
-            const colWidth = 0.4; 
-            const rows = 4; 
+            const rows = 4;
+            const doorHeight = height / rows;
+            const colWidth = doorHeight;
+            const originalColWidth = 0.4;
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.7 });
             const handleMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 }); 
             const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }); 
-            // x=3付近のアルコーブ左側から5列分を空ける
-            const leftAlcoveLockerRemovalStart = alcoveStart - colWidth * 5;
+            // x=3付近の空き幅は維持しつつ、ロッカー単体を正方形に近づける
+            const leftAlcoveLockerRemovalStart = alcoveStart - originalColWidth * 5;
             for(let x = startX; x <= endX; x += colWidth) {
                 if (x > leftAlcoveLockerRemovalStart && x < alcoveStart + 0.1) continue;
                 if (x > alcoveStart + 0.1 && x < alcoveEnd - 0.1) continue;
-                if (x > alcoveEnd + 0.05 && x < alcoveEnd + colWidth * 3.2) continue;
-                const bodyGeo = new THREE.BoxGeometry(colWidth - 0.02, height, depth);
+                if (x > alcoveEnd + 0.05 && x < alcoveEnd + originalColWidth * 3.2) continue;
+                const bodyGeo = new THREE.BoxGeometry(colWidth, height, depth);
                 const body = new THREE.Mesh(bodyGeo, bodyMat);
-                body.position.set(x, height/2, zPos - depth/2);
+                body.position.set(x, height / 2, zPos - depth / 2);
                 body.castShadow = true;
                 body.receiveShadow = true;
                 lockerGroup.add(body);
-                const doorHeight = height / rows;
                 for(let r = 0; r < rows; r++) {
                     const doorY = (r * doorHeight) + (doorHeight / 2);
-                    const handleGeo = new THREE.BoxGeometry(0.12, 0.03, 0.02);
+                    const handleGeo = new THREE.BoxGeometry(colWidth * 0.3, 0.03, 0.02);
                     const handle = new THREE.Mesh(handleGeo, handleMat);
-                    handle.position.set(x + 0.08, doorY + (doorHeight * 0.3), zPos - depth);
+                    handle.position.set(x + colWidth * 0.2, doorY + (doorHeight * 0.3), zPos - depth);
                     lockerGroup.add(handle);
-                    const labelGeo = new THREE.PlaneGeometry(0.04, 0.06);
+                    const labelGeo = new THREE.PlaneGeometry(colWidth * 0.12, doorHeight * 0.12);
                     const label = new THREE.Mesh(labelGeo, labelMat);
-                    label.position.set(x - 0.08, doorY + (doorHeight * 0.1), zPos - depth - 0.005);
+                    label.position.set(x - colWidth * 0.2, doorY + (doorHeight * 0.1), zPos - depth - 0.005);
                     label.rotation.y = Math.PI; 
                     lockerGroup.add(label);
                     if (r > 0) {
-                        const lineGeo = new THREE.BoxGeometry(colWidth - 0.02, 0.005, 0.01);
+                        const lineGeo = new THREE.BoxGeometry(colWidth, 0.005, 0.01);
                         const lineMat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
                         const line = new THREE.Mesh(lineGeo, lineMat);
                         line.position.set(x, r * doorHeight, zPos - depth);
