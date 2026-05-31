@@ -583,10 +583,11 @@
         const newDoorStart = newDoorX - newDoorWidth / 2;
         const newDoorEnd = newDoorX + newDoorWidth / 2;
 
-        // ドアを背にして左側（-X方向）へ、ドア1枚分離した位置に2枚分幅のくぼみを追加
-        const leftNicheWidth = newDoorWidth * 2;
+        // ドアを背にして左側（-X方向）へ、ドア1枚分離した位置に少し狭めたくぼみを追加
+        const leftNicheWidthReduction = 0.4;
+        const leftNicheWidth = newDoorWidth * 2 - leftNicheWidthReduction;
         const leftNicheDepth = 3.6;
-        const leftNicheEnd = newDoorStart - newDoorWidth;
+        const leftNicheEnd = newDoorStart - newDoorWidth - leftNicheWidthReduction;
         const leftNicheStart = leftNicheEnd - leftNicheWidth;
         const leftNicheCenterX = (leftNicheStart + leftNicheEnd) / 2;
 
@@ -1597,7 +1598,9 @@
             const leftAlcoveLockerRemovalStart = alcoveStart - originalColWidth * 5;
             const rightAlcoveLockerRemovalEnd = alcoveEnd + originalColWidth * 3.2;
             const lockerHalfWidth = colWidth / 2;
-            for(let x = startX; x <= endX; x += colWidth) {
+            // x=-12付近側からロッカー1列分を削る
+            const trimmedStartX = startX + colWidth;
+            for(let x = trimmedStartX; x <= endX; x += colWidth) {
                 const overlapsAlcoveClearance =
                     x + lockerHalfWidth > leftAlcoveLockerRemovalStart &&
                     x - lockerHalfWidth < rightAlcoveLockerRemovalEnd;
