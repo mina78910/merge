@@ -151,6 +151,29 @@ h2 {
   margin-left: 8px;
 }
 
+/* --- ブログボタン（丸四角形） --- */
+.blog-btn {
+  background-color: white;
+  color: #ec8fb3;
+  border-radius: 8px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 13px;
+  border: 1px solid #ec8fb3;
+  flex-shrink: 0;
+  margin-left: 8px;
+  transition: .2s;
+}
+
+.blog-btn:hover {
+  background-color: #ec8fb3;
+  color: white;
+}
+
 .desc {
   color: #666;
   font-size: 14px;
@@ -205,7 +228,7 @@ h2 {
   position: absolute;
   top: 28px;
   right: 24px;
-  background: #ec8fb3; /* モダールの縁取りと同じピンクに変更 */
+  background: #ec8fb3;
   color: white;
   text-decoration: none;
   cursor: pointer;
@@ -354,6 +377,12 @@ h2 {
     width: 24px;
     height: 24px;
     font-size: 14px;
+  }
+
+  .blog-btn {
+    padding: 2px 8px;
+    font-size: 10px;
+    height: 24px;
   }
 
   .desc {
@@ -682,6 +711,42 @@ h2 {
     </div>
   </div>
 
+  <!-- 7個目の追加分: リスキリングセンター3D -->
+  <div class="card">
+    <div class="slider">
+      <img class="active" src="./image/riski3d/riski3d_1.png" alt="">
+      <img src="./image/riski3d/riski3d_2.png" alt="">
+      <img src="./image/riski3d/riski3d_3.png" alt="">
+    </div>
+
+    <div class="content">
+      <div class="category">2026年6月4日リリース</div>
+      <div class="title-wrap">
+        <h2>リスキリングセンター3(3D)</h2>
+        <a href="riski3dhistory.html" class="blog-btn" target="_blank">ブログ</a>
+      </div>
+
+      <p class="desc">
+        3Dで進化したリスキリングセンターを体験しよう。
+      </p>
+
+      <div class="meta">
+        開発の裏側はブログにて公開中
+      </div>
+
+      <a class="play"
+         href="riski3d.html"
+         target="_blank">
+         ▶ PLAY
+      </a>
+      <a class="source-code"
+         href="https://github.com/mina78910/merge/blob/main/riski3d.html"
+         target="_blank">
+         このゲームのソースコードはこちら
+      </a>
+    </div>
+  </div>
+
 </section>
 
 <div id="releaseNotesData" style="display: none;">
@@ -696,6 +761,12 @@ h2 {
         </tr>
       </thead>
       <tbody>
+        <!-- 今回の追加分を記載 (不要な場合は削除してください) -->
+        <tr>
+          <td>2026/06/04</td>
+          <td>新作リリース</td>
+          <td>リスキリングセンター3(3D)をリリースしました。</td>
+        </tr>
         <tr>
           <td>2026/05/27</td>
           <td>本サイト</td>
