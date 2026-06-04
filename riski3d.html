@@ -5,12 +5,20 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Office Walk - Ultra Realistic V12 (Handles Restored)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>リスキリングセンター3</title>
   <style>
     /* ==========================================
            UI & Base Styles
            ========================================== */
+    html, body {
+      width: 100%;
+      height: 100%;
+      overscroll-behavior: none;
+      touch-action: none;
+      -webkit-text-size-adjust: 100%;
+    }
+
     body {
       margin: 0;
       overflow: hidden;
@@ -19,6 +27,13 @@
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
+    }
+
+    canvas, #ui-layer, #joystick-zone, #mobile-exit {
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
     }
 
     #ui-layer {
@@ -31,6 +46,8 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      box-sizing: border-box;
+      padding: 7vh 24px max(120px, calc(18px + env(safe-area-inset-bottom)));
       background-color: rgba(15, 20, 25, 0.85);
       color: #ffffff;
       cursor: pointer;
@@ -41,8 +58,8 @@
     }
 
     #ui-layer h1 {
-      margin: 0 0 10px 0;
-      font-size: 3rem;
+      margin: 0 0 8px 0;
+      font-size: clamp(2rem, 4.8vw, 2.85rem);
       letter-spacing: 4px;
       text-transform: uppercase;
       text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -52,6 +69,178 @@
       margin: 5px 0;
       color: #cbd5e1;
       font-size: 1.1rem;
+    }
+
+    .opening-tutorial {
+      width: min(700px, 88vw);
+      margin: 20px 0 4px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    .tutorial-card {
+      min-height: 158px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(96, 165, 250, 0.18), transparent 44%),
+        rgba(255, 255, 255, 0.075);
+      box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.035);
+    }
+
+    .tutorial-label {
+      position: absolute;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+      width: 90%;
+      color: rgba(226, 232, 240, 0.92);
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+    }
+
+    .tutorial-device {
+      position: absolute;
+      left: 50%;
+      top: 16px;
+      width: 180px;
+      height: 96px;
+      transform: translateX(-50%) scale(0.92);
+      border: 2px solid rgba(226, 232, 240, 0.42);
+      border-radius: 22px;
+      background: rgba(15, 23, 42, 0.18);
+    }
+
+    .tutorial-zone {
+      position: absolute;
+      top: 9px;
+      bottom: 9px;
+      width: 50%;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .tutorial-zone.left { left: 9px; }
+    .tutorial-zone.right { right: 9px; }
+
+    .tutorial-joystick {
+      position: absolute;
+      left: 38px;
+      top: 26px;
+      width: 54px;
+      height: 54px;
+      border: 2px solid rgba(147, 197, 253, 0.74);
+      border-radius: 50%;
+      box-shadow: 0 0 22px rgba(96, 165, 250, 0.36);
+    }
+
+    .tutorial-joystick::after {
+      content: '';
+      position: absolute;
+      left: 17px;
+      top: 13px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(191, 219, 254, 0.72);
+      box-shadow: 0 0 14px rgba(147, 197, 253, 0.58);
+    }
+
+    .tutorial-thumb {
+      position: absolute;
+      width: 34px;
+      height: 48px;
+      border-radius: 22px 22px 18px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(203,213,225,0.34));
+      filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
+    }
+
+    .tutorial-thumb.left {
+      left: 72px;
+      top: 52px;
+      transform: rotate(-20deg);
+    }
+
+    .tutorial-thumb.right {
+      right: 58px;
+      top: 46px;
+      transform: rotate(20deg);
+    }
+
+    .tutorial-arrows {
+      position: absolute;
+      inset: 0;
+      color: rgba(147, 197, 253, 0.78);
+      font-size: 1.65rem;
+      line-height: 1;
+      text-shadow: 0 0 12px rgba(96, 165, 250, 0.55);
+    }
+
+    .tutorial-arrows span {
+      position: absolute;
+    }
+
+    .tutorial-arrows .up { left: 61px; top: 12px; }
+    .tutorial-arrows .down { left: 62px; top: 74px; }
+    .tutorial-arrows .left { left: 30px; top: 43px; }
+    .tutorial-arrows .right { left: 92px; top: 43px; }
+
+    .tutorial-swipe {
+      position: absolute;
+      left: 105px;
+      top: 38px;
+      width: 48px;
+      height: 26px;
+      border-top: 2px solid rgba(147, 197, 253, 0.86);
+      border-radius: 50%;
+      transform: rotate(-8deg);
+    }
+
+    .tutorial-swipe::before,
+    .tutorial-swipe::after {
+      content: '';
+      position: absolute;
+      top: -6px;
+      width: 10px;
+      height: 10px;
+      border-top: 2px solid rgba(147, 197, 253, 0.86);
+      border-right: 2px solid rgba(147, 197, 253, 0.86);
+    }
+
+    .tutorial-swipe::before {
+      left: 0;
+      transform: rotate(-140deg);
+    }
+
+    .tutorial-swipe::after {
+      right: 0;
+      transform: rotate(40deg);
+    }
+
+    .opening-notes {
+      position: absolute;
+      left: 50%;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      width: min(760px, 88vw);
+      color: rgba(226, 232, 240, 0.82);
+      font-size: 0.92rem;
+      line-height: 1.7;
+      letter-spacing: 0.02em;
+      pointer-events: none;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .opening-notes p {
+      margin: 2px 0;
+      font-size: inherit;
+      color: inherit;
     }
 
     .highlight {
@@ -77,20 +266,21 @@
 
     #coordinate-hud {
       position: absolute;
-      top: 15px;
-      left: 15px;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: #00ffcc;
-      padding: 10px 15px;
-      border-radius: 6px;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(255, 255, 255, 0.38);
+      color: rgba(0, 0, 0, 0.58);
+      padding: 4px 6px;
+      border-radius: 4px;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 14px;
-      font-weight: bold;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.25;
       pointer-events: none;
       z-index: 20;
       display: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-      border: 1px solid #00ffcc;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+      border: 1px solid rgba(0, 0, 0, 0.16);
     }
 
     #joystick-zone {
@@ -129,6 +319,66 @@
       #ui-layer p {
         font-size: 0.9rem;
       }
+      #ui-layer {
+        padding-top: 5vh;
+        padding-bottom: max(104px, calc(14px + env(safe-area-inset-bottom)));
+      }
+      .opening-tutorial {
+        width: min(620px, 92vw);
+        margin-top: 16px;
+        gap: 12px;
+      }
+      .tutorial-card {
+        min-height: 142px;
+      }
+      .tutorial-device {
+        top: 12px;
+        transform: translateX(-50%) scale(0.76);
+      }
+      .tutorial-label {
+        bottom: 12px;
+        font-size: 0.78rem;
+      }
+
+      .opening-notes {
+        width: min(620px, 92vw);
+        font-size: 0.78rem;
+        line-height: 1.55;
+      }
+    }
+
+    @media (max-width: 560px) {
+      #ui-layer {
+        padding-top: 4vh;
+        padding-bottom: max(92px, calc(10px + env(safe-area-inset-bottom)));
+      }
+      .opening-tutorial {
+        grid-template-columns: 1fr;
+        width: min(320px, 90vw);
+        margin-top: 12px;
+        gap: 8px;
+      }
+      .tutorial-card {
+        min-height: 112px;
+      }
+      .tutorial-device {
+        top: -2px;
+        transform: translateX(-50%) scale(0.58);
+      }
+      .tutorial-thumb.left {
+        top: 36px;
+      }
+      .tutorial-thumb.right {
+        top: 32px;
+      }
+      .tutorial-label {
+        bottom: 8px;
+      }
+
+      .opening-notes {
+        bottom: max(10px, env(safe-area-inset-bottom));
+        font-size: 0.72rem;
+      }
     }
   </style>
 
@@ -144,14 +394,36 @@
   <div id="mobile-exit">?</div>
 
   <div id="ui-layer">
-    <h1>OFFICE WALK Ultra Real V12</h1>
-    <p id="start-text">画面をクリックして空間に没入する</p>
-    <p id="controls-text"
-      style="margin-top: 40px; font-size: 1rem; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px;">
-      <span class="highlight">W A S D</span> : 移動 &nbsp;|&nbsp;
-      <span class="highlight">Mouse</span> : 視点移動 &nbsp;|&nbsp;
-      <span class="highlight">ESC</span> : ロック解除
-    </p>
+    <h1>リスキリングセンター3</h1>
+    <p id="start-text">タップ（クリック）してゲーム開始</p>
+    <div class="opening-tutorial" aria-hidden="true">
+      <div class="tutorial-card">
+        <div class="tutorial-device">
+          <div class="tutorial-zone left"></div>
+          <div class="tutorial-joystick"></div>
+          <div class="tutorial-arrows">
+            <span class="up">↑</span>
+            <span class="down">↓</span>
+            <span class="left">←</span>
+            <span class="right">→</span>
+          </div>
+        </div>
+        <div class="tutorial-thumb left"></div>
+        <div class="tutorial-label">左手親指でスティック操作</div>
+      </div>
+      <div class="tutorial-card">
+        <div class="tutorial-device">
+          <div class="tutorial-zone right"></div>
+          <div class="tutorial-swipe"></div>
+        </div>
+        <div class="tutorial-thumb right"></div>
+        <div class="tutorial-label">右手親指で視点調整</div>
+      </div>
+    </div>
+    <div class="opening-notes" aria-label="補足案内">
+      <p>※ ゲーム中にフリーズする場合はリロードしてください</p>
+      <p>※ PCの場合はマウス操作可</p>
+    </div>
   </div>
 
   <script>
@@ -169,8 +441,7 @@
         }
 
         if (isTouchDevice) {
-            document.getElementById('start-text').innerHTML = "タップして空間に没入する<br><span style='font-size:0.8rem; color:#aaa;'>(横画面推奨)</span>";
-            document.getElementById('controls-text').innerHTML = "<span class='highlight'>左画面ドラッグ</span> : 移動 &nbsp;|&nbsp; <span class='highlight'>右画面スワイプ</span> : 視点移動";
+            document.getElementById('start-text').innerHTML = "タップ（クリック）してゲーム開始<br><span style='font-size:0.8rem; color:#aaa;'>(横画面推奨)</span>";
         }
 
         // ==========================================
@@ -384,50 +655,123 @@
 
         function createCityWindowTexture() {
             const canvas = document.createElement('canvas');
-            canvas.width = 1024;
+            canvas.width = 2048;
             canvas.height = 1024;
             const ctx = canvas.getContext('2d');
 
+            // 4階の窓越しに見える都内大通り沿いの向かいビル。
+            // 道路面は見えない角度なので、低い位置までビル外壁で埋めて白飛びを抑える。
             const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            sky.addColorStop(0, '#f7fbff');
-            sky.addColorStop(1, '#dcecf7');
+            sky.addColorStop(0, '#d7e4ee');
+            sky.addColorStop(0.52, '#c4d5e1');
+            sky.addColorStop(1, '#b4c4cf');
             ctx.fillStyle = sky;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const buildings = [
-                [40, 170, 210, 760], [255, 90, 170, 840], [455, 130, 210, 790],
-                [700, 60, 180, 860], [875, 190, 120, 740]
-            ];
-            buildings.forEach(([x, y, w, h], index) => {
-                ctx.fillStyle = index % 2 === 0 ? 'rgba(135, 170, 200, 0.72)' : 'rgba(115, 155, 190, 0.64)';
+            function drawBuilding({ x, y, w, h, body, side, frame, glass, floors, cols, inset = 26 }) {
+                const facade = ctx.createLinearGradient(x, y, x + w, y + h);
+                facade.addColorStop(0, side);
+                facade.addColorStop(0.42, body);
+                facade.addColorStop(1, '#708294');
+                ctx.fillStyle = facade;
                 ctx.fillRect(x, y, w, h);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.86)';
-                ctx.lineWidth = 5;
-                for (let gx = x + 24; gx < x + w; gx += 42) {
-                    ctx.beginPath();
-                    ctx.moveTo(gx, y);
-                    ctx.lineTo(gx, y + h);
-                    ctx.stroke();
+
+                ctx.fillStyle = 'rgba(32, 44, 56, 0.18)';
+                ctx.fillRect(x, y, Math.max(12, w * 0.045), h);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.10)';
+                ctx.fillRect(x + w - Math.max(10, w * 0.035), y, Math.max(10, w * 0.035), h);
+
+                ctx.strokeStyle = 'rgba(44, 54, 64, 0.52)';
+                ctx.lineWidth = 8;
+                ctx.strokeRect(x, y, w, h);
+
+                const topBandHeight = 34;
+                ctx.fillStyle = 'rgba(43, 53, 63, 0.42)';
+                ctx.fillRect(x, y, w, topBandHeight);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+                ctx.fillRect(x + 10, y + 7, w - 20, 4);
+
+                const gapX = 28;
+                const gapY = 30;
+                const bayW = (w - inset * 2 - gapX * (cols - 1)) / cols;
+                const bayH = (h - 92 - gapY * (floors - 1)) / floors;
+
+                for (let row = 0; row < floors; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const wx = x + inset + col * (bayW + gapX);
+                        const wy = y + 58 + row * (bayH + gapY);
+                        const windowGrad = ctx.createLinearGradient(wx, wy, wx + bayW, wy + bayH);
+                        windowGrad.addColorStop(0, '#647f92');
+                        windowGrad.addColorStop(0.48, glass);
+                        windowGrad.addColorStop(1, '#314656');
+                        ctx.fillStyle = frame;
+                        ctx.fillRect(wx - 7, wy - 7, bayW + 14, bayH + 14);
+                        ctx.fillStyle = windowGrad;
+                        ctx.fillRect(wx, wy, bayW, bayH);
+
+                        ctx.strokeStyle = 'rgba(232, 241, 247, 0.35)';
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.moveTo(wx + bayW * 0.52, wy + 8);
+                        ctx.lineTo(wx + bayW * 0.52, wy + bayH - 8);
+                        ctx.stroke();
+
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.30)';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(wx + bayW * 0.12, wy + bayH * 0.22);
+                        ctx.lineTo(wx + bayW * 0.58, wy + bayH * 0.08);
+                        ctx.stroke();
+                    }
                 }
-                for (let gy = y + 34; gy < y + h; gy += 58) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, gy);
-                    ctx.lineTo(x + w, gy);
-                    ctx.stroke();
+
+                for (let row = 1; row < floors; row++) {
+                    const slabY = y + 40 + row * ((h - 70) / floors);
+                    ctx.fillStyle = 'rgba(28, 39, 49, 0.24)';
+                    ctx.fillRect(x, slabY, w, 7);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.10)';
+                    ctx.fillRect(x + 8, slabY + 7, w - 16, 3);
                 }
+            }
+
+            drawBuilding({
+                x: -80, y: 165, w: 470, h: 900, body: '#8ea0aa', side: '#748793',
+                frame: '#d0d8dd', glass: '#8eaec0', floors: 4, cols: 2, inset: 42
+            });
+            drawBuilding({
+                x: 335, y: 70, w: 560, h: 990, body: '#8799a4', side: '#6d7e8c',
+                frame: '#cbd3d9', glass: '#7898ad', floors: 5, cols: 2, inset: 48
+            });
+            drawBuilding({
+                x: 860, y: 125, w: 430, h: 940, body: '#9aa097', side: '#7d867e',
+                frame: '#d8d2c8', glass: '#7f9aaa', floors: 4, cols: 2, inset: 38
+            });
+            drawBuilding({
+                x: 1240, y: 35, w: 570, h: 1035, body: '#7f929e', side: '#637884',
+                frame: '#c6d0d6', glass: '#88a8b8', floors: 5, cols: 2, inset: 50
+            });
+            drawBuilding({
+                x: 1760, y: 155, w: 370, h: 910, body: '#96908b', side: '#7a7774',
+                frame: '#d2cbc3', glass: '#7892a2', floors: 4, cols: 1, inset: 44
             });
 
-            ctx.strokeStyle = 'rgba(70, 105, 135, 0.26)';
-            ctx.lineWidth = 6;
-            for (let x = 170; x < canvas.width; x += 260) {
+            // 窓ガラスそのものの薄い反射。外景を隠さない程度に控えめに光らせる。
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.26)';
+            ctx.lineWidth = 14;
+            for (let x = -120; x < canvas.width; x += 420) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x + 310, canvas.height);
+                ctx.stroke();
+            }
+            ctx.strokeStyle = 'rgba(76, 103, 122, 0.18)';
+            ctx.lineWidth = 10;
+            for (let x = 290; x < canvas.width; x += 520) {
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, canvas.height);
                 ctx.stroke();
             }
-
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const texture = new THREE.CanvasTexture(canvas);
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -452,13 +796,26 @@
             scene.add(wall);
         }
 
+        function createXWallSegment(centerX, startZ, endZ, color = 0xd0d8e8, height = roomHeight) {
+            const depth = endZ - startZ;
+            if (depth <= 0.01) return;
+            createWall(0.2, height, depth, centerX, height / 2, startZ + depth / 2, color);
+        }
+
         const backWallZ = -roomDepth / 2;
-        const windowBottomHeight = 3.6 - ceilingLowerAmount;
-        const windowTopHeight = 4.6 - ceilingLowerAmount;
+        const originalWindowBottomHeight = 3.6 - ceilingLowerAmount;
+        const originalWindowTopHeight = 4.6 - ceilingLowerAmount;
+        const originalWindowHeight = originalWindowTopHeight - originalWindowBottomHeight;
+        // モスグリーン面のハイサイド窓は高さを保ったまま上端を天井高に揃える
+        const windowTopHeight = roomHeight;
+        const windowBottomHeight = windowTopHeight - originalWindowHeight;
         const windowHeight = windowTopHeight - windowBottomHeight;
         
         createWall(roomWidth, windowBottomHeight, 0.2, 0, windowBottomHeight / 2, backWallZ, 0x98ab83);
-        createWall(roomWidth, roomHeight - windowTopHeight, 0.2, 0, windowTopHeight + (roomHeight - windowTopHeight) / 2, backWallZ, 0x98ab83);
+        const wallAboveWindowHeight = roomHeight - windowTopHeight;
+        if (wallAboveWindowHeight > 0.01) {
+            createWall(roomWidth, wallAboveWindowHeight, 0.2, 0, windowTopHeight + wallAboveWindowHeight / 2, backWallZ, 0x98ab83);
+        }
         
         const glassGeo = new THREE.BoxGeometry(roomWidth, windowHeight, 0.05);
         const glassMat = new THREE.MeshStandardMaterial({ 
@@ -470,10 +827,12 @@
         scene.add(glass);
 
         const frameMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 });
-        const topFrame = new THREE.Mesh(new THREE.BoxGeometry(roomWidth, 0.05, 0.24), frameMat);
-        topFrame.position.set(0, windowTopHeight, backWallZ);
+        const windowFrameThickness = 0.05;
+        const topFrame = new THREE.Mesh(new THREE.BoxGeometry(roomWidth, windowFrameThickness, 0.24), frameMat);
+        // 上側の黒い縁は天井に埋まらないよう、縁の上端だけを天井高に揃える
+        topFrame.position.set(0, windowTopHeight - windowFrameThickness / 2, backWallZ);
         scene.add(topFrame);
-        const bottomFrame = new THREE.Mesh(new THREE.BoxGeometry(roomWidth, 0.05, 0.24), frameMat);
+        const bottomFrame = new THREE.Mesh(new THREE.BoxGeometry(roomWidth, windowFrameThickness, 0.24), frameMat);
         bottomFrame.position.set(0, windowBottomHeight, backWallZ);
         scene.add(bottomFrame);
         
@@ -514,15 +873,28 @@
         scene.add(cityView);
 
         const breakGlassMat = new THREE.MeshStandardMaterial({
-            color: 0xffffff, transparent: true, opacity: 0.22,
-            roughness: 0.04, metalness: 0.12, emissive: 0xffffff, emissiveIntensity: 0.12
+            color: 0xd8f0ff, transparent: true, opacity: 0.12,
+            roughness: 0.02, metalness: 0.18, emissive: 0x9fd3ff, emissiveIntensity: 0.04
         });
         const breakGlass = new THREE.Mesh(new THREE.PlaneGeometry(breakDepth, roomHeight), breakGlassMat);
         breakGlass.rotation.y = Math.PI / 2;
         breakGlass.position.set(-roomWidth / 2 - breakWidth + 0.01, roomHeight / 2, breakZ);
         scene.add(breakGlass);
 
-        const windowFrameMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35 });
+        const breakGlassGlintMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff, transparent: true, opacity: 0.34, side: THREE.DoubleSide
+        });
+        [
+            { z: -5.95, y: roomHeight * 0.72, h: 1.35, ry: Math.PI / 2 - 0.18 },
+            { z: -2.85, y: roomHeight * 0.42, h: 1.05, ry: Math.PI / 2 - 0.18 }
+        ].forEach(({ z, y, h, ry }) => {
+            const glint = new THREE.Mesh(new THREE.PlaneGeometry(0.035, h), breakGlassGlintMat);
+            glint.rotation.y = ry;
+            glint.position.set(-roomWidth / 2 - breakWidth + 0.035, y, z);
+            scene.add(glint);
+        });
+
+        const windowFrameMat = new THREE.MeshStandardMaterial({ color: 0xe5ebef, roughness: 0.35 });
         for (let z = -roomDepth / 2; z <= 0.01; z += breakDepth / 3) {
             const frame = new THREE.Mesh(new THREE.BoxGeometry(0.12, roomHeight, 0.06), windowFrameMat);
             frame.position.set(-roomWidth / 2 - breakWidth + 0.02, roomHeight / 2, z);
@@ -587,10 +959,25 @@
         // ドアを背にして左側（-X方向）へ、ドア1枚分離した位置に少し狭めたくぼみを追加
         const leftNicheWidthReduction = 0.4;
         const leftNicheWidth = newDoorWidth * 2 - leftNicheWidthReduction;
-        const leftNicheDepth = 3.6;
+        const frontExtensionStartZ = roomDepth / 2;
+        const entranceBackZ = 15.0;
+        const frontExtensionDepth = entranceBackZ - frontExtensionStartZ;
+        const leftNicheDepth = frontExtensionDepth;
         const leftNicheEnd = newDoorStart - newDoorWidth - leftNicheWidthReduction;
         const leftNicheStart = leftNicheEnd - leftNicheWidth;
         const leftNicheCenterX = (leftNicheStart + leftNicheEnd) / 2;
+
+        const ENTRANCE_LAYOUT = Object.freeze({
+            depth: frontExtensionDepth,
+            lockerGapFromDoor: 0.3,
+            rightOffsetFromLocker: 1.7,
+            walkLeftInset: 0.85,
+            walkRightInset: 0.45,
+            walkBackInset: 0.6
+        });
+        const leftNicheBackZ = frontExtensionStartZ + leftNicheDepth;
+        const lockerBankStartX = newDoorEnd + ENTRANCE_LAYOUT.lockerGapFromDoor;
+        const sharedNicheEntranceWallX = leftNicheEnd + 0.1;
 
         const meetingDoorWidth = newDoorWidth;
         const meetingDoorHeight = baseMeetingDoorHeight + wallFixtureHeightBoost;
@@ -619,13 +1006,115 @@
             createWall(meetingDoorWidth, meetingDoorHeaderHeight, 0.2, doorX, meetingDoorHeight + meetingDoorHeaderHeight / 2, roomDepth / 2);
         });
 
-        const wall1DoorSideWidth = newDoorStart - leftNicheEnd;
-        createWall(wall1DoorSideWidth, roomHeight, 0.2, leftNicheEnd + wall1DoorSideWidth / 2, roomHeight / 2, roomDepth / 2);
+        const entranceInsetGlassBottomY = 0.66;
+        const entranceInsetGlassTopY = newDoorHeight;
+        const entranceInsetGlassHeight = entranceInsetGlassTopY - entranceInsetGlassBottomY;
+        const entranceInsetGlass = Object.freeze({
+            bottomY: entranceInsetGlassBottomY,
+            topY: entranceInsetGlassTopY,
+            height: entranceInsetGlassHeight,
+            centerY: entranceInsetGlassBottomY + entranceInsetGlassHeight / 2,
+            verticalX: leftNicheEnd,
+            verticalWallCenterX: sharedNicheEntranceWallX,
+            frontZ: roomDepth / 2,
+            verticalStartZ: roomDepth / 2,
+            verticalEndZ: 10.0,
+            frontStartX: leftNicheEnd,
+            frontEndX: -13.0,
+            frameThickness: 0.045,
+            glassThickness: 0.02,
+            opacity: 0.18
+        });
 
-        createWall(0.2, roomHeight, leftNicheDepth, leftNicheStart - 0.1, roomHeight / 2, roomDepth / 2 + leftNicheDepth / 2);
-        createWall(0.2, roomHeight, leftNicheDepth, leftNicheEnd + 0.1, roomHeight / 2, roomDepth / 2 + leftNicheDepth / 2);
-        createWall(leftNicheWidth + 0.4, roomHeight, 0.2, leftNicheCenterX, roomHeight / 2, roomDepth / 2 + leftNicheDepth + 0.1, 0xe0e0e0);
-        createWall(leftNicheWidth + 0.4, 0.2, leftNicheDepth, leftNicheCenterX, roomHeight, roomDepth / 2 + leftNicheDepth / 2, 0xffffff);
+        function createWallWithGlassOpeningZ(startX, endX, centerZ, color = 0xd0d8e8) {
+            const width = endX - startX;
+            if (width <= 0.01) return;
+            createWall(width, entranceInsetGlass.bottomY, 0.2, startX + width / 2, entranceInsetGlass.bottomY / 2, centerZ, color);
+            const upperHeight = roomHeight - entranceInsetGlass.topY;
+            if (upperHeight > 0.01) {
+                createWall(width, upperHeight, 0.2, startX + width / 2, entranceInsetGlass.topY + upperHeight / 2, centerZ, color);
+            }
+        }
+
+        function createWallWithGlassOpeningX(centerX, startZ, endZ, color = 0xd0d8e8) {
+            const depth = endZ - startZ;
+            if (depth <= 0.01) return;
+            createWall(0.2, entranceInsetGlass.bottomY, depth, centerX, entranceInsetGlass.bottomY / 2, startZ + depth / 2, color);
+            const upperHeight = roomHeight - entranceInsetGlass.topY;
+            if (upperHeight > 0.01) {
+                createWall(0.2, upperHeight, depth, centerX, entranceInsetGlass.topY + upperHeight / 2, startZ + depth / 2, color);
+            }
+        }
+
+        function createInsetGlassPanelZ(startX, endX, centerZ) {
+            const width = endX - startX;
+            const centerX = startX + width / 2;
+            const glass = new THREE.Mesh(
+                new THREE.BoxGeometry(width, entranceInsetGlass.height, entranceInsetGlass.glassThickness),
+                entranceInsetGlassMat
+            );
+            glass.position.set(centerX, entranceInsetGlass.centerY, centerZ);
+            scene.add(glass);
+
+            const frameDepth = entranceInsetGlass.glassThickness * 1.8;
+            const frameY = entranceInsetGlass.frameThickness;
+            [entranceInsetGlass.bottomY, entranceInsetGlass.topY].forEach((y) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(width + entranceInsetGlass.frameThickness, frameY, frameDepth), entranceInsetFrameMat);
+                frame.position.set(centerX, y, centerZ);
+                scene.add(frame);
+            });
+            [startX, endX].forEach((x) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(entranceInsetGlass.frameThickness, entranceInsetGlass.height, frameDepth), entranceInsetFrameMat);
+                frame.position.set(x, entranceInsetGlass.centerY, centerZ);
+                scene.add(frame);
+            });
+        }
+
+        function createInsetGlassPanelX(surfaceX, startZ, endZ) {
+            const depth = endZ - startZ;
+            const centerZ = startZ + depth / 2;
+            const glass = new THREE.Mesh(
+                new THREE.BoxGeometry(entranceInsetGlass.glassThickness, entranceInsetGlass.height, depth),
+                entranceInsetGlassMat
+            );
+            glass.position.set(surfaceX, entranceInsetGlass.centerY, centerZ);
+            scene.add(glass);
+
+            const frameDepth = entranceInsetGlass.glassThickness * 1.8;
+            const frameY = entranceInsetGlass.frameThickness;
+            [entranceInsetGlass.bottomY, entranceInsetGlass.topY].forEach((y) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, frameY, depth + entranceInsetGlass.frameThickness), entranceInsetFrameMat);
+                frame.position.set(surfaceX, y, centerZ);
+                scene.add(frame);
+            });
+            [startZ, endZ].forEach((z) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, entranceInsetGlass.height, entranceInsetGlass.frameThickness), entranceInsetFrameMat);
+                frame.position.set(surfaceX, entranceInsetGlass.centerY, z);
+                scene.add(frame);
+            });
+        }
+
+        const entranceInsetGlassMat = new THREE.MeshStandardMaterial({
+            color: 0xdce8f2,
+            transparent: true,
+            opacity: entranceInsetGlass.opacity,
+            roughness: 0.06,
+            metalness: 0.08,
+            side: THREE.DoubleSide
+        });
+        const entranceInsetFrameMat = new THREE.MeshStandardMaterial({ color: 0x6f7478, roughness: 0.5, metalness: 0.12 });
+
+        createWallWithGlassOpeningZ(entranceInsetGlass.frontStartX, entranceInsetGlass.frontEndX, entranceInsetGlass.frontZ);
+        const remainingWall1StartX = entranceInsetGlass.frontEndX;
+        const remainingWall1Width = newDoorStart - remainingWall1StartX;
+        if (remainingWall1Width > 0.01) {
+            createWall(remainingWall1Width, roomHeight, 0.2, remainingWall1StartX + remainingWall1Width / 2, roomHeight / 2, roomDepth / 2);
+        }
+
+        createXWallSegment(leftNicheStart - 0.1, frontExtensionStartZ, leftNicheBackZ);
+        createWallWithGlassOpeningX(entranceInsetGlass.verticalWallCenterX, entranceInsetGlass.verticalStartZ, entranceInsetGlass.verticalEndZ);
+        createXWallSegment(sharedNicheEntranceWallX, entranceInsetGlass.verticalEndZ, leftNicheBackZ);
+        createWall(leftNicheWidth + 0.4, roomHeight, 0.2, leftNicheCenterX, roomHeight / 2, leftNicheBackZ + 0.1, 0xe0e0e0);
 
         const leftNicheTex = carpetTex.clone();
         leftNicheTex.needsUpdate = true;
@@ -753,7 +1242,7 @@
         function createSideWallMeetingRoomInterior() {
             const sideRoomWidth = 3.0;
             const sideRoomDepth = 2.5;
-            const sideRoomHeight = 3.0;
+            const sideRoomHeight = roomHeight;
             const sideRoomCenterX = -roomWidth / 2 - sideRoomWidth / 2;
             const sideRoomCenterZ = 2.0;
             const roomFloorTex = carpetTex.clone();
@@ -771,7 +1260,6 @@
             createWall(sideRoomWidth, sideRoomHeight, 0.2, sideRoomCenterX, sideRoomHeight / 2, sideRoomCenterZ - sideRoomDepth / 2 - 0.1, 0xe8edf3);
             createWall(sideRoomWidth, sideRoomHeight, 0.2, sideRoomCenterX, sideRoomHeight / 2, sideRoomCenterZ + sideRoomDepth / 2 + 0.1, 0xe8edf3);
             createWall(0.2, sideRoomHeight, sideRoomDepth + 0.4, sideRoomCenterX - sideRoomWidth / 2 - 0.1, sideRoomHeight / 2, sideRoomCenterZ, 0xe8edf3);
-            createWall(sideRoomWidth, 0.2, sideRoomDepth, sideRoomCenterX, sideRoomHeight + 0.1, sideRoomCenterZ, 0xffffff);
 
             const tableMat = new THREE.MeshStandardMaterial({ color: 0xd6b38c, roughness: 0.45 });
             const table = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.9), tableMat);
@@ -801,8 +1289,8 @@
 
         function createMeetingRoomInterior(x, accentColor) {
             const meetingRoomWidth = meetingDoorWidth + 1.0;
-            const meetingRoomDepth = 3.2;
-            const meetingRoomHeight = 3.0;
+            const meetingRoomDepth = frontExtensionDepth;
+            const meetingRoomHeight = roomHeight;
             const meetingRoomCenterZ = roomDepth / 2 + meetingRoomDepth / 2;
             const roomFloorTex = carpetTex.clone();
             roomFloorTex.needsUpdate = true;
@@ -819,7 +1307,6 @@
             createWall(0.2, meetingRoomHeight, meetingRoomDepth, x - meetingRoomWidth / 2 - 0.1, meetingRoomHeight / 2, meetingRoomCenterZ, 0xe8edf3);
             createWall(0.2, meetingRoomHeight, meetingRoomDepth, x + meetingRoomWidth / 2 + 0.1, meetingRoomHeight / 2, meetingRoomCenterZ, 0xe8edf3);
             createWall(meetingRoomWidth + 0.4, meetingRoomHeight, 0.2, x, meetingRoomHeight / 2, roomDepth / 2 + meetingRoomDepth + 0.1, 0xe8edf3);
-            createWall(meetingRoomWidth + 0.4, 0.2, meetingRoomDepth, x, meetingRoomHeight + 0.1, meetingRoomCenterZ, 0xffffff);
 
             const tableMat = new THREE.MeshStandardMaterial({ color: 0xd6b38c, roughness: 0.45 });
             const table = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.08, 1.0), tableMat);
@@ -854,12 +1341,10 @@
             scene.add(roomLight);
         }
 
-        function createTeleconferenceBox() {
+        function createTeleconferenceBox(boothX = -roomWidth / 2 + 1.25 / 2 + 0.03, boothZ = roomDepth / 2 - 1.18 / 2 - 0.03, rotationY = 0) {
             const boothWidth = 1.25;
             const boothDepth = 1.18;
             const boothHeight = baseMeetingDoorHeight * 1.5;
-            const boothX = -roomWidth / 2 + boothWidth / 2 + 0.03;
-            const boothZ = roomDepth / 2 - boothDepth / 2 - 0.03;
             const boothWoodTex = createWoodTexture();
             boothWoodTex.repeat.set(1.4, 3.0);
             const lightWoodMat = new THREE.MeshStandardMaterial({ map: boothWoodTex, color: 0xf2d8b8, roughness: 0.48 });
@@ -868,6 +1353,7 @@
 
             const boothGroup = new THREE.Group();
             boothGroup.position.set(boothX, 0, boothZ);
+            boothGroup.rotation.y = rotationY;
 
             const panelThickness = 0.06;
             const backPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, boothHeight, panelThickness), lightWoodMat);
@@ -1040,23 +1526,288 @@
         const doorHeaderHeight = roomHeight - newDoorHeight;
         createWall(newDoorWidth, doorHeaderHeight, 0.2, newDoorX, newDoorHeight + doorHeaderHeight / 2, roomDepth / 2);
 
-        // --- 出入口の奥の空間（廊下） ---
-        const newHallDepth = 2.5;
-        const greenPatchMat = new THREE.MeshStandardMaterial({ color: 0xebf2e3, roughness: 0.9 });
-        const newHallFloor = new THREE.Mesh(new THREE.PlaneGeometry(newDoorWidth, newHallDepth), greenPatchMat);
+        // --- ガラス出入口の奥にある玄関スペース ---
+        // プレイヤーがガラス出入口を背にして +Z 方向を見る前提で、奥は Z=15 まで伸ばす。
+        // 左端は隣のくぼみ開始位置、右端はロッカー側の端に連動させ、周辺レイアウト変更時も内装が一緒に追従するようにする。
+        const entranceDepth = ENTRANCE_LAYOUT.depth;
+        const newHallDepth = entranceDepth;
+        const entranceStartZ = frontExtensionStartZ;
+        const entranceEndZ = entranceStartZ + entranceDepth;
+        const entranceLeftX = leftNicheEnd;
+        const entranceRightX = lockerBankStartX + ENTRANCE_LAYOUT.rightOffsetFromLocker;
+        const entranceWidth = entranceRightX - entranceLeftX;
+        const entranceCenterX = (entranceLeftX + entranceRightX) / 2;
+        const entranceCenterZ = entranceStartZ + entranceDepth / 2;
+
+        // 中央の観音開きドアの外側に作る周回廊下。
+        // hallway1 はメインルーム中央から Z=15 手前まで進み、
+        // hallway2 は既存の玄関スペースへ戻れる横廊下としてつなぐ。
+        const corridorWallColor = 0xd8d5ca;
+        const corridorHeight = roomHeight;
+        const corridorDoorZ = roomDepth / 2 + alcoveDepth;
+        const corridorEndZ = entranceEndZ;
+        const corridorTurnStartZ = entranceEndZ - 2.0;
+        const corridorCenterX = alcoveCenterX;
+        const corridorWidth = alcoveWidth;
+        const corridorLeftX = alcoveStart;
+        const corridorRightX = alcoveEnd;
+        const crossCorridorMinX = entranceRightX;
+        const crossCorridorMaxX = 16.6;
+        const crossCorridorCenterX = (crossCorridorMinX + crossCorridorMaxX) / 2;
+        const crossCorridorWidth = crossCorridorMaxX - crossCorridorMinX;
+        const crossCorridorDepth = corridorEndZ - corridorTurnStartZ;
+        const crossCorridorCenterZ = corridorTurnStartZ + crossCorridorDepth / 2;
+        // Z=13 付近の横廊下から X=-8〜2 の範囲を Z=9.5 まで床として拡張し、
+        // 行き止まり面にエレベーター2基を表示する。
+        const elevatorHallLeftX = -8.0;
+        const elevatorHallRightX = 2.0;
+        const elevatorHallBackZ = 9.5;
+        const elevatorHallFrontZ = corridorTurnStartZ;
+        const elevatorHallWidth = elevatorHallRightX - elevatorHallLeftX;
+        const elevatorHallDepth = elevatorHallFrontZ - elevatorHallBackZ;
+        const elevatorHallCenterX = (elevatorHallLeftX + elevatorHallRightX) / 2;
+        const elevatorHallCenterZ = (elevatorHallBackZ + elevatorHallFrontZ) / 2;
+
+        function createSharedCarpetPatch(width, depth, centerX, centerZ, yOffset = 0.007) {
+            const patchTex = carpetTex.clone();
+            patchTex.needsUpdate = true;
+            patchTex.repeat.set(width / 4, depth / 4);
+            const patch = new THREE.Mesh(
+                new THREE.PlaneGeometry(width, depth),
+                new THREE.MeshStandardMaterial({ map: patchTex, roughness: 1.0 })
+            );
+            patch.rotation.x = -Math.PI / 2;
+            patch.position.set(centerX, yOffset, centerZ);
+            patch.receiveShadow = true;
+            scene.add(patch);
+            return patch;
+        }
+
+        function createElevatorDoorTexture(labelText) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop(0, '#7f8890');
+            gradient.addColorStop(0.45, '#c2c8ce');
+            gradient.addColorStop(0.55, '#8d969e');
+            gradient.addColorStop(1, '#d7dce0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#525961';
+            ctx.lineWidth = 12;
+            ctx.strokeRect(24, 24, canvas.width - 48, canvas.height - 48);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 38);
+            ctx.lineTo(canvas.width / 2, canvas.height - 38);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+            ctx.fillRect(78, 72, 46, canvas.height - 144);
+            ctx.fillRect(308, 72, 64, canvas.height - 144);
+            ctx.fillStyle = '#20242a';
+            ctx.fillRect(canvas.width / 2 - 56, 64, 112, 52);
+            ctx.fillStyle = '#9ee7ff';
+            ctx.font = 'bold 34px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(labelText, canvas.width / 2, 90);
+
+            ctx.fillStyle = '#343a40';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 62, 520, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#dbeafe';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 62, 520, 9, 0, Math.PI * 2);
+            ctx.fill();
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        function createEntranceFloorTexture() {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#cfc8ad';
+            ctx.fillRect(0, 0, size, size);
+            const colors = ['rgba(70, 112, 63, 0.78)', 'rgba(93, 135, 77, 0.62)', 'rgba(226, 213, 183, 0.72)', 'rgba(176, 169, 141, 0.44)'];
+            for (let i = 0; i < 2600; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const radiusX = Math.random() * 5 + 1.5;
+                const radiusY = Math.random() * 2.5 + 0.8;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(Math.random() * Math.PI);
+                ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+                ctx.beginPath();
+                ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            ctx.strokeStyle = 'rgba(95, 105, 85, 0.18)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i <= size; i += 64) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, size);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(size, i);
+                ctx.stroke();
+            }
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(entranceWidth / 2.2, entranceDepth / 2.2);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        const newHallFloor = new THREE.Mesh(
+            new THREE.PlaneGeometry(entranceWidth, entranceDepth),
+            new THREE.MeshStandardMaterial({ map: createEntranceFloorTexture(), roughness: 0.95 })
+        );
         newHallFloor.rotation.x = -Math.PI / 2;
-        newHallFloor.position.set(newDoorX, 0.005, roomDepth / 2 + newHallDepth / 2);
+        newHallFloor.position.set(entranceCenterX, 0.006, entranceCenterZ);
         newHallFloor.receiveShadow = true;
         scene.add(newHallFloor);
 
-        createWall(0.2, roomHeight, newHallDepth, newDoorStart - 0.1, roomHeight / 2, roomDepth / 2 + newHallDepth / 2);
-        createWall(0.2, roomHeight, newHallDepth, newDoorEnd + 0.1, roomHeight / 2, roomDepth / 2 + newHallDepth / 2);
-        createWall(newDoorWidth, roomHeight, 0.2, newDoorX, roomHeight / 2, roomDepth / 2 + newHallDepth, 0xe0e0e0);
-        createWall(newDoorWidth, 0.2, newHallDepth, newDoorX, roomHeight, roomDepth / 2 + newHallDepth / 2, 0xffffff);
+        // くぼみ右端と玄関左端の共有壁は、くぼみ側で作った壁を使い、奥側の不足分だけ延長する。
+        // 同じ境界に2枚の壁を重ねないことで、厚みの二重化と今後の修正漏れを防ぐ。
+        createXWallSegment(sharedNicheEntranceWallX, leftNicheBackZ, entranceEndZ, 0xd8d5ca);
+        createInsetGlassPanelX(entranceInsetGlass.verticalX, entranceInsetGlass.verticalStartZ, entranceInsetGlass.verticalEndZ);
+        createInsetGlassPanelZ(entranceInsetGlass.frontStartX, entranceInsetGlass.frontEndX, entranceInsetGlass.frontZ);
+        // 玄関右奥は横廊下との接続口にするため、Z=13 以降の壁を切る。
+        createXWallSegment(entranceRightX + 0.1, entranceStartZ, corridorTurnStartZ, 0xd8d5ca);
+        createWall(entranceWidth + 0.4, roomHeight, 0.2, entranceCenterX, roomHeight / 2, entranceEndZ + 0.1, 0xd8d5ca);
 
-        const newHallLight = new THREE.PointLight(0xfff5e6, 0.5, 6);
-        newHallLight.position.set(newDoorX, roomHeight - 0.2, roomDepth / 2 + newHallDepth / 2);
+        const entranceWarmLight = new THREE.PointLight(0xffe5a8, 0.52, 8);
+        entranceWarmLight.position.set(entranceLeftX + 1.2, 0.42, entranceStartZ + 3.5);
+        scene.add(entranceWarmLight);
+        const newHallLight = new THREE.PointLight(0xfff5e6, 0.65, 7);
+        newHallLight.position.set(entranceCenterX, roomHeight - 0.25, entranceCenterZ);
         scene.add(newHallLight);
+
+        function createRoundCushionTexture() {
+            const size = 256;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#d9c59a';
+            ctx.fillRect(0, 0, size, size);
+            ctx.strokeStyle = 'rgba(104, 76, 42, 0.42)';
+            for (let i = -size; i < size * 2; i += 10) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i + size, size);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(i + size, 0);
+                ctx.lineTo(i, size);
+                ctx.stroke();
+            }
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(2, 2);
+            return texture;
+        }
+
+        const benchGroup = new THREE.Group();
+        const benchMat = new THREE.MeshStandardMaterial({ color: 0x101416, roughness: 0.72 });
+        const benchWidth = 0.62;
+        const benchHeight = 0.36;
+        const benchLength = 6.1;
+        const bench = new THREE.Mesh(new THREE.BoxGeometry(benchWidth, benchHeight, benchLength), benchMat);
+        bench.position.set(entranceLeftX + benchWidth / 2 + 0.18, benchHeight / 2, entranceStartZ + 3.55);
+        bench.castShadow = true;
+        bench.receiveShadow = true;
+        benchGroup.add(bench);
+        const cushionMat = new THREE.MeshStandardMaterial({ map: createRoundCushionTexture(), color: 0xf1d9aa, roughness: 0.92 });
+        [-1.95, 0, 1.95].forEach((offsetZ) => {
+            const cushion = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.38, 0.08, 48), cushionMat);
+            cushion.position.set(bench.position.x + 0.02, benchHeight + 0.055, bench.position.z + offsetZ);
+            cushion.scale.set(1.22, 1, 0.82);
+            cushion.castShadow = true;
+            cushion.receiveShadow = true;
+            benchGroup.add(cushion);
+        });
+        scene.add(benchGroup);
+
+        function createReceptionLogoTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 768;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#5b3f93';
+            ctx.beginPath();
+            ctx.moveTo(58, 40);
+            ctx.lineTo(112, 118);
+            ctx.lineTo(58, 196);
+            ctx.lineTo(4, 118);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#e85a98';
+            ctx.beginPath();
+            ctx.moveTo(112, 40);
+            ctx.lineTo(166, 118);
+            ctx.lineTo(112, 196);
+            ctx.lineTo(58, 118);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 58px sans-serif';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Entrance', 190, 98);
+            ctx.font = 'bold 46px sans-serif';
+            ctx.fillText('Reception', 190, 158);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const wallOffsetX = entranceLeftX + 0.012;
+        const receptionSign = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.75, 0.58),
+            new THREE.MeshStandardMaterial({ map: createReceptionLogoTexture(), transparent: true, roughness: 0.7, side: THREE.DoubleSide })
+        );
+        receptionSign.rotation.y = Math.PI / 2;
+        receptionSign.position.set(wallOffsetX, 1.72, entranceStartZ + 5.6);
+        scene.add(receptionSign);
+
+        const shelfMat = new THREE.MeshStandardMaterial({ color: 0x6d4329, roughness: 0.48 });
+        const receptionShelf = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.08, 1.22), shelfMat);
+        receptionShelf.position.set(entranceLeftX + 0.31, 1.08, entranceStartZ + 5.6);
+        receptionShelf.castShadow = true;
+        receptionShelf.receiveShadow = true;
+        scene.add(receptionShelf);
+
+        const phoneGroup = new THREE.Group();
+        phoneGroup.position.set(entranceLeftX + 0.58, 1.16, entranceStartZ + 5.48);
+        phoneGroup.rotation.y = Math.PI / 2;
+        const phoneBaseMat = new THREE.MeshStandardMaterial({ color: 0x20252b, roughness: 0.42, metalness: 0.05 });
+        const phoneBase = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.22), phoneBaseMat);
+        phoneBase.castShadow = true;
+        phoneGroup.add(phoneBase);
+        const phoneScreen = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.025), new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.3 }));
+        phoneScreen.position.set(0, 0.17, -0.06);
+        phoneScreen.rotation.x = -0.36;
+        phoneScreen.castShadow = true;
+        phoneGroup.add(phoneScreen);
+        const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.045, 0.07), phoneBaseMat);
+        receiver.position.set(0, 0.095, 0.055);
+        receiver.castShadow = true;
+        phoneGroup.add(receiver);
+        scene.add(phoneGroup);
 
         // --- ドアフレームとガラス ---
         const dFrameGroup = new THREE.Group();
@@ -1106,8 +1857,7 @@
 
         createWall(0.2, alcoveHeight, alcoveDepth, alcoveStart - 0.1, alcoveHeight / 2, roomDepth / 2 + alcoveDepth / 2); 
         createWall(0.2, alcoveHeight, alcoveDepth, alcoveEnd + 0.1, alcoveHeight / 2, roomDepth / 2 + alcoveDepth / 2); 
-        createWall(alcoveWidth, 0.2, alcoveDepth, alcoveCenterX, alcoveHeight + 0.1, roomDepth / 2 + alcoveDepth / 2, 0xfafafa); 
-        createWall(alcoveWidth + 0.4, alcoveHeight, 0.2, alcoveCenterX, alcoveHeight / 2, roomDepth / 2 + alcoveDepth + 0.1); 
+        // 奥の壁は取り払い、観音開きドアから廊下1へ通り抜けられるようにする。
 
         const patchTex = carpetTex.clone();
         patchTex.needsUpdate = true;
@@ -1123,29 +1873,100 @@
         alcoveLight.position.set(alcoveCenterX, alcoveHeight - 0.2, roomDepth / 2 + alcoveDepth / 2);
         scene.add(alcoveLight);
 
+        // 廊下1：中央ドアから Z=15 付近の突き当たりまで。床はメインルームと同じカーペット。
+        createSharedCarpetPatch(corridorWidth, corridorEndZ - corridorDoorZ, corridorCenterX, (corridorDoorZ + corridorEndZ) / 2);
+        createWall(0.2, corridorHeight, corridorTurnStartZ - corridorDoorZ, corridorLeftX - 0.1, corridorHeight / 2, (corridorDoorZ + corridorTurnStartZ) / 2, corridorWallColor);
+        createWall(0.2, corridorHeight, corridorTurnStartZ - corridorDoorZ, corridorRightX + 0.1, corridorHeight / 2, (corridorDoorZ + corridorTurnStartZ) / 2, corridorWallColor);
+        createWall(corridorWidth + 0.4, corridorHeight, 0.2, corridorCenterX, corridorHeight / 2, corridorEndZ + 0.1, corridorWallColor);
+
+        // 廊下2：突き当たり手前で横に折れ、既存玄関へ接続する周回ルート。
+        createSharedCarpetPatch(crossCorridorWidth, crossCorridorDepth, crossCorridorCenterX, crossCorridorCenterZ, 0.008);
+        // Z=13 の壁は X=-8〜2 を開口し、エレベーターホールへ接続する。
+        createWall(elevatorHallLeftX - crossCorridorMinX, corridorHeight, 0.2, (crossCorridorMinX + elevatorHallLeftX) / 2, corridorHeight / 2, corridorTurnStartZ - 0.1, corridorWallColor);
+        createWall(corridorLeftX - elevatorHallRightX, corridorHeight, 0.2, (elevatorHallRightX + corridorLeftX) / 2, corridorHeight / 2, corridorTurnStartZ - 0.1, corridorWallColor);
+        createWall(crossCorridorMaxX - corridorRightX, corridorHeight, 0.2, (corridorRightX + crossCorridorMaxX) / 2, corridorHeight / 2, corridorTurnStartZ - 0.1, corridorWallColor);
+        createWall(corridorLeftX - crossCorridorMinX, corridorHeight, 0.2, (crossCorridorMinX + corridorLeftX) / 2, corridorHeight / 2, corridorEndZ + 0.1, corridorWallColor);
+        createWall(crossCorridorMaxX - corridorRightX, corridorHeight, 0.2, (corridorRightX + crossCorridorMaxX) / 2, corridorHeight / 2, corridorEndZ + 0.1, corridorWallColor);
+        createWall(0.2, corridorHeight, crossCorridorDepth, crossCorridorMaxX + 0.1, corridorHeight / 2, crossCorridorCenterZ, corridorWallColor);
+
+        // エレベーターホール：横廊下と同じグレー系カーペット床で Z=9.5 まで広げる。
+        createSharedCarpetPatch(elevatorHallWidth, elevatorHallDepth, elevatorHallCenterX, elevatorHallCenterZ, 0.009);
+        createWall(0.2, corridorHeight, elevatorHallDepth, elevatorHallLeftX - 0.1, corridorHeight / 2, elevatorHallCenterZ, corridorWallColor);
+        createWall(0.2, corridorHeight, elevatorHallDepth, elevatorHallRightX + 0.1, corridorHeight / 2, elevatorHallCenterZ, corridorWallColor);
+        createWall(elevatorHallWidth + 0.4, corridorHeight, 0.2, elevatorHallCenterX, corridorHeight / 2, elevatorHallBackZ - 0.1, corridorWallColor);
+
+        const elevatorDoorWidth = 1.55;
+        const elevatorDoorHeight = 2.45;
+        const elevatorDoorY = elevatorDoorHeight / 2;
+        const elevatorDoorZ = elevatorHallBackZ + 0.012;
+        [-4.15, -1.85].forEach((x, index) => {
+            const elevatorDoor = new THREE.Mesh(
+                new THREE.PlaneGeometry(elevatorDoorWidth, elevatorDoorHeight),
+                new THREE.MeshStandardMaterial({ map: createElevatorDoorTexture(`EV ${index + 1}`), roughness: 0.32, metalness: 0.18 })
+            );
+            elevatorDoor.position.set(x, elevatorDoorY, elevatorDoorZ);
+            scene.add(elevatorDoor);
+        });
+        const elevatorLight = new THREE.PointLight(0xfff5e6, 0.34, 5.2);
+        elevatorLight.position.set(elevatorHallCenterX, corridorHeight - 0.45, elevatorHallCenterZ);
+        scene.add(elevatorLight);
+
+        const corridorCeilingMat = new THREE.MeshStandardMaterial({ color: 0xf2f1ec, roughness: 0.9, emissive: 0x080807 });
+        const corridorCeiling1 = new THREE.Mesh(new THREE.PlaneGeometry(corridorWidth, corridorEndZ - corridorDoorZ), corridorCeilingMat);
+        corridorCeiling1.rotation.x = Math.PI / 2;
+        corridorCeiling1.position.set(corridorCenterX, corridorHeight - 0.04, (corridorDoorZ + corridorEndZ) / 2);
+        corridorCeiling1.receiveShadow = true;
+        scene.add(corridorCeiling1);
+        const corridorCeiling2 = new THREE.Mesh(new THREE.PlaneGeometry(crossCorridorWidth, crossCorridorDepth), corridorCeilingMat);
+        corridorCeiling2.rotation.x = Math.PI / 2;
+        corridorCeiling2.position.set(crossCorridorCenterX, corridorHeight - 0.035, crossCorridorCenterZ);
+        corridorCeiling2.receiveShadow = true;
+        scene.add(corridorCeiling2);
+        const elevatorHallCeiling = new THREE.Mesh(new THREE.PlaneGeometry(elevatorHallWidth, elevatorHallDepth), corridorCeilingMat);
+        elevatorHallCeiling.rotation.x = Math.PI / 2;
+        elevatorHallCeiling.position.set(elevatorHallCenterX, corridorHeight - 0.032, elevatorHallCenterZ);
+        elevatorHallCeiling.receiveShadow = true;
+        scene.add(elevatorHallCeiling);
+
+        [
+            [corridorCenterX, corridorTurnStartZ - 1.0, 0.26],
+            [(crossCorridorMinX + corridorLeftX) / 2, crossCorridorCenterZ, 0.2],
+            [(corridorRightX + crossCorridorMaxX) / 2, crossCorridorCenterZ, 0.22]
+        ].forEach(([x, z, intensity]) => {
+            const hallLight = new THREE.PointLight(0xfff5e6, intensity, 5.4);
+            hallLight.position.set(x, corridorHeight - 0.45, z);
+            scene.add(hallLight);
+        });
+
         const doorGroup = new THREE.Group();
         const doorColorMat = new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.4 });
-        const doorWidthDouble = 1.4;
-        
-        const doorL = new THREE.Mesh(new THREE.BoxGeometry(doorWidthDouble, alcoveHeight, 0.05), doorColorMat);
-        doorL.position.set(alcoveCenterX - doorWidthDouble / 2, alcoveHeight / 2, roomDepth / 2 + alcoveDepth - 0.05);
-        doorL.castShadow = true;
-        doorGroup.add(doorL);
-        
-        const doorR = new THREE.Mesh(new THREE.BoxGeometry(doorWidthDouble, alcoveHeight, 0.05), doorColorMat);
-        doorR.position.set(alcoveCenterX + doorWidthDouble / 2, alcoveHeight / 2, roomDepth / 2 + alcoveDepth - 0.05);
-        doorR.castShadow = true;
-        doorGroup.add(doorR);
+        const doorWidthDouble = 1.36;
+        const doorThickness = 0.05;
+        const doorHingeZ = corridorDoorZ;
+        const openDoorAngle = Math.PI * 0.48;
+
+        function createOpenDoubleDoorLeaf(hingeX, swingDirection) {
+            const hingeGroup = new THREE.Group();
+            hingeGroup.position.set(hingeX, 0, doorHingeZ);
+            hingeGroup.rotation.y = swingDirection * openDoorAngle;
+
+            const door = new THREE.Mesh(new THREE.BoxGeometry(doorWidthDouble, alcoveHeight, doorThickness), doorColorMat);
+            door.position.set(swingDirection * doorWidthDouble / 2, alcoveHeight / 2, 0);
+            door.castShadow = true;
+            hingeGroup.add(door);
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4), handleMat);
+            handle.position.set(swingDirection * (doorWidthDouble - 0.22), alcoveHeight / 2, -doorThickness / 2 - 0.035);
+            hingeGroup.add(handle);
+
+            return hingeGroup;
+        }
 
         // --- ★ご指摘の取っ手を復元 ---
         const handleMat = new THREE.MeshStandardMaterial({ color: 0xb0b0b0, metalness: 0.9, roughness: 0.2 });
-        const handleL = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4), handleMat);
-        handleL.position.set(alcoveCenterX - 0.1, alcoveHeight / 2, roomDepth / 2 + alcoveDepth - 0.02);
-        doorGroup.add(handleL);
-        
-        const handleR = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4), handleMat);
-        handleR.position.set(alcoveCenterX + 0.1, alcoveHeight / 2, roomDepth / 2 + alcoveDepth - 0.02);
-        doorGroup.add(handleR);
+        // 中央の観音開きドアは、左右の丁番を基点に Z マイナス方向へ開け放つ。
+        doorGroup.add(createOpenDoubleDoorLeaf(alcoveStart + 0.04, 1));
+        doorGroup.add(createOpenDoubleDoorLeaf(alcoveEnd - 0.04, -1));
 
         scene.add(doorGroup);
 
@@ -1156,19 +1977,25 @@
         ceilingGroup.position.y = roomHeight - 0.05; 
         scene.add(ceilingGroup);
 
-        const ceilingPlaneGeo = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const mainCeilingMinZ = backWallZ;
+        const mainCeilingMaxZ = entranceEndZ;
+        const mainCeilingDepth = mainCeilingMaxZ - mainCeilingMinZ;
+        const mainCeilingCenterZ = (mainCeilingMinZ + mainCeilingMaxZ) / 2;
+        const ceilingPlaneGeo = new THREE.PlaneGeometry(roomWidth, mainCeilingDepth);
         const ceilingPlaneMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, emissive: 0x222222 });
         const ceilingPlane = new THREE.Mesh(ceilingPlaneGeo, ceilingPlaneMat);
         ceilingPlane.rotation.x = Math.PI / 2;
+        ceilingPlane.position.z = mainCeilingCenterZ;
         ceilingPlane.receiveShadow = true;
         ceilingGroup.add(ceilingPlane);
 
         const gridMat = new THREE.LineBasicMaterial({ color: 0xeeeeee, transparent: true, opacity: 0.3 });
         const gridWidthUnits = roomWidth / 2.0; 
-        const gridDepthUnits = Math.round(roomDepth / 1.5); 
+        const gridDepthUnits = Math.round(mainCeilingDepth / 1.5);
         const ceilingGrid = new THREE.GridHelper(roomWidth, gridWidthUnits, 0xcccccc, 0xcccccc);
         ceilingGrid.position.y = -0.01; 
-        ceilingGrid.scale.set(1, 1, roomDepth / roomWidth);
+        ceilingGrid.position.z = mainCeilingCenterZ;
+        ceilingGrid.scale.set(1, 1, mainCeilingDepth / roomWidth);
         ceilingGrid.material = gridMat;
         ceilingGroup.add(ceilingGrid);
 
@@ -1188,15 +2015,133 @@
             lightGroup.add(pointLight);
         }
 
+        // 蛍光灯は壁や追加廊下へ食い込まないよう、メイン室内だけに配置する。
+        // 4本のスイムレーンが x 軸と平行に走るイメージで、Z 方向に4列だけを固定配置。
         const lightSpacingX = 6;
-        const lightSpacingZ = 4; 
-        for (let x = -roomWidth / 2 + lightSpacingX / 2; x < roomWidth / 2; x += lightSpacingX) {
-            for (let z = -roomDepth / 2 + lightSpacingZ / 2; z < roomDepth / 2; z += lightSpacingZ) {
-                if (Math.random() > 0.05) {
-                    createCeilingLight(x, z);
-                }
+        const lightMarginX = 3.0;
+        const lightMarginZ = 1.4;
+        const lightLaneCount = 4;
+        const lightMinX = -roomWidth / 2 + lightMarginX;
+        const lightMaxX = roomWidth / 2 - lightMarginX;
+        const lightMinZ = backWallZ + lightMarginZ;
+        const lightMaxZ = roomDepth / 2 - lightMarginZ;
+        const lightLaneStepZ = (lightMaxZ - lightMinZ) / (lightLaneCount - 1);
+        for (let laneIndex = 0; laneIndex < lightLaneCount; laneIndex++) {
+            const z = lightMinZ + lightLaneStepZ * laneIndex;
+            for (let x = lightMinX; x <= lightMaxX + 0.01; x += lightSpacingX) {
+                createCeilingLight(x, z);
             }
         }
+
+        // ==========================================
+        // 室内側ガラス沿いの鉢植え
+        // ==========================================
+        function createGlassSidePottedPlant({ x, z, height, style, rotationY = 0 }) {
+            const plantGroup = new THREE.Group();
+            plantGroup.position.set(x, 0, z);
+            plantGroup.rotation.y = rotationY;
+
+            const potHeight = entranceInsetGlass.bottomY;
+            const potTopRadius = 0.27;
+            const potBottomRadius = 0.21;
+            const potMat = new THREE.MeshStandardMaterial({ color: 0x8a5a38, roughness: 0.78, metalness: 0.02 });
+            const rimMat = new THREE.MeshStandardMaterial({ color: 0x6f4026, roughness: 0.72 });
+            const soilMat = new THREE.MeshStandardMaterial({ color: 0x2f2118, roughness: 1.0 });
+            const leafMats = [0x1f5d2a, 0x2f7a35, 0x4f9b42, 0x6fbf58].map((color) =>
+                new THREE.MeshStandardMaterial({ color, roughness: 0.82, side: THREE.DoubleSide })
+            );
+            const stemMat = new THREE.MeshStandardMaterial({ color: 0x526b2f, roughness: 0.88 });
+
+            const pot = new THREE.Mesh(new THREE.CylinderGeometry(potTopRadius, potBottomRadius, potHeight, 24), potMat);
+            pot.position.y = potHeight / 2;
+            pot.castShadow = true;
+            pot.receiveShadow = true;
+            plantGroup.add(pot);
+
+            const rim = new THREE.Mesh(new THREE.CylinderGeometry(potTopRadius * 1.08, potTopRadius * 1.02, 0.08, 24), rimMat);
+            rim.position.y = potHeight - 0.02;
+            rim.castShadow = true;
+            plantGroup.add(rim);
+
+            const soil = new THREE.Mesh(new THREE.CylinderGeometry(potTopRadius * 0.92, potTopRadius * 0.88, 0.025, 24), soilMat);
+            soil.position.y = potHeight + 0.03;
+            plantGroup.add(soil);
+
+            function addLeaf(y, length, width, angle, tilt, matIndex, bend = 0) {
+                const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 8), leafMats[matIndex % leafMats.length]);
+                leaf.scale.set(width, 0.035, length);
+                leaf.position.set(Math.sin(angle) * bend, y, Math.cos(angle) * bend);
+                leaf.rotation.set(tilt, angle, 0);
+                leaf.castShadow = true;
+                plantGroup.add(leaf);
+            }
+
+            if (style === 'fan') {
+                const trunkHeight = height - potHeight - 0.08;
+                const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.055, trunkHeight, 10), stemMat);
+                stem.position.y = potHeight + trunkHeight / 2;
+                stem.castShadow = true;
+                plantGroup.add(stem);
+
+                for (let i = 0; i < 18; i++) {
+                    const angle = (Math.PI * 2 * i) / 18;
+                    const y = Math.min(height - 0.04, potHeight + trunkHeight * (0.7 + (i % 4) * 0.1));
+                    addLeaf(y, 0.48 + (i % 3) * 0.08, 0.12, angle, -0.55 - (i % 2) * 0.18, i, 0.12);
+                }
+            } else if (style === 'broad') {
+                for (let i = 0; i < 15; i++) {
+                    const angle = (Math.PI * 2 * i) / 15;
+                    const stemHeight = height - potHeight - 0.05 - (i % 5) * 0.035;
+                    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.026, stemHeight, 8), stemMat);
+                    stem.position.set(Math.sin(angle) * 0.08, potHeight + stemHeight / 2, Math.cos(angle) * 0.08);
+                    stem.rotation.z = Math.sin(angle) * 0.18;
+                    stem.rotation.x = Math.cos(angle) * 0.18;
+                    plantGroup.add(stem);
+                    addLeaf(potHeight + stemHeight, 0.34 + (i % 4) * 0.05, 0.18 + (i % 3) * 0.03, angle, -0.82, i, 0.2);
+                }
+            } else if (style === 'lush') {
+                for (let i = 0; i < 46; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const layer = Math.random();
+                    const y = potHeight + 0.18 + layer * (height - potHeight - 0.12);
+                    const radius = 0.08 + layer * 0.24 + Math.random() * 0.12;
+                    addLeaf(y, 0.32 + Math.random() * 0.22, 0.13 + Math.random() * 0.1, angle, -0.45 - Math.random() * 0.75, i, radius);
+                }
+                for (let i = 0; i < 16; i++) {
+                    const angle = (Math.PI * 2 * i) / 16;
+                    const vine = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.018, 0.46 + Math.random() * 0.25, 7), stemMat);
+                    vine.position.set(Math.sin(angle) * 0.23, potHeight + 0.52 + Math.random() * 0.18, Math.cos(angle) * 0.23);
+                    vine.rotation.z = Math.sin(angle) * 0.45;
+                    vine.rotation.x = Math.cos(angle) * 0.45;
+                    plantGroup.add(vine);
+                }
+            }
+
+            scene.add(plantGroup);
+        }
+
+        // ガラス張りの室内側に配置。玄関ホール側や壁に食い込まないよう、ガラス面から少し離す。
+        createGlassSidePottedPlant({
+            x: entranceInsetGlass.frontStartX + 0.36,
+            z: entranceInsetGlass.frontZ - 0.58,
+            height: entranceInsetGlass.centerY,
+            style: 'fan',
+            rotationY: Math.PI
+        });
+        createGlassSidePottedPlant({
+            x: entranceInsetGlass.frontEndX - 0.34,
+            z: entranceInsetGlass.frontZ - 0.62,
+            height: entranceInsetGlass.centerY,
+            style: 'broad',
+            rotationY: Math.PI * 0.92
+        });
+        createGlassSidePottedPlant({
+            x: entranceInsetGlass.verticalX - 0.62,
+            z: entranceInsetGlass.verticalStartZ + 1.35,
+            height: entranceInsetGlass.topY,
+            style: 'lush',
+            rotationY: Math.PI / 2
+        });
 
         // ==========================================
         // 4. 柱と植物の装飾生成
@@ -1357,98 +2302,106 @@
             return chairGroup;
         }
 
-        function createCafeTable() {
+        function setMeshShadow(mesh, receive = false) {
+            mesh.castShadow = true;
+            mesh.receiveShadow = receive;
+            return mesh;
+        }
+
+        function createFreeSeatTable() {
             const group = new THREE.Group();
-            const topGeo = new THREE.BoxGeometry(1.2, 0.04, 1.2);
-            const topMat = new THREE.MeshStandardMaterial({ color: 0xf5deb3, roughness: 0.3 }); 
-            const top = new THREE.Mesh(topGeo, topMat);
-            top.position.y = 0.74;
-            top.castShadow = true;
-            top.receiveShadow = true;
+            const tableWidth = 1.35;
+            const tableDepth = 1.35;
+            const tableHeight = 0.72;
+            const topThickness = 0.06;
+            const topMat = new THREE.MeshStandardMaterial({ color: 0x8a8173, roughness: 0.62 });
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x6f685e, roughness: 0.72, metalness: 0.05 });
+            const rollerMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.48, metalness: 0.25 });
+
+            const top = new THREE.Mesh(new THREE.BoxGeometry(tableWidth, topThickness, tableDepth), topMat);
+            top.position.y = tableHeight;
+            setMeshShadow(top, true);
             group.add(top);
-            
-            const legGeo = new THREE.CylinderGeometry(0.02, 0.012, 0.74);
-            const legMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.6 }); 
-            const offsets = [
-                [-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]
-            ];
-            offsets.forEach(pos => {
+
+            const legGeo = new THREE.BoxGeometry(0.07, tableHeight - 0.08, 0.07);
+            const rollerGeo = new THREE.CylinderGeometry(0.075, 0.075, 0.045, 18);
+            const legInsetX = tableWidth / 2 - 0.16;
+            const legInsetZ = tableDepth / 2 - 0.16;
+            [[-legInsetX, -legInsetZ], [legInsetX, -legInsetZ], [-legInsetX, legInsetZ], [legInsetX, legInsetZ]].forEach(([lx, lz]) => {
                 const leg = new THREE.Mesh(legGeo, legMat);
-                leg.position.set(pos[0], 0.37, pos[1]);
-                leg.rotation.z = pos[0] < 0 ? -0.05 : 0.05;
-                leg.rotation.x = pos[1] < 0 ? -0.05 : 0.05;
-                leg.castShadow = true;
+                leg.position.set(lx, (tableHeight - 0.08) / 2 + 0.04, lz);
+                setMeshShadow(leg);
                 group.add(leg);
+
+                const roller = new THREE.Mesh(rollerGeo, rollerMat);
+                roller.rotation.z = Math.PI / 2;
+                roller.position.set(lx, 0.055, lz);
+                setMeshShadow(roller);
+                group.add(roller);
             });
+
             return group;
         }
 
-        function createCafeChair() {
+        function createFreeSeatChair(color) {
             const group = new THREE.Group();
-            const shellMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, side: THREE.DoubleSide });
-            const legMat = new THREE.MeshStandardMaterial({ color: 0xc19a6b, roughness: 0.8 }); 
-            
-            const seatGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.03, 24);
-            const seat = new THREE.Mesh(seatGeo, shellMat);
-            seat.position.y = 0.45;
-            seat.scale.set(1, 1, 0.9);
-            seat.castShadow = true;
+            const plasticMat = new THREE.MeshStandardMaterial({ color, roughness: 0.78, metalness: 0.02 });
+            const seatHeight = 0.44;
+
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.055, 0.42), plasticMat);
+            seat.position.y = seatHeight;
+            setMeshShadow(seat);
             group.add(seat);
-            
-            const backGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.35, 24, 1, true, 0, Math.PI);
-            const back = new THREE.Mesh(backGeo, shellMat);
-            back.position.set(0, 0.6, 0); 
-            back.scale.set(1, 1, 0.9);
-            back.castShadow = true;
+
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.38, 0.055), plasticMat);
+            back.position.set(0, seatHeight + 0.24, 0.235);
+            back.rotation.x = -0.06;
+            setMeshShadow(back);
             group.add(back);
-            
-            const legGeo = new THREE.CylinderGeometry(0.015, 0.01, 0.45);
-            const offsets = [
-                [-0.15, -0.15], [0.15, -0.15], [-0.15, 0.12], [0.15, 0.12]
-            ];
-            offsets.forEach(pos => {
-                const leg = new THREE.Mesh(legGeo, legMat);
-                leg.position.set(pos[0], 0.225, pos[1]);
-                leg.rotation.z = pos[0] < 0 ? -0.15 : 0.15;
-                leg.rotation.x = pos[1] < 0 ? -0.15 : 0.15;
-                leg.castShadow = true;
+
+            const legGeo = new THREE.BoxGeometry(0.045, seatHeight, 0.045);
+            [[-0.18, -0.15], [0.18, -0.15], [-0.18, 0.15], [0.18, 0.15]].forEach(([lx, lz]) => {
+                const leg = new THREE.Mesh(legGeo, plasticMat);
+                leg.position.set(lx, seatHeight / 2, lz);
+                leg.rotation.x = lz < 0 ? 0.07 : -0.07;
+                leg.rotation.z = lx < 0 ? -0.05 : 0.05;
+                setMeshShadow(leg);
                 group.add(leg);
             });
+
             return group;
         }
 
-        function createCafeSet(x, z) {
+        function createFreeSeatSet(x, z, rotationY = 0) {
             const group = new THREE.Group();
-            group.add(createCafeTable());
-            
-            const c1 = createCafeChair();
-            c1.position.set(0, 0, 0.8);
-            c1.rotation.y = 0; 
-            group.add(c1);
-            
-            const c2 = createCafeChair();
-            c2.position.set(0, 0, -0.8);
-            c2.rotation.y = Math.PI; 
-            group.add(c2);
-            
-            const c3 = createCafeChair();
-            c3.position.set(0.8, 0, 0);
-            c3.rotation.y = Math.PI / 2;
-            group.add(c3);
-            
-            const c4 = createCafeChair();
-            c4.position.set(-0.8, 0, 0);
-            c4.rotation.y = -Math.PI / 2;
-            group.add(c4);
-            
+            group.add(createFreeSeatTable());
+
+            const blue = 0xaed3e8;
+            const yellow = 0xf4e5a0;
+            const chairLayout = [
+                { color: blue, position: [0.08, 0, 0.93], rotation: 0.03 },
+                { color: yellow, position: [-0.06, 0, -0.9], rotation: Math.PI - 0.04 },
+                { color: blue, position: [0.91, 0, -0.05], rotation: Math.PI / 2 + 0.05 },
+                { color: yellow, position: [-0.94, 0, 0.06], rotation: -Math.PI / 2 - 0.03 }
+            ];
+
+            chairLayout.forEach(({ color, position, rotation }) => {
+                const chair = createFreeSeatChair(color);
+                chair.position.set(position[0], position[1], position[2]);
+                chair.rotation.y = rotation;
+                group.add(chair);
+            });
+
             group.position.set(x, 0, z);
+            group.rotation.y = rotationY;
             scene.add(group);
         }
 
-        createCafeSet(-27.5, -2.2);
-        createCafeSet(-32.5, -2.2);
-        createCafeSet(-27.5, -4.8);
-        createCafeSet(-32.5, -4.8);
+        // オフィス自動販売機付近のフリー席: Z方向にそろえた2席×2列、列間は約2ポイント
+        createFreeSeatSet(-27.9, -3.2, 0);
+        createFreeSeatSet(-27.9, -5.8, 0);
+        createFreeSeatSet(-32.2, -3.2, 0);
+        createFreeSeatSet(-32.2, -5.8, 0);
 
 
         // ==========================================
@@ -1499,26 +2452,34 @@
             }
             for (let i = 0; i < units; i++) {
                 const zOffset = (i * unitLength) - (totalLength / 2) + (unitLength / 2);
-                const monitor = createMonitorModel();
-                monitor.position.set(0, 0.72, zOffset);
-                rowGroup.add(monitor);
+                const faceToFaceStagger = 0.22;
+                const rightSeatZ = zOffset + faceToFaceStagger;
+                const leftSeatZ = zOffset - faceToFaceStagger;
+
+                const monitorR = createMonitorModel();
+                monitorR.position.set(0.28, 0.72, rightSeatZ);
+                rowGroup.add(monitorR);
+
+                const monitorL = createMonitorModel();
+                monitorL.position.set(-0.28, 0.72, leftSeatZ);
+                rowGroup.add(monitorL);
                 
                 const chairR = createDeskChairModel(getNextChairColor());
-                chairR.position.set(0.8, 0, zOffset);
+                chairR.position.set(0.8, 0, rightSeatZ);
                 chairR.rotation.y = -Math.PI / 2;
                 rowGroup.add(chairR);
                 
                 const laptopR = createLaptopModel();
-                laptopR.position.set(0.35, 0.73, zOffset);
+                laptopR.position.set(0.35, 0.73, rightSeatZ);
                 rowGroup.add(laptopR);
                 
                 const chairL = createDeskChairModel(getNextChairColor());
-                chairL.position.set(-0.8, 0, zOffset);
+                chairL.position.set(-0.8, 0, leftSeatZ);
                 chairL.rotation.y = Math.PI / 2;
                 rowGroup.add(chairL);
                 
                 const laptopL = createLaptopModel();
-                laptopL.position.set(-0.35, 0.73, zOffset);
+                laptopL.position.set(-0.35, 0.73, leftSeatZ);
                 rowGroup.add(laptopL);
             }
             rowGroup.position.set(desk_x, 0, centerZ);
@@ -1531,10 +2492,11 @@
             createDeskRow(x, 0, 4);
         }
 
-        // デスクを抜いた中央フリースペース（x = 5.4付近）にテーブルセットを3つ配置
-        createCafeSet(5.4, -2.0);
-        createCafeSet(5.4, 0.0);
-        createCafeSet(5.4, 2.0);
+        // デスクを抜いた中央フリースペース（x = 5.4付近）にフリー席セットを4つ、ダイヤモンド状に配置
+        createFreeSeatSet(5.4, -2.65, Math.PI / 4);
+        createFreeSeatSet(3.0, 0.0, -Math.PI / 4);
+        createFreeSeatSet(7.8, 0.0, Math.PI / 4);
+        createFreeSeatSet(5.4, 2.65, -Math.PI / 4);
 
         function createWallDeskStation(x, z, facingAngle) {
             const stationGroup = new THREE.Group();
@@ -1574,12 +2536,17 @@
         }
 
         const deskOffset = 2.8; 
+        const mossWallDeskZ = -roomDepth / 2 + 1.8;
         for (let x = -20; x <= 20; x += 10) { 
-            if (x - deskOffset > -21) {
-                createWallDeskStation(x - deskOffset, -roomDepth / 2 + 1.8, 0); 
+            createWallDeskStation(x - deskOffset, mossWallDeskZ, 0);
+            if (x + deskOffset < 21) {
+                createWallDeskStation(x + deskOffset, mossWallDeskZ, 0);
             }
-            createWallDeskStation(x + deskOffset, -roomDepth / 2 + 1.8, 0); 
         }
+
+        const mossWallTeleconferenceBoothDepth = 1.18;
+        const mossWallTeleconferenceBoothZ = backWallZ + 0.1 + mossWallTeleconferenceBoothDepth / 2;
+        createTeleconferenceBox(20 + deskOffset, mossWallTeleconferenceBoothZ, Math.PI);
 
         // ==========================================
        // 7. ロッカーの配置
@@ -1634,7 +2601,7 @@
             }
             scene.add(lockerGroup);
         }
-        createLockerBank(newDoorEnd + 0.3, 15, roomDepth / 2 - 0.1);
+        createLockerBank(lockerBankStartX, 15, roomDepth / 2 - 0.1);
 
         // ==========================================
         // 8. ブレイクエリア（右奥の壁際）の配置
@@ -2196,9 +3163,159 @@
         createBoxSeatStation(24.9, 1.5, 0x459a85, 0x608ab6);
         createBoxSeatStation(24.9, 5.0, 0x608ab6, 0x459a85);
 
+        // ==========================================
+        // 9. 人物配置（3Dポリゴン）
+        // ==========================================
+        const PERSON_SCALE = 0.7;
+        const skinPalette = [0xf0c7a6, 0xd9a67c, 0xc98f65, 0x8d5b3f, 0xf5d7bd];
+        const shirtPalette = [0x2f80ed, 0xf2c94c, 0x56ccf2, 0xbb6bd9, 0xeb5757, 0x27ae60, 0x4f4f4f, 0x2d9cdb];
+        const pantsPalette = [0x1f2937, 0x374151, 0x2b4c7e, 0x4b5563, 0x5a4635];
+        const hairPalette = [0x1f120b, 0x3a2416, 0x5c4033, 0x111827, 0xc89f62];
+
+        function makePersonMaterial(color, roughness = 0.72) {
+            return new THREE.MeshStandardMaterial({ color, roughness, flatShading: true });
+        }
+
+        function createLowPolyPerson({ pose = 'standing', variant = 0 } = {}) {
+            const person = new THREE.Group();
+            person.scale.setScalar(PERSON_SCALE);
+
+            const skinMat = makePersonMaterial(skinPalette[variant % skinPalette.length], 0.68);
+            const shirtMat = makePersonMaterial(shirtPalette[variant % shirtPalette.length], 0.78);
+            const pantsMat = makePersonMaterial(pantsPalette[variant % pantsPalette.length], 0.82);
+            const hairMat = makePersonMaterial(hairPalette[variant % hairPalette.length], 0.86);
+            const shoeMat = makePersonMaterial(0x202020, 0.7);
+
+            const isSeated = pose === 'seated';
+            const isLeaning = pose === 'leaning';
+            const isWalking = pose === 'walking';
+            const hipY = isSeated ? 0.74 : 0.98;
+            const torsoY = isSeated ? 1.10 : 1.42;
+            const headY = isSeated ? 1.54 : 1.88;
+
+            const hip = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.34), pantsMat);
+            hip.position.y = hipY;
+            hip.castShadow = true;
+            person.add(hip);
+
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.72, 6), shirtMat);
+            torso.position.y = torsoY;
+            torso.rotation.z = isLeaning ? 0.13 : 0;
+            torso.castShadow = true;
+            person.add(torso);
+
+            const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.075, 0.08, 8), skinMat);
+            neck.position.y = headY - 0.27;
+            person.add(neck);
+
+            const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.23, 0), skinMat);
+            head.position.y = headY;
+            head.castShadow = true;
+            person.add(head);
+
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.245, 8, 5, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat);
+            hair.position.set(0, headY + 0.07, -0.015);
+            hair.castShadow = true;
+            person.add(hair);
+
+            const shoulderY = torsoY + 0.2;
+            const armGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.58, 6);
+            [-1, 1].forEach((side) => {
+                const upperArm = new THREE.Mesh(armGeo, skinMat);
+                upperArm.position.set(side * 0.33, shoulderY - 0.11, isSeated ? 0.08 : 0.02);
+                upperArm.rotation.z = side * (isSeated ? 0.25 : 0.15);
+                upperArm.rotation.x = isSeated ? -0.92 : (isWalking ? side * 0.34 : -0.08);
+                upperArm.castShadow = true;
+                person.add(upperArm);
+
+                const hand = new THREE.Mesh(new THREE.DodecahedronGeometry(0.07, 0), skinMat);
+                hand.position.set(side * 0.38, isSeated ? 1.02 : 1.12, isSeated ? 0.32 : side * (isWalking ? 0.12 : 0.03));
+                hand.castShadow = true;
+                person.add(hand);
+            });
+
+            const legGeo = new THREE.CylinderGeometry(0.075, 0.085, isSeated ? 0.54 : 0.86, 6);
+            [-1, 1].forEach((side) => {
+                const leg = new THREE.Mesh(legGeo, pantsMat);
+                leg.position.set(side * 0.12, isSeated ? 0.46 : 0.52, isSeated ? 0.22 : 0);
+                leg.rotation.x = isSeated ? Math.PI / 2.7 : (isWalking ? side * 0.18 : 0);
+                leg.castShadow = true;
+                person.add(leg);
+
+                const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.055, 0.24), shoeMat);
+                shoe.position.set(side * 0.12, 0.055, isSeated ? 0.47 : (isWalking ? side * 0.12 : 0.03));
+                shoe.rotation.y = isWalking ? side * 0.08 : 0;
+                shoe.castShadow = true;
+                person.add(shoe);
+            });
+
+            return person;
+        }
+
+        const peoplePlacements = [];
+
+        // モニター付きデスク: 既存チェア座標から自動生成し、97席中88席（約90.7%）を埋める。
+        // デスク天板中心ではなく椅子座面中心に置くことで、机やモニターへのめり込みを避ける。
+        const mainDeskRows = [-21.6, -18.0, -14.4, -10.8, -7.2, -3.6, 0.0, 10.8, 14.4, 18.0, 21.6];
+        const mainDeskUnitLength = 1.4;
+        const mainDeskUnits = 4;
+        const mainDeskTotalLength = mainDeskUnits * mainDeskUnitLength;
+        const faceToFaceStagger = 0.22;
+        const skippedMainDeskSeatIndices = new Set([5, 16, 27, 38, 49, 60, 71, 82]);
+        let mainDeskSeatIndex = 0;
+        mainDeskRows.forEach((deskX) => {
+            for (let i = 0; i < mainDeskUnits; i++) {
+                const zOffset = (i * mainDeskUnitLength) - (mainDeskTotalLength / 2) + (mainDeskUnitLength / 2);
+                [
+                    { x: deskX + 0.8, z: zOffset + faceToFaceStagger, rotation: -Math.PI / 2 },
+                    { x: deskX - 0.8, z: zOffset - faceToFaceStagger, rotation: Math.PI / 2 }
+                ].forEach((seat) => {
+                    if (!skippedMainDeskSeatIndices.has(mainDeskSeatIndex)) {
+                        peoplePlacements.push({ ...seat, pose: 'seated' });
+                    }
+                    mainDeskSeatIndex++;
+                });
+            }
+        });
+
+        const wallMonitorDeskSeats = [-22.8, -17.2, -12.8, -7.2, -2.8, 2.8, 7.2, 12.8, 17.2]
+            .map((x) => ({ x, z: mossWallDeskZ - 0.65, rotation: 0, pose: 'seated' }));
+        wallMonitorDeskSeats.forEach((seat, index) => {
+            if (index !== 5) peoplePlacements.push(seat);
+        });
+
+        peoplePlacements.push(
+            // ブレイク用の机＆4椅子: 人数は据え置き、椅子の背もたれと反対側（テーブル側）へ向きを反転
+            { x: 6.11, z: -2.05, rotation: Math.PI / 4 + 0.03 + Math.PI, pose: 'seated' },
+            { x: 3.59, z: -0.68, rotation: Math.PI - 0.04 - Math.PI / 4 + Math.PI, pose: 'seated' },
+            { x: 8.41, z: -0.68, rotation: Math.PI / 4 + Math.PI / 2 + 0.05 + Math.PI, pose: 'seated' },
+            // ソファ席: 既存のソファ座面位置に合わせる
+            { x: 24.2, z: 2.18, rotation: Math.PI, pose: 'seated' },
+            { x: 24.2, z: 0.8, rotation: 0, pose: 'seated' },
+            { x: 24.2, z: 5.7, rotation: Math.PI, pose: 'seated' },
+            { x: 24.2, z: 4.3, rotation: 0, pose: 'seated' },
+            // カフェ周辺のブレイク用席も同じくテーブル側へ反転
+            { x: -27.96, z: -4.1, rotation: Math.PI - 0.04 + Math.PI, pose: 'seated' },
+            { x: -31.29, z: -5.85, rotation: Math.PI / 2 + 0.05 + Math.PI, pose: 'seated' },
+            // 玄関・廊下: 通行帯の端に寄せ、壁や受付設備にめり込まない位置に配置
+            { x: -11.05, z: 8.85, rotation: Math.PI * 0.92, pose: 'standing' },
+            { x: -13.12, z: 11.55, rotation: Math.PI / 2, pose: 'leaning' },
+            { x: -10.3, z: 13.55, rotation: -Math.PI * 0.82, pose: 'walking' },
+            { x: 4.25, z: 9.8, rotation: 0.12, pose: 'walking' },
+            { x: 5.35, z: 12.25, rotation: Math.PI, pose: 'standing' },
+            { x: -3.8, z: 10.45, rotation: Math.PI * 0.04, pose: 'standing' }
+        );
+
+        peoplePlacements.forEach((placement, index) => {
+            const person = createLowPolyPerson({ pose: placement.pose, variant: index });
+            person.position.set(placement.x, 0, placement.z);
+            person.rotation.y = placement.rotation;
+            scene.add(person);
+        });
+
 
         // ==========================================
-        // 9. コントローラー (PC & モバイル対応)
+        // 10. コントローラー (PC & モバイル対応)
         // ==========================================
         const uiLayer = document.getElementById('ui-layer');
         const crosshair = document.getElementById('crosshair');
@@ -2221,14 +3338,16 @@
             camera.quaternion.setFromEuler(euler);
         }
 
-        uiLayer.addEventListener('click', () => {
+        function startGame() {
+            if (isPlaying) return;
+
             if (isTouchDevice) {
                 isPlaying = true;
                 uiLayer.style.opacity = '0';
                 setTimeout(() => uiLayer.style.display = 'none', 300);
                 document.getElementById('joystick-zone').style.display = 'block';
                 document.getElementById('mobile-exit').style.display = 'flex';
-                
+
                 if (!window.joystickManager) {
                     window.joystickManager = nipplejs.create({
                         zone: document.getElementById('joystick-zone'),
@@ -2257,7 +3376,13 @@
                     lockRequest.catch(() => {});
                 }
             }
-        });
+        }
+
+        uiLayer.addEventListener('click', startGame);
+        uiLayer.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            startGame();
+        }, { passive: false });
 
         document.addEventListener('pointerlockchange', () => {
             isPlaying = document.pointerLockElement === document.body;
@@ -2272,13 +3397,24 @@
             }
         });
 
-        document.getElementById('mobile-exit').addEventListener('click', () => {
+        const mobileExit = document.getElementById('mobile-exit');
+
+        function exitMobileGame() {
             isPlaying = false;
             uiLayer.style.display = 'flex';
             setTimeout(() => uiLayer.style.opacity = '1', 10);
             document.getElementById('joystick-zone').style.display = 'none';
-            document.getElementById('mobile-exit').style.display = 'none';
-        });
+            mobileExit.style.display = 'none';
+            lookTouchId = null;
+            joyMoveX = 0;
+            joyMoveZ = 0;
+        }
+
+        mobileExit.addEventListener('click', exitMobileGame);
+        mobileExit.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            exitMobileGame();
+        }, { passive: false });
 
         document.addEventListener('pointerdown', (event) => {
             if (!isPlaying || event.pointerType !== 'mouse' || document.pointerLockElement === document.body) return;
@@ -2310,7 +3446,25 @@
             isMouseLooking = false;
         });
 
+        function preventBrowserTouchZoom(e) {
+            if (!isTouchDevice) return;
+            // iOS Safari can ignore the viewport's user-scalable setting and still
+            // enter page zoom/smart-zoom if game gestures are not cancelled.
+            // The app implements all touch interactions itself, so while playing we
+            // always cancel the browser's default touch handling.
+            if (isPlaying) e.preventDefault();
+        }
+
+        ['gesturestart', 'gesturechange', 'gestureend'].forEach((eventName) => {
+            document.addEventListener(eventName, (e) => e.preventDefault(), { passive: false });
+        });
+
+        document.addEventListener('dblclick', (e) => {
+            if (isTouchDevice) e.preventDefault();
+        }, { passive: false });
+
         document.addEventListener('touchstart', (e) => {
+            preventBrowserTouchZoom(e);
             if (!isPlaying || !isTouchDevice) return;
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let t = e.changedTouches[i];
@@ -2324,6 +3478,7 @@
         }, { passive: false });
 
         document.addEventListener('touchmove', (e) => {
+            preventBrowserTouchZoom(e);
             if (!isPlaying || !isTouchDevice) return;
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let t = e.changedTouches[i];
@@ -2338,13 +3493,17 @@
             }
         }, { passive: false });
 
-        document.addEventListener('touchend', (e) => {
+        function clearEndedLookTouch(e) {
+            preventBrowserTouchZoom(e);
             for (let i = 0; i < e.changedTouches.length; i++) {
                 if (e.changedTouches[i].identifier === lookTouchId) {
                     lookTouchId = null;
                 }
             }
-        });
+        }
+
+        document.addEventListener('touchend', clearEndedLookTouch, { passive: false });
+        document.addEventListener('touchcancel', clearEndedLookTouch, { passive: false });
 
         const keys = { w: false, a: false, s: false, d: false };
         document.addEventListener('keydown', (e) => {
@@ -2361,7 +3520,7 @@
         });
 
         // ==========================================
-        // 10. アニメーションループ & 衝突判定
+        // 11. アニメーションループ & 衝突判定
         // ==========================================
         const velocity = new THREE.Vector3();
         const direction = new THREE.Vector3();
@@ -2396,6 +3555,8 @@
                     if (Math.abs(direction.x) > 0.05) velocity.x -= direction.x * speed * delta;
                 }
 
+                const previousPosition = camera.position.clone();
+
                 moveVector.setFromMatrixColumn(camera.matrix, 0); 
                 camera.position.addScaledVector(moveVector, -velocity.x * delta);
                 
@@ -2411,10 +3572,19 @@
                 const boundZMin = -roomDepth / 2 + 1.8; 
                 
                 if (camera.position.x < -23.5) {
-                    if (camera.position.z > -0.5) camera.position.z = -0.5;
-                    if (camera.position.z < -6.5) camera.position.z = -6.5;
-                    
-                    boundXMin = -34.0;
+                    const sideMeetingRoomWalkLeft = -roomWidth / 2 - 2.65;
+                    const sideMeetingRoomWalkEndZ = sideWallDoorEnd + 0.55;
+                    const inSideMeetingRoomApproach = camera.position.x >= sideMeetingRoomWalkLeft
+                        && camera.position.z > -0.5;
+
+                    if (inSideMeetingRoomApproach) {
+                        if (camera.position.z > sideMeetingRoomWalkEndZ) camera.position.z = sideMeetingRoomWalkEndZ;
+                        boundXMin = sideMeetingRoomWalkLeft;
+                    } else {
+                        if (camera.position.z > -0.5) camera.position.z = -0.5;
+                        if (camera.position.z < -6.5) camera.position.z = -6.5;
+                        boundXMin = -34.0;
+                    }
                 }
 
                 if(camera.position.x < boundXMin) camera.position.x = boundXMin;
@@ -2424,25 +3594,116 @@
                 const zLockerBound = roomDepth / 2 - 2.0; 
                 const zAlcoveBound = roomDepth / 2 + alcoveDepth - 1.0; 
                 const zLeftNicheBound = roomDepth / 2 + leftNicheDepth - 0.4;
-                const zNewHallBound = roomDepth / 2 + newHallDepth - 0.6;
+                const zNewHallBound = entranceEndZ - ENTRANCE_LAYOUT.walkBackInset;
                 const alcoveAllowedLeft = alcoveStart + 0.6; 
                 const alcoveAllowedRight = alcoveEnd - 0.6;  
                 const leftNicheAllowedLeft = leftNicheStart + 0.4;
                 const leftNicheAllowedRight = leftNicheEnd - 0.4;
                 const newHallAllowedLeft = newDoorStart + 0.25;
                 const newHallAllowedRight = newDoorEnd - 0.25;
-                const inAlcoveMouth = camera.position.x > alcoveAllowedLeft && camera.position.x < alcoveAllowedRight;
-                const inLeftNicheMouth = camera.position.x > leftNicheAllowedLeft && camera.position.x < leftNicheAllowedRight;
-                const inNewHallMouth = camera.position.x > newHallAllowedLeft && camera.position.x < newHallAllowedRight;
+                const entranceWalkLeft = entranceLeftX + ENTRANCE_LAYOUT.walkLeftInset;
+                const entranceWalkRight = entranceRightX - ENTRANCE_LAYOUT.walkRightInset;
+                const corridorWalkLeft = corridorLeftX + 0.35;
+                const corridorWalkRight = corridorRightX - 0.35;
+                const corridorWalkStartZ = roomDepth / 2 + 0.45;
+                const corridorWalkEndZ = corridorEndZ - 0.45;
+                const crossWalkLeft = entranceWalkRight;
+                const crossWalkRight = crossCorridorMaxX - 0.45;
+                const crossWalkStartZ = corridorTurnStartZ + 0.25;
+                const crossWalkEndZ = corridorEndZ - 0.45;
+                // エレベーターホール左壁付近は見た目より早く X=-7.65 で止まっていたため、
+                // 他の狭い廊下より少しだけ壁際まで寄れる余白にする。
+                const elevatorWallPadding = 0.18;
+                const elevatorWalkLeft = elevatorHallLeftX + elevatorWallPadding;
+                const elevatorWalkRight = elevatorHallRightX - elevatorWallPadding;
+                const elevatorWalkBackZ = elevatorHallBackZ + 0.45;
+                // エレベーターホール正面の横廊下は Z=14.25 付近まで歩ける見た目なので、
+                // ホール判定に入ったままでも Z=13.25 で押し返さず、横廊下側へ少し進める余白を残す。
+                const elevatorDoorwayFrontZ = crossWalkEndZ - 0.3;
+                const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+                // 判定境界に少し余裕を持たせる。X=-7.91 / Z=14.55 付近は横廊下の突き当たりと
+                // エレベーターホール入口の角が重なるため、厳密な不等号だと数cmの差でどの通路にも属さず、
+                // 直前座標へ戻され続けてフリーズしたように見えることがあった。
+                const routeEpsilon = 0.12;
+                const doorwayOverlap = 0.55;
+                // アルコーブ判定は X 範囲だけだと奥の廊下（同じ X=約4.8）でも成立し、
+                // Z=15 付近からアルコーブ上限まで押し戻されてワープに見えるため、手前側だけに限定する。
+                const inAlcoveMouth = camera.position.x >= alcoveAllowedLeft - routeEpsilon
+                    && camera.position.x <= alcoveAllowedRight + routeEpsilon
+                    && camera.position.z <= zAlcoveBound + 0.25;
+                const inLeftNicheMouth = camera.position.x >= leftNicheAllowedLeft - routeEpsilon
+                    && camera.position.x <= leftNicheAllowedRight + routeEpsilon
+                    && camera.position.z <= zLeftNicheBound + 0.25;
+                const inNewHallMouth = camera.position.x >= newHallAllowedLeft - routeEpsilon
+                    && camera.position.x <= newHallAllowedRight + routeEpsilon
+                    && camera.position.z <= zNewHallBound + 0.25;
+                const inCrossCorridor = camera.position.z >= crossWalkStartZ - 0.15 - routeEpsilon
+                    && camera.position.z <= crossWalkEndZ + 0.15 + routeEpsilon
+                    && camera.position.x >= crossWalkLeft - 0.35 - routeEpsilon
+                    && camera.position.x <= crossWalkRight + 0.35 + routeEpsilon;
+                const inCorridor1 = camera.position.x >= corridorWalkLeft - 0.2 - routeEpsilon
+                    && camera.position.x <= corridorWalkRight + 0.2 + routeEpsilon
+                    && camera.position.z >= corridorWalkStartZ - routeEpsilon;
+                const inEntranceArea = camera.position.z >= entranceStartZ + 0.35 - routeEpsilon
+                    && camera.position.z <= crossWalkEndZ + 0.1 + routeEpsilon
+                    && camera.position.x >= entranceWalkLeft - 0.4 - routeEpsilon
+                    && camera.position.x <= entranceWalkRight + 0.55 + routeEpsilon;
+                const inElevatorHall = camera.position.z >= elevatorWalkBackZ - 0.2 - routeEpsilon
+                    && camera.position.z <= elevatorDoorwayFrontZ + routeEpsilon
+                    && camera.position.x >= elevatorWalkLeft - doorwayOverlap
+                    && camera.position.x <= elevatorWalkRight + 0.25 + routeEpsilon;
+                const inEntranceCrossTransition = inEntranceArea && camera.position.x < crossWalkLeft;
+                // エレベーターホール入口は横廊下と判定が重なる。X=-7.82 / Z=13.50 付近で
+                // 左へ抜けたいときはホール左端へ戻すのではなく、横廊下として扱って -X 方向へ進めるようにする。
+                const leavingElevatorHallToCrossCorridor = inCrossCorridor
+                    && camera.position.z >= crossWalkStartZ
+                    && camera.position.x < elevatorWalkLeft;
 
-                if (inAlcoveMouth) {
+                if (leavingElevatorHallToCrossCorridor) {
+                    camera.position.x = clamp(camera.position.x, crossWalkLeft, crossWalkRight);
+                    camera.position.z = clamp(camera.position.z, crossWalkStartZ, crossWalkEndZ);
+                } else if (inElevatorHall) {
+                    camera.position.x = clamp(camera.position.x, elevatorWalkLeft, elevatorWalkRight);
+                    camera.position.z = clamp(camera.position.z, elevatorWalkBackZ, elevatorDoorwayFrontZ);
+                } else if (inEntranceCrossTransition) {
+                    camera.position.x = clamp(camera.position.x, entranceWalkLeft, entranceWalkRight);
+                    if (camera.position.z > crossWalkEndZ) camera.position.z = crossWalkEndZ;
+                } else if (inCrossCorridor) {
+                    camera.position.x = clamp(camera.position.x, crossWalkLeft, crossWalkRight);
+                    camera.position.z = clamp(camera.position.z, crossWalkStartZ, crossWalkEndZ);
+                } else if (inCorridor1) {
+                    camera.position.x = clamp(camera.position.x, corridorWalkLeft, corridorWalkRight);
+                    if (camera.position.z > corridorWalkEndZ) camera.position.z = corridorWalkEndZ;
+                } else if (inEntranceArea) {
+                    camera.position.x = clamp(camera.position.x, entranceWalkLeft, entranceWalkRight);
+                    if (camera.position.z > crossWalkEndZ) camera.position.z = crossWalkEndZ;
+                } else if (inAlcoveMouth) {
                     if (camera.position.z > zAlcoveBound) camera.position.z = zAlcoveBound;
                 } else if (inLeftNicheMouth) {
                     if (camera.position.z > zLeftNicheBound) camera.position.z = zLeftNicheBound;
                 } else if (inNewHallMouth) {
                     if (camera.position.z > zNewHallBound) camera.position.z = zNewHallBound;
                 } else if (camera.position.z > zLockerBound) {
-                    camera.position.z = zLockerBound;
+                    // 廊下・玄関などメインルーム外で壁の外側へ押し出されると、
+                    // 以前は zLockerBound へ直接戻していたため、メインルームへ瞬間移動したように見えていた。
+                    // すでにメインルーム外にいる場合は直前の有効位置へ戻し、壁に押し当て続けても場所が飛ばないようにする。
+                    if (previousPosition.z > zLockerBound) {
+                        // ドア枠の角を斜めに抜けるとき、X が先に通路判定から外れても
+                        // Z が室内側へ戻る動きなら残す。両軸を直前位置へ戻すと、
+                        // X=-12.36 / Z=5.60 付近で -X + -Z 入力時に壁へ吸い付いたように止まる。
+                        const returningToMainRoom = camera.position.z < previousPosition.z;
+                        camera.position.x = previousPosition.x;
+                        if (returningToMainRoom) {
+                            camera.position.z = Math.max(camera.position.z, zLockerBound);
+                            velocity.x = 0;
+                        } else {
+                            camera.position.z = previousPosition.z;
+                            velocity.x = 0;
+                            velocity.z = 0;
+                        }
+                    } else {
+                        camera.position.z = zLockerBound;
+                    }
                 }
             }
 
