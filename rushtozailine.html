@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>通勤ラッシュ。地獄の東西線</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      background: #07111f;
+      font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: #f8fafc;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.35), transparent 32%),
+        linear-gradient(180deg, rgba(7, 17, 31, 0.82), rgba(2, 6, 23, 0.96));
+      backdrop-filter: blur(7px);
+      cursor: pointer;
+      transition: opacity 0.35s ease;
+      box-sizing: border-box;
+    }
+
+    .start-card {
+      width: min(760px, 92vw);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 28px;
+      padding: clamp(24px, 5vw, 46px);
+      background: rgba(15, 23, 42, 0.72);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38), inset 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #93c5fd;
+      letter-spacing: 0.26em;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.1rem, 7vw, 4.7rem);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+      text-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
+    }
+
+    .lead {
+      margin: 20px auto 0;
+      max-width: 650px;
+      color: #dbeafe;
+      font-size: clamp(1rem, 2.3vw, 1.25rem);
+      line-height: 1.8;
+    }
+
+    .start-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 26px;
+      padding: 14px 24px;
+      border-radius: 999px;
+      color: #07111f;
+      background: linear-gradient(135deg, #facc15, #fb923c);
+      font-weight: 800;
+      box-shadow: 0 16px 35px rgba(251, 146, 60, 0.28);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    .controls span {
+      padding: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    #coords {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: 12px;
+      z-index: 11;
+      padding: 8px 10px;
+      border-radius: 10px;
+      color: #bfdbfe;
+      background: rgba(2, 6, 23, 0.72);
+      border: 1px solid rgba(147, 197, 253, 0.24);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      pointer-events: none;
+      text-align: left;
+    }
+
+    #hud {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      left: 50%;
+      z-index: 8;
+      transform: translateX(-50%);
+      width: min(680px, calc(100vw - 28px));
+      pointer-events: none;
+      color: #f8fafc;
+      text-align: center;
+    }
+
+    #phase {
+      display: inline-block;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: rgba(2, 6, 23, 0.66);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+      backdrop-filter: blur(8px);
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+    }
+
+    #message {
+      margin: 10px auto 0;
+      padding: 12px 16px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.68);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      color: #e0f2fe;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.48);
+      line-height: 1.55;
+    }
+
+    #timer {
+      color: #fde68a;
+      font-weight: 800;
+    }
+
+    .failed #phase,
+    .failed #message {
+      border-color: rgba(248, 113, 113, 0.58);
+      background: rgba(127, 29, 29, 0.78);
+      color: #fff7ed;
+    }
+
+    #clear-banner {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 14;
+      transform: translate(-50%, -50%) scale(0.86);
+      width: min(760px, calc(100vw - 32px));
+      box-sizing: border-box;
+      padding: clamp(20px, 5vw, 38px) clamp(22px, 6vw, 54px);
+      border-radius: 28px;
+      color: #07111f;
+      background: linear-gradient(135deg, rgba(250, 204, 21, 0.96), rgba(56, 189, 248, 0.96));
+      border: 2px solid rgba(255, 255, 255, 0.72);
+      box-shadow: 0 28px 90px rgba(2, 6, 23, 0.46), inset 0 1px rgba(255, 255, 255, 0.55);
+      font-size: clamp(1.65rem, 5.2vw, 3.7rem);
+      font-weight: 1000;
+      letter-spacing: 0.02em;
+      line-height: 1.28;
+      text-align: center;
+      text-shadow: 0 3px 0 rgba(255, 255, 255, 0.34);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.2, 1.35, 0.38, 1);
+    }
+
+    .cleared #clear-banner {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    #announcement {
+      position: fixed;
+      left: 50%;
+      top: 104px;
+      z-index: 9;
+      transform: translate(-50%, -12px);
+      width: min(620px, calc(100vw - 32px));
+      padding: 12px 16px;
+      border-radius: 18px;
+      color: #1f2937;
+      background: linear-gradient(135deg, rgba(254, 240, 138, 0.96), rgba(251, 191, 36, 0.94));
+      border: 1px solid rgba(146, 64, 14, 0.28);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+      font-weight: 800;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    #announcement.active {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    #restart-button {
+      position: fixed;
+      left: 50%;
+      bottom: max(32px, calc(24px + env(safe-area-inset-bottom)));
+      z-index: 12;
+      transform: translateX(-50%);
+      padding: 14px 24px;
+      border: 0;
+      border-radius: 999px;
+      color: #07111f;
+      background: linear-gradient(135deg, #86efac, #38bdf8);
+      box-shadow: 0 16px 36px rgba(8, 47, 73, 0.34);
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      display: none;
+    }
+
+    #restart-button.visible { display: inline-flex; }
+
+    #joystick-zone {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 9;
+      width: min(46vw, 230px);
+      height: min(42vh, 230px);
+      transform: translateX(-50%);
+      touch-action: none;
+      display: block;
+    }
+
+    #hint {
+      position: fixed;
+      right: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      z-index: 8;
+      max-width: min(360px, calc(100vw - 32px));
+      padding: 10px 13px;
+      border-radius: 14px;
+      color: rgba(226, 232, 240, 0.9);
+      background: rgba(2, 6, 23, 0.62);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      font-size: 0.84rem;
+      line-height: 1.55;
+      pointer-events: none;
+    }
+
+    @media (max-width: 760px) {
+      #start-screen {
+        padding: max(12px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+      }
+
+      .start-card {
+        width: min(440px, 94vw);
+        max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        overflow-y: auto;
+        padding: 22px 18px;
+        border-radius: 22px;
+      }
+
+      .eyebrow {
+        letter-spacing: 0.16em;
+        font-size: 0.74rem;
+      }
+
+      h1 {
+        font-size: clamp(1.95rem, 9vw, 3rem);
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+      }
+
+      .lead {
+        margin-top: 14px;
+        font-size: 0.95rem;
+        line-height: 1.65;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 18px;
+        font-size: 0.86rem;
+      }
+
+      .controls span { padding: 9px 10px; }
+
+      #coords {
+        top: max(8px, env(safe-area-inset-top));
+        left: 8px;
+        padding: 6px 8px;
+        font-size: 0.72rem;
+      }
+
+      #hud {
+        top: max(72px, calc(60px + env(safe-area-inset-top)));
+        width: min(440px, calc(100vw - 18px));
+      }
+
+      #phase {
+        padding: 7px 12px;
+        font-size: 0.82rem;
+      }
+
+      #message {
+        margin-top: 7px;
+        padding: 9px 11px;
+        border-radius: 14px;
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+
+      #announcement {
+        top: max(138px, calc(126px + env(safe-area-inset-top)));
+        width: min(420px, calc(100vw - 20px));
+        padding: 10px 12px;
+        font-size: 0.84rem;
+      }
+
+      #restart-button {
+        bottom: max(18px, env(safe-area-inset-bottom));
+        padding: 12px 20px;
+        font-size: 0.95rem;
+      }
+
+      #hint { display: none; }
+    }
+
+    @media (max-width: 380px) {
+      #start-screen {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .start-card {
+        width: min(360px, 95vw);
+        padding: 18px 14px;
+      }
+
+      h1 {
+        font-size: clamp(1.72rem, 8.6vw, 2.25rem);
+      }
+
+      .lead {
+        font-size: 0.88rem;
+      }
+
+      .start-button {
+        margin-top: 20px;
+        padding: 12px 18px;
+      }
+    }
+
+    @media (max-height: 620px) and (orientation: landscape) {
+      .start-card {
+        max-height: calc(100dvh - 20px);
+        padding: 16px;
+      }
+
+      h1 { font-size: clamp(1.8rem, 7vh, 3rem); }
+      .lead { font-size: 0.86rem; }
+      .controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      #hud { top: max(52px, calc(42px + env(safe-area-inset-top))); }
+      #message { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="start-screen">
+    <div class="start-card">
+      <p class="eyebrow">TERRA TECH FIRST DAY</p>
+      <h1>通勤ラッシュ。<br>地獄の東西線</h1>
+      <p class="lead">今日は4/1、テラテク入社初日、この電車に乗らないと遅刻が決定してしまう</p>
+      <div class="start-button">クリック / タップで開始 →</div>
+      <div class="controls">
+        <span>WASD / 矢印：移動</span>
+        <span>目標：遅刻せずリスキへ向かう</span>
+        <span>PC / スマホ：画面下スティック</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="coords">X: 0.00<br>Y: 0.00<br>Z: 0.00</div>
+  <div id="hud">
+    <div id="phase">電車入線中</div>
+    <div id="message">東西線がすぐにホームへ入ってくる。この電車に乗らないと遅刻が決定してしまう。</div>
+  </div>
+  <div id="hint">青い人物があなたです。ドアへ向かって歩き続けると、その分だけ少しずつ車内へ入れます。</div>
+  <div id="clear-banner">ふうっ。。。なんとか無事リスキに遅刻せず到着しそうだ！！</div>
+  <div id="announcement">まもなくドアが閉まります。ご注意ください。</div>
+  <button id="restart-button" type="button">もう一度プレイ</button>
+  <div id="joystick-zone"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+  <script>
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 760;
+    if (isMobile) document.body.classList.add('mobile');
+
+    const startScreen = document.getElementById('start-screen');
+    const phaseEl = document.getElementById('phase');
+    const coordsEl = document.getElementById('coords');
+    const messageEl = document.getElementById('message');
+    const announcementEl = document.getElementById('announcement');
+    const clearBannerEl = document.getElementById('clear-banner');
+    const restartButton = document.getElementById('restart-button');
+    const timerEl = document.getElementById('timer');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0b1728);
+    scene.fog = new THREE.Fog(0x0b1728, 28, 84);
+
+    const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 160);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    document.body.appendChild(renderer.domElement);
+
+    const clock = new THREE.Clock();
+    const tmpVec = new THREE.Vector3();
+    const keys = new Set();
+    const colliders = [];
+    const queuePeople = [];
+    const packedPeople = [];
+    const latePassengers = [];
+    const doors = [];
+
+    let started = false;
+    let elapsed = 0;
+    let yaw = -Math.PI / 2;
+    let pitch = 0.04;
+    let announcementPlayed = false;
+    let mobileMove = { x: 0, y: 0 };
+    let insideTrain = false;
+    let boarded = false;
+    let failed = false;
+    let departureCrowdFinalized = false;
+
+    const state = {
+      trainZ: -30,
+      trainTargetZ: -4.7,
+      doorsOpen: 0,
+      rumble: 0,
+      crowdPulse: 0,
+      departureSpeed: 0,
+      phase: 'waiting'
+    };
+
+    const platformY = 0;
+    const doorX = -1.65;
+    const platformEdgeX = -4.35;
+    const platformWallX = 5.05;
+    const trainFloorX = -5.25;
+    const trainInteriorWallX = -8.45;
+    const trainInteriorDoorX = -5.05;
+    const trainInteriorPadding = 0.22;
+    const trainInteriorPassengerHalfZ = 2.25;
+    const trainInteriorPlayerHalfZ = 1.55;
+    const trainPassengerBodyRadius = 0.42;
+    const queuePassengerCount = 24;
+    const latePassengerCount = 96;
+    const latePassengerColumns = 12;
+    const trainPackedCapacity = 60;
+    const trainPackedColumns = 10;
+    const trainDepartureStopZ = 20;
+    const trainDoorPassageHalfWidth = 0.95;
+    const trainDoorwayCrowdHalfWidth = 1.18;
+    const trainDoorZ = -4.7;
+    const onboardContactPriority = 0.04;
+    const platformCrowdPushDamping = 0.9;
+    const trainWallContactPriority = 0.008;
+
+    const player = createPerson({
+      jacket: 0x2563eb,
+      pants: 0x172554,
+      skin: 0xffd3a4,
+      bag: true,
+      scale: 1.08
+    });
+    player.position.set(3.25, 0, trainDoorZ);
+    player.rotation.y = Math.PI / 2;
+    player.userData.velocity = new THREE.Vector3();
+    scene.add(player);
+
+    setupLights();
+    createStation();
+    const train = createTrain();
+    scene.add(train);
+    createQueue();
+    createLatePassengers();
+    createPackedCar();
+    updateTrainPosition();
+    updateCamera();
+
+    function setupLights() {
+      const hemi = new THREE.HemisphereLight(0xdbeafe, 0x111827, 0.9);
+      scene.add(hemi);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.65);
+      dir.position.set(5, 14, 9);
+      dir.castShadow = true;
+      dir.shadow.mapSize.set(2048, 2048);
+      dir.shadow.camera.left = -18;
+      dir.shadow.camera.right = 18;
+      dir.shadow.camera.top = 20;
+      dir.shadow.camera.bottom = -20;
+      scene.add(dir);
+
+      for (let z = -28; z <= 22; z += 8) {
+        const light = new THREE.PointLight(0xdbeafe, 0.75, 18);
+        light.position.set(1.2, 4.3, z);
+        scene.add(light);
+      }
+    }
+
+    function makeBox(w, h, d, color, roughness = 0.78, metalness = 0.02) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({ color, roughness, metalness })
+      );
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function createTextTexture(text, options = {}) {
+      const canvas = document.createElement('canvas');
+      canvas.width = options.width || 512;
+      canvas.height = options.height || 160;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = options.background || '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = options.color || '#ffffff';
+      ctx.font = `bold ${options.size || 42}px "Yu Gothic", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const lines = text.split('\n');
+      lines.forEach((line, i) => ctx.fillText(line, canvas.width / 2, canvas.height / 2 + (i - (lines.length - 1) / 2) * (options.lineHeight || 52)));
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.anisotropy = 8;
+      return texture;
+    }
+
+    function createStation() {
+      const floor = makeBox(10, 0.18, 70, 0xf8fafc, 0.82);
+      floor.position.set(0.35, -0.09, -6);
+      scene.add(floor);
+
+      const yellow = makeBox(0.35, 0.025, 68, 0xfacc15, 0.55);
+      yellow.position.set(platformEdgeX + 0.78, 0.025, -6);
+      scene.add(yellow);
+
+      for (let z = -38; z < 28; z += 1.5) {
+        const tile = makeBox(0.17, 0.045, 0.16, 0xfde047, 0.5);
+        tile.position.set(platformEdgeX + 0.5, 0.045, z);
+        scene.add(tile);
+      }
+
+      const trackBed = makeBox(7, 0.15, 70, 0x111827, 0.95);
+      trackBed.position.set(-7.2, -0.24, -6);
+      scene.add(trackBed);
+      for (const x of [-8.2, -6.2]) {
+        const rail = makeBox(0.12, 0.08, 70, 0x94a3b8, 0.28, 0.65);
+        rail.position.set(x, -0.12, -6);
+        scene.add(rail);
+      }
+
+      const backWall = makeBox(0.3, 4.2, 70, 0x1e293b, 0.85);
+      backWall.position.set(platformWallX, 2.0, -6);
+      scene.add(backWall);
+
+      const ceiling = makeBox(10.7, 0.22, 70, 0xf8fafc, 0.86);
+      ceiling.position.set(0.25, 4.35, -6);
+      scene.add(ceiling);
+
+      for (let z = -35; z <= 24; z += 10) {
+        if (Math.abs(z - trainDoorZ) > 1.2) {
+          const pillar = makeBox(0.58, 4.15, 0.58, 0x475569, 0.72);
+          pillar.position.set(3.45, 2.02, z);
+          scene.add(pillar);
+        }
+
+        const fixture = makeBox(3.35, 0.055, 0.58, 0x9ca3af, 0.62);
+        fixture.position.set(0.45, 4.19, z + 2.7);
+        scene.add(fixture);
+        const tubeMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, emissive: 0xdbeafe, emissiveIntensity: 0.95, roughness: 0.18 });
+        for (const tubeX of [-0.55, 0.55]) {
+          const tube = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.035, 0.11), tubeMat);
+          tube.position.set(0.45 + tubeX, 4.145, z + 2.7);
+          tube.castShadow = false;
+          scene.add(tube);
+        }
+      }
+
+      const sign = new THREE.Mesh(
+        new THREE.PlaneGeometry(4.2, 1.0),
+        new THREE.MeshBasicMaterial({ map: createTextTexture('東西線\nTOZAI LINE', { background: '#0f766e', size: 42 }) })
+      );
+      sign.position.set(platformWallX - 0.12, 2.7, 1.8);
+      sign.rotation.y = -Math.PI / 2;
+      scene.add(sign);
+
+    }
+
+    function createTrain() {
+      const group = new THREE.Group();
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xb8c0c8, roughness: 0.28, metalness: 0.36 });
+      const darkTrimMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.42, metalness: 0.22 });
+      const tozaiSkyLineMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, roughness: 0.34, metalness: 0.08 });
+      const tozaiBlueLineMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.34, metalness: 0.08 });
+
+      const exteriorParts = [
+        { size: [3.65, 0.18, 30], position: [0, 3.23, 0], material: bodyMat },
+        { size: [3.65, 0.2, 30], position: [0, 0.02, 0], material: darkTrimMat },
+        { size: [0.16, 3.05, 30], position: [-1.83, 1.58, 0], material: bodyMat },
+        { size: [3.65, 3.05, 0.18], position: [0, 1.58, -15], material: bodyMat },
+        { size: [3.65, 3.05, 0.18], position: [0, 1.58, 15], material: bodyMat },
+        { size: [0.16, 0.62, 30], position: [1.86, 0.45, 0], material: bodyMat },
+        { size: [0.16, 0.5, 30], position: [1.86, 2.78, 0], material: bodyMat },
+        { size: [0.16, 1.62, 12.2], position: [1.86, 1.62, -8.4], material: bodyMat },
+        { size: [0.16, 1.62, 12.2], position: [1.86, 1.62, 8.4], material: bodyMat }
+      ];
+      exteriorParts.forEach(({ size, position, material }) => {
+        const part = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+        part.position.set(...position);
+        part.castShadow = true;
+        part.receiveShadow = true;
+        group.add(part);
+      });
+
+      const roofRound = new THREE.Mesh(new THREE.CylinderGeometry(1.82, 1.82, 30, 24, 1, false, 0, Math.PI), bodyMat);
+      roofRound.position.set(0, 3.19, 0);
+      roofRound.rotation.z = Math.PI / 2;
+      roofRound.rotation.y = Math.PI / 2;
+      roofRound.scale.y = 0.16;
+      roofRound.castShadow = true;
+      roofRound.receiveShadow = true;
+      group.add(roofRound);
+
+      const stripeSegments = [
+        { z: -8.35, d: 12.25 },
+        { z: 8.35, d: 12.25 }
+      ];
+      stripeSegments.forEach(({ z, d }) => {
+        [
+          { y: 1.47, height: 0.12, material: tozaiSkyLineMat },
+          { y: 1.29, height: 0.16, material: tozaiBlueLineMat }
+        ].forEach(({ y, height, material }) => {
+          const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.055, height, d), material);
+          stripe.position.set(1.965, y, z);
+          stripe.castShadow = true;
+          stripe.receiveShadow = true;
+          group.add(stripe);
+        });
+      });
+
+      for (const z of [-12, 12]) {
+        const headlight = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 10), new THREE.MeshStandardMaterial({ color: 0xfef3c7, emissive: 0xfbbf24, emissiveIntensity: 0.65, roughness: 0.22 }));
+        headlight.position.set(1.92, 1.85, z);
+        group.add(headlight);
+      }
+
+      const interiorFloor = makeBox(3.05, 0.08, 28.5, 0xd6d3d1, 0.82);
+      interiorFloor.position.set(0.08, 0.08, 0);
+      group.add(interiorFloor);
+      const interiorCeiling = makeBox(3.0, 0.08, 28.5, 0xf8fafc, 0.65);
+      interiorCeiling.position.set(0.08, 3.05, 0);
+      group.add(interiorCeiling);
+      const farWall = makeBox(0.08, 2.45, 28.5, 0xe2e8f0, 0.72);
+      farWall.position.set(-1.48, 1.48, 0);
+      group.add(farWall);
+      const nearInteriorTrim = new THREE.Mesh(
+        new THREE.BoxGeometry(0.05, 2.7, 28.5),
+        new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.55, transparent: true, opacity: 0.28, depthWrite: false })
+      );
+      nearInteriorTrim.position.set(1.78, 1.45, 0);
+      nearInteriorTrim.castShadow = true;
+      group.add(nearInteriorTrim);
+
+      for (const z of [-10, -6, -2, 2, 6, 10]) {
+        const bench = makeBox(0.42, 0.36, 2.6, 0x38bdf8, 0.72);
+        bench.position.set(-1.22, 0.54, z);
+        group.add(bench);
+        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 2.65, 12), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.55, roughness: 0.22 }));
+        rail.position.set(0.0, 2.55, z);
+        rail.rotation.x = Math.PI / 2;
+        rail.castShadow = true;
+        group.add(rail);
+        for (const dz of [-0.8, 0, 0.8]) {
+          const strap = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.012, 8, 20), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 }));
+          strap.position.set(0.0, 2.18, z + dz);
+          strap.rotation.y = Math.PI / 2;
+          group.add(strap);
+        }
+      }
+
+      const windowMat = new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.08, metalness: 0.02, transparent: true, opacity: 0.72 });
+      for (let z = -12; z <= 12; z += 4) {
+        const windowFrame = makeBox(0.1, 1.02, 1.72, 0xcbd5e1, 0.34, 0.12);
+        windowFrame.position.set(1.915, 2.18, z + 1.62);
+        group.add(windowFrame);
+        const window = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.84, 1.46), windowMat);
+        window.position.set(1.965, 2.18, z + 1.62);
+        window.castShadow = true;
+        window.receiveShadow = true;
+        group.add(window);
+      }
+
+      const frameMatColor = 0xcbd5e1;
+      const doorTopFrame = makeBox(0.12, 0.16, 2.68, frameMatColor, 0.42);
+      doorTopFrame.position.set(1.94, 2.42, 0);
+      group.add(doorTopFrame);
+      for (const z of [-1.34, 1.34]) {
+        const sideFrame = makeBox(0.12, 2.25, 0.12, frameMatColor, 0.42);
+        sideFrame.position.set(1.94, 1.28, z);
+        group.add(sideFrame);
+      }
+
+      const leftDoor = makeBox(0.13, 2.12, 1.18, 0xaeb8c2, 0.3, 0.28);
+      leftDoor.position.set(2.02, 1.23, -0.62);
+      group.add(leftDoor);
+      const rightDoor = makeBox(0.13, 2.12, 1.18, 0xaeb8c2, 0.3, 0.28);
+      rightDoor.position.set(2.02, 1.23, 0.62);
+      group.add(rightDoor);
+      [leftDoor, rightDoor].forEach((door) => {
+        [
+          { y: 0.24, height: 0.12, material: tozaiSkyLineMat },
+          { y: 0.06, height: 0.16, material: tozaiBlueLineMat }
+        ].forEach(({ y, height, material }) => {
+          const doorStripe = new THREE.Mesh(new THREE.BoxGeometry(0.035, height, 1.08), material);
+          doorStripe.position.set(0.08, y, 0);
+          doorStripe.castShadow = true;
+          doorStripe.receiveShadow = true;
+          door.add(doorStripe);
+        });
+      });
+      doors.push({ leftDoor, rightDoor });
+
+      const destination = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.5, 0.38),
+        new THREE.MeshBasicMaterial({ map: createTextTexture('快速 中野', { width: 512, height: 128, background: '#111827', color: '#67e8f9', size: 44 }) })
+      );
+      destination.position.set(2.055, 2.95, -2.6);
+      destination.rotation.y = Math.PI / 2;
+      group.add(destination);
+
+      const doorLight = new THREE.PointLight(0xe0f2fe, 0.45, 7);
+      doorLight.position.set(-0.35, 2.55, 0);
+      group.add(doorLight);
+
+      group.position.x = trainFloorX - 1.84;
+      return group;
+    }
+
+    function createPerson({ jacket = 0x64748b, pants = 0x334155, skin = 0xf7c59f, bag = false, scale = 1, hair = 0x111827 } = {}) {
+      const group = new THREE.Group();
+      group.scale.setScalar(scale);
+
+      const jacketMat = new THREE.MeshStandardMaterial({ color: jacket, roughness: 0.72 });
+      const pantsMat = new THREE.MeshStandardMaterial({ color: pants, roughness: 0.82 });
+      const skinMat = new THREE.MeshStandardMaterial({ color: skin, roughness: 0.62 });
+      const hairMat = new THREE.MeshStandardMaterial({ color: hair, roughness: 0.86 });
+      const shoeMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.72 });
+
+      const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.78, 10), jacketMat);
+      torso.position.y = 1.03;
+      torso.scale.z = 0.58;
+      torso.castShadow = true;
+      torso.receiveShadow = true;
+      group.add(torso);
+
+      const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.74, 10), jacketMat);
+      shoulder.position.y = 1.34;
+      shoulder.rotation.z = Math.PI / 2;
+      shoulder.castShadow = true;
+      group.add(shoulder);
+
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.085, 0.12, 12), skinMat);
+      neck.position.y = 1.45;
+      neck.castShadow = true;
+      group.add(neck);
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.225, 24, 18), skinMat);
+      head.position.y = 1.66;
+      head.scale.set(0.92, 1.08, 0.86);
+      head.castShadow = true;
+      group.add(head);
+
+      const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.235, 22, 12, 0, Math.PI * 2, 0, Math.PI * 0.56), hairMat);
+      hairMesh.position.y = 1.75;
+      hairMesh.rotation.x = -0.18;
+      hairMesh.scale.z = 0.92;
+      hairMesh.castShadow = true;
+      group.add(hairMesh);
+
+      for (const x of [-0.065, 0.065]) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.4 }));
+        eye.position.set(x, 1.67, -0.19);
+        group.add(eye);
+      }
+
+      const limbs = { legs: [], arms: [] };
+      for (const x of [-0.17, 0.17]) {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.075, 0.68, 10), pantsMat);
+        leg.position.set(x, 0.42, 0);
+        leg.castShadow = true;
+        leg.receiveShadow = true;
+        group.add(leg);
+        limbs.legs.push(leg);
+
+        const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.075, 0.28), shoeMat);
+        shoe.position.set(x, 0.055, -0.045);
+        shoe.castShadow = true;
+        group.add(shoe);
+
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.62, 10), jacketMat);
+        arm.position.set(x * 2.08, 1.0, 0.01);
+        arm.rotation.z = -x * 0.7;
+        arm.castShadow = true;
+        group.add(arm);
+        limbs.arms.push(arm);
+
+        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), skinMat);
+        hand.position.set(x * 2.42, 0.68, -0.015);
+        hand.castShadow = true;
+        group.add(hand);
+      }
+      group.userData.limbs = limbs;
+
+      if (bag) {
+        const bagMesh = makeBox(0.36, 0.5, 0.18, 0x111827, 0.82);
+        bagMesh.position.set(-0.38, 0.96, 0.08);
+        bagMesh.rotation.z = -0.08;
+        group.add(bagMesh);
+        const strap = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.014, 8, 24, Math.PI), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 }));
+        strap.position.set(-0.18, 1.1, -0.08);
+        strap.rotation.set(Math.PI / 2, 0.15, -0.62);
+        group.add(strap);
+      }
+      return group;
+    }
+
+    function createQueue() {
+      const colors = [0x64748b, 0xbe123c, 0x166534, 0x9333ea, 0x334155, 0xb45309, 0x0f766e, 0x52525b];
+      for (let i = 0; i < queuePassengerCount; i++) {
+        const p = createPerson({ jacket: colors[i % colors.length], pants: 0x1f2937, skin: i % 3 === 0 ? 0xf0b38a : 0xffd3a4, scale: 0.98 + Math.random() * 0.08, bag: i % 2 === 0 });
+        p.position.set(platformEdgeX + 1.25 + i * 0.32, 0, trainDoorZ + (Math.random() - 0.5) * 0.18);
+        p.rotation.y = Math.PI / 2;
+        p.userData.queueIndex = i;
+        scene.add(p);
+        queuePeople.push(p);
+      }
+    }
+
+
+    function createLatePassengers() {
+      const colors = [0x7c2d12, 0x155e75, 0x4c1d95, 0x14532d, 0x78350f, 0x334155];
+      for (let i = 0; i < latePassengerCount; i++) {
+        const p = createPerson({ jacket: colors[i % colors.length], pants: 0x111827, skin: i % 4 === 0 ? 0xe7a97b : 0xffd3a4, scale: 0.92 + Math.random() * 0.1, bag: i % 3 === 0 });
+        const col = i % latePassengerColumns;
+        const row = Math.floor(i / latePassengerColumns);
+        const waitingX = platformEdgeX + 1.02 + col * 0.64 + (Math.random() - 0.5) * 0.28;
+        const waitingZ = trainDoorZ - 7.8 + row * 1.56 + (Math.random() - 0.5) * 0.7;
+        p.position.set(waitingX, 0, waitingZ);
+        p.rotation.y = Math.PI / 2 + (Math.random() - 0.5) * 0.18;
+        p.userData.doorOffset = new THREE.Vector3(
+          platformEdgeX + 0.42 + (Math.random() - 0.5) * 0.62,
+          0,
+          trainDoorZ + (Math.random() - 0.5) * 2.75
+        );
+        p.userData.boardOffset = new THREE.Vector3(
+          trainInteriorWallX + 0.25 + Math.random() * 2.45,
+          0,
+          trainDoorZ - 1.12 + (i % 7) * 0.34
+        );
+        p.userData.rushDelay = 3.45 + Math.random() * 1.75;
+        scene.add(p);
+        latePassengers.push(p);
+      }
+    }
+
+    function createPackedCar() {
+      const colors = [0x0f172a, 0x475569, 0x7f1d1d, 0x1e40af, 0x365314, 0x581c87];
+      for (let i = 0; i < trainPackedCapacity; i++) {
+        const p = createPerson({ jacket: colors[i % colors.length], pants: 0x111827, skin: i % 4 === 0 ? 0xe7a97b : 0xffd3a4, scale: 0.9 + Math.random() * 0.12, bag: i % 5 === 0 });
+        placePackedPassenger(p, i, trainDoorZ);
+        scene.add(p);
+        packedPeople.push(p);
+      }
+    }
+
+    function placePackedPassenger(passenger, index, doorZ) {
+      const row = Math.floor(index / trainPackedColumns);
+      const col = index % trainPackedColumns;
+      const depthLane = col % 5;
+      const zLane = row * 2 + Math.floor(col / 5);
+      const usableHalfZ = trainInteriorPassengerHalfZ - trainPassengerBodyRadius;
+      const zStep = (usableHalfZ * 2) / 11;
+      const packedX = trainInteriorWallX + 0.45 + depthLane * 0.62 + ((index * 17) % 11) * 0.004;
+      const packedZ = doorZ - usableHalfZ + zLane * zStep + (((index * 23) % 9) - 4) * 0.006;
+      passenger.position.set(packedX, 0.06, packedZ);
+      passenger.rotation.y = Math.PI / 2 + ((((index * 13) % 17) - 8) / 8) * 0.34;
+      passenger.visible = state.trainZ > -9;
+      if (!passenger.parent) scene.add(passenger);
+    }
+
+    function redrawPackedCarForDeparture() {
+      const doorZ = currentTrainDoorZ();
+      packedPeople.forEach((p, i) => {
+        placePackedPassenger(p, i, doorZ);
+        constrainPassengerToTrainInterior(p);
+      });
+    }
+
+    function updateTrainPosition() {
+      train.position.z = state.trainZ;
+      for (const p of packedPeople) p.visible = state.trainZ > -9;
+      doors.forEach(({ leftDoor, rightDoor }) => {
+        leftDoor.position.z = -0.62 - state.doorsOpen * 0.95;
+        rightDoor.position.z = 0.62 + state.doorsOpen * 0.95;
+      });
+    }
+
+    function updateQueue(delta) {
+      const canBoard = state.phase === 'boarding' || state.phase === 'closing';
+      queuePeople.forEach((p, i) => {
+        const phaseOffset = Math.max(0, elapsed - 3.7 - i * 0.27);
+        if (canBoard && phaseOffset > 0) {
+          const t = Math.min(1, phaseOffset / 4.2);
+          p.userData.prevX = p.position.x;
+          p.userData.prevZ = p.position.z;
+          const startX = platformEdgeX + 1.25 + i * 0.32;
+          p.position.x = THREE.MathUtils.lerp(startX, -5.55, easeInOut(t));
+          p.position.z = THREE.MathUtils.lerp(trainDoorZ, trainDoorZ - 0.85 + (i % 5) * 0.42, easeInOut(t));
+          p.rotation.y = Math.PI / 2;
+          constrainPassengerBoardingPath(p);
+          blockPassengerBehindPlayer(p, 0.48, 0.78);
+          applyPassengerContact(p, 0.52, 0.26, 0.2);
+        }
+        p.position.y = Math.sin(elapsed * 5 + i) * 0.014;
+      });
+
+      if (state.phase === 'arriving') {
+        const dx = player.position.x - 3.25;
+        const dz = player.position.z - trainDoorZ;
+        const dist = Math.hypot(dx, dz);
+        if (dist > 0.45) {
+          messageEl.textContent = '列から外れすぎないで。電車に対してまっすぐドアへ向かおう。';
+        }
+      }
+    }
+
+    function updateLatePassengers(delta) {
+      latePassengers.forEach((p, i) => {
+        if (boarded || failed) {
+          p.position.y = Math.sin(elapsed * 4 + i) * 0.012;
+          return;
+        }
+        if (elapsed < p.userData.rushDelay) {
+          p.position.y = Math.sin(elapsed * 4 + i) * 0.012;
+          return;
+        }
+        const closingScatter = state.phase === 'closing' || state.phase === 'failed';
+        const target = tmpVec.copy(p.userData.doorOffset);
+        if (!closingScatter && elapsed > p.userData.rushDelay + 1.2) {
+          target.copy(p.userData.boardOffset);
+        }
+        if (closingScatter) {
+          if (isPassengerInsideTrain(p)) {
+            target.copy(p.userData.boardOffset);
+          } else {
+            target.x = platformEdgeX + 0.85 + (i % 4) * 0.28;
+            target.z = trainDoorZ + (i - 8.5) * 0.42;
+          }
+        }
+        p.userData.prevX = p.position.x;
+        p.userData.prevZ = p.position.z;
+        const dx = target.x - p.position.x;
+        const dz = target.z - p.position.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist > 0.03) {
+          const step = Math.min(dist, (closingScatter ? 0.8 : 1.65) * delta);
+          p.position.x += (dx / dist) * step;
+          p.position.z += (dz / dist) * step;
+          p.rotation.y = Math.atan2(-dx, -dz);
+        }
+        constrainPassengerBoardingPath(p);
+        blockPassengerBehindPlayer(p, 0.44, 0.92);
+        applyPassengerContact(p, 0.5, 0.22, 0.22);
+        p.position.y = Math.sin(elapsed * 7 + i) * 0.018;
+      });
+    }
+
+    function easeInOut(t) {
+      return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
+
+    function currentTrainDoorZ() {
+      return state.trainZ;
+    }
+
+    function isPlayerFullyInsideTrain(doorZ = currentTrainDoorZ()) {
+      return player.position.x <= trainInteriorDoorX - trainPassengerBodyRadius
+        && Math.abs(player.position.z - doorZ) <= trainInteriorPlayerHalfZ;
+    }
+
+    function isPlayerInsideTrain() {
+      return isPlayerFullyInsideTrain();
+    }
+
+    function isPassengerInsideTrain(passenger) {
+      return passenger.position.x < trainInteriorDoorX && Math.abs(passenger.position.z - currentTrainDoorZ()) < 2.45;
+    }
+
+    function isPassengerFullyInsideTrain(passenger, doorZ = currentTrainDoorZ()) {
+      return passenger.position.x <= trainInteriorDoorX - trainPassengerBodyRadius
+        && Math.abs(passenger.position.z - doorZ) <= trainInteriorPassengerHalfZ - trainPassengerBodyRadius;
+    }
+
+    function isAtOpenTrainDoor(position, margin = 0) {
+      return Math.abs(position.z - currentTrainDoorZ()) < trainDoorPassageHalfWidth + margin && state.doorsOpen >= 0.55 && !failed;
+    }
+
+    function constrainPassengerBoardingPath(passenger) {
+      const previousX = passenger.userData.prevX ?? passenger.position.x;
+      const crossedPlatformEdge = previousX >= platformEdgeX && passenger.position.x < platformEdgeX;
+      const betweenTrainAndPlatform = passenger.position.x < platformEdgeX && passenger.position.x > trainInteriorDoorX;
+      if ((crossedPlatformEdge || betweenTrainAndPlatform) && !isAtOpenTrainDoor(passenger.position, 0.12)) {
+        passenger.position.x = platformEdgeX;
+      }
+    }
+
+    function constrainPassengerToTrainInterior(passenger, padding = trainInteriorPadding) {
+      const doorZ = currentTrainDoorZ();
+      const insideCarLength = Math.abs(passenger.position.z - doorZ) < 14.25;
+      if (!insideCarLength || passenger.position.x >= trainInteriorDoorX) return;
+      passenger.position.x = THREE.MathUtils.clamp(passenger.position.x, trainInteriorWallX + padding, trainInteriorDoorX - trainPassengerBodyRadius);
+      passenger.position.z = THREE.MathUtils.clamp(passenger.position.z, doorZ - trainInteriorPassengerHalfZ + trainPassengerBodyRadius, doorZ + trainInteriorPassengerHalfZ - trainPassengerBodyRadius);
+    }
+
+    function removePassengerFromDeparture(passenger) {
+      passenger.userData.onboardTrain = true;
+      passenger.userData.leftOnPlatform = false;
+      passenger.userData.removedAfterBoarding = true;
+      passenger.visible = false;
+      scene.remove(passenger);
+    }
+
+    function keepPassengerOnPlatform(passenger, index, doorZ) {
+      passenger.userData.onboardTrain = false;
+      passenger.userData.leftOnPlatform = true;
+      passenger.userData.removedAfterBoarding = false;
+      if (!passenger.parent) scene.add(passenger);
+      passenger.visible = true;
+      const nearDoorZ = Math.abs(passenger.position.z - doorZ) < trainInteriorPassengerHalfZ + trainPassengerBodyRadius + 0.8;
+      const touchingTrainSide = passenger.position.x < platformEdgeX + trainPassengerBodyRadius + 0.55;
+      if (nearDoorZ && touchingTrainSide) {
+        passenger.position.x = platformEdgeX + 0.95 + (index % 4) * 0.18;
+        passenger.position.z = doorZ + ((index % 7) - 3) * 0.38;
+        passenger.rotation.y = Math.PI / 2;
+      }
+    }
+
+    function settleDepartureCrowdPositions(includePlayer = false) {
+      if (departureCrowdFinalized) return;
+      departureCrowdFinalized = true;
+      const doorZ = currentTrainDoorZ();
+      redrawPackedCarForDeparture();
+      queuePeople.concat(latePassengers).forEach((p, i) => {
+        if (isPassengerFullyInsideTrain(p, doorZ)) {
+          removePassengerFromDeparture(p);
+        } else {
+          keepPassengerOnPlatform(p, i, doorZ);
+        }
+      });
+      const playerNearDoor = Math.abs(player.position.z - doorZ) < trainInteriorPlayerHalfZ + trainPassengerBodyRadius + 0.9;
+      const playerTouchingTrainSide = player.position.x < platformEdgeX + trainPassengerBodyRadius + 0.55;
+      if (includePlayer && isPlayerFullyInsideTrain(doorZ)) {
+        player.position.x = THREE.MathUtils.clamp(player.position.x, trainInteriorWallX + 0.18, trainInteriorDoorX - trainPassengerBodyRadius);
+        player.position.z = THREE.MathUtils.clamp(player.position.z, doorZ - trainInteriorPlayerHalfZ, doorZ + trainInteriorPlayerHalfZ);
+      } else if (!includePlayer && playerNearDoor && playerTouchingTrainSide && !isPlayerFullyInsideTrain(doorZ)) {
+        player.position.x = platformEdgeX + 0.58;
+        player.position.z = doorZ;
+        player.userData.velocity.set(0, 0, 0);
+      }
+    }
+
+    function completeBoarding() {
+      boarded = true;
+      state.phase = 'boarded';
+      phaseEl.textContent = '乗車完了';
+      document.body.classList.remove('failed');
+      document.body.classList.add('cleared');
+      clearBannerEl.textContent = 'ふうっ。。。なんとか無事リスキに遅刻せず到着しそうだ！！';
+      messageEl.textContent = 'ふうっ。。。なんとか無事リスキに遅刻せず到着しそうだ！！';
+      settleDepartureCrowdPositions(true);
+      showRestartButton();
+    }
+
+    function updatePhase() {
+      insideTrain = isPlayerInsideTrain();
+
+      if (failed) {
+        state.phase = 'failed';
+        phaseEl.textContent = 'MISS';
+        messageEl.textContent = '乗車失敗。遅刻が確定した。。。';
+        showRestartButton();
+        return;
+      }
+
+      if (boarded) {
+        state.phase = 'boarded';
+        phaseEl.textContent = '乗車完了';
+        document.body.classList.add('cleared');
+        messageEl.textContent = 'ふうっ。。。なんとか無事リスキに遅刻せず到着しそうだ！！';
+        showRestartButton();
+        return;
+      }
+
+      if (elapsed < 3.1) {
+        state.phase = 'arriving';
+        phaseEl.textContent = '電車入線中';
+        messageEl.textContent = '東西線がすぐにホームへ滑り込んでくる。この電車に乗らないと遅刻が決定してしまう。';
+        return;
+      }
+
+      if (elapsed < 4.2) {
+        state.phase = 'doors';
+        phaseEl.textContent = 'ドア開扉';
+        messageEl.textContent = 'ドアが開いた。乗客が一斉にドアへ集中し、列の流れがぎゅっと詰まっていく。';
+        return;
+      }
+
+      if (elapsed >= 17) {
+        if (insideTrain) {
+          completeBoarding();
+        } else {
+          settleDepartureCrowdPositions(false);
+          failed = true;
+          state.phase = 'failed';
+          document.body.classList.add('failed');
+          phaseEl.textContent = 'MISS';
+          messageEl.textContent = '乗車失敗。遅刻が確定した。。。';
+          showRestartButton();
+        }
+        return;
+      }
+
+      if (elapsed >= 14.5) {
+        state.phase = 'closing';
+        phaseEl.textContent = 'ドア閉扉中';
+        showClosingAnnouncement();
+        messageEl.textContent = insideTrain
+          ? 'アナウンスが流れ、ドアが閉まりはじめた。車内側に残れば乗車完了になる。'
+          : 'アナウンスが流れ、ドアが閉まりはじめた。乗れていないとホームに取り残される。';
+        return;
+      }
+
+      state.phase = 'boarding';
+      phaseEl.textContent = insideTrain ? '車内に押し込み中' : '乗車中';
+      messageEl.textContent = insideTrain
+        ? '車内側まで入った。まだ乗車完了ではない。ドアが閉まるまで内側に踏みとどまろう。'
+        : '他の客とぶつかると進みにくい。隙間を探しながらドアへ押し込もう。';
+    }
+
+    function showClosingAnnouncement() {
+      if (announcementPlayed) return;
+      announcementPlayed = true;
+      announcementEl.classList.add('active');
+      announcementEl.textContent = 'まもなくドアが閉まります。無理なご乗車はおやめください。';
+      setTimeout(() => announcementEl.classList.remove('active'), 3600);
+    }
+
+    function updateTrain(delta) {
+      const previousTrainZ = state.trainZ;
+      if (boarded || failed) {
+        if (state.trainZ < trainDepartureStopZ) {
+          state.departureSpeed = THREE.MathUtils.damp(state.departureSpeed, 8.5, 1.8, delta);
+          state.trainZ = Math.min(trainDepartureStopZ, state.trainZ + state.departureSpeed * delta);
+        } else {
+          state.trainZ = trainDepartureStopZ;
+          state.departureSpeed = 0;
+        }
+      } else if (state.trainZ < state.trainTargetZ) {
+        state.trainZ = THREE.MathUtils.damp(state.trainZ, state.trainTargetZ, 1.75, delta);
+        state.rumble = Math.max(state.rumble, 0.9);
+      }
+      const trainDeltaZ = state.trainZ - previousTrainZ;
+      const doorTarget = elapsed >= 14.5 ? 0 : (elapsed >= 3.3 ? 1 : 0);
+      state.doorsOpen = THREE.MathUtils.damp(state.doorsOpen, doorTarget, doorTarget > state.doorsOpen ? 3.2 : 4.8, delta);
+      state.rumble = Math.max(0, state.rumble - delta * 0.6);
+      state.crowdPulse += delta;
+      train.position.x = trainFloorX - 1.84 + Math.sin(elapsed * 33) * state.rumble * 0.018;
+      updateTrainPosition();
+      moveOnboardCrowdWithTrain(trainDeltaZ);
+
+      packedPeople.forEach((p, i) => {
+        p.position.y = 0.06 + Math.sin(state.crowdPulse * 4.5 + i * 0.77) * 0.025;
+        p.rotation.z = Math.sin(state.crowdPulse * 2.4 + i) * 0.035;
+        constrainPassengerToTrainInterior(p);
+      });
+    }
+
+    function moveOnboardCrowdWithTrain(deltaZ) {
+      if (Math.abs(deltaZ) < 0.0001) return;
+      for (const p of packedPeople) {
+        if (p.visible) p.position.z += deltaZ;
+      }
+      for (const p of queuePeople) {
+        if (!p.userData.removedAfterBoarding && p.userData.onboardTrain && p.visible) {
+          p.position.z += deltaZ;
+        }
+      }
+      for (const p of latePassengers) {
+        if (!p.userData.removedAfterBoarding && p.userData.onboardTrain && p.visible) {
+          p.position.z += deltaZ;
+        }
+      }
+      if (boarded || isPlayerInsideTrain()) {
+        player.position.z += deltaZ;
+      }
+    }
+
+    function movePlayer(delta) {
+      const input = new THREE.Vector2(0, 0);
+      if (keys.has('KeyW') || keys.has('ArrowUp')) input.y += 1;
+      if (keys.has('KeyS') || keys.has('ArrowDown')) input.y -= 1;
+      if (keys.has('KeyA') || keys.has('ArrowLeft')) input.x -= 1;
+      if (keys.has('KeyD') || keys.has('ArrowRight')) input.x += 1;
+      input.x += mobileMove.x;
+      input.y += mobileMove.y;
+      if (input.length() > 1) input.normalize();
+
+      const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw)).normalize();
+      const right = new THREE.Vector3(-forward.z, 0, forward.x).normalize();
+      const desired = new THREE.Vector3().addScaledVector(forward, input.y).addScaledVector(right, input.x);
+      if (desired.lengthSq() > 0.001) {
+        desired.normalize();
+        player.rotation.y = Math.atan2(-desired.x, -desired.z);
+      }
+
+      const speed = insideTrain ? 1.05 : 2.15;
+      player.userData.velocity.lerp(desired.multiplyScalar(speed), 1 - Math.exp(-delta * 9));
+      player.position.addScaledVector(player.userData.velocity, delta);
+
+      constrainPlayer();
+      animatePlayer(delta, input.length());
+
+      insideTrain = isPlayerInsideTrain();
+    }
+
+    function constrainPlayer() {
+      if (failed) {
+        player.position.x = THREE.MathUtils.clamp(player.position.x, -3.45, platformWallX - 0.45);
+      } else if (state.phase === 'waiting' || state.phase === 'arriving') {
+        player.position.x = THREE.MathUtils.clamp(player.position.x, -3.35, platformWallX - 0.45);
+      } else if (state.doorsOpen < 0.55 && !isPlayerInsideTrain()) {
+        player.position.x = THREE.MathUtils.clamp(player.position.x, -3.45, platformWallX - 0.45);
+      } else {
+        player.position.x = THREE.MathUtils.clamp(player.position.x, trainInteriorWallX + 0.18, platformWallX - 0.45);
+      }
+      player.position.z = THREE.MathUtils.clamp(player.position.z, -19.5, 18.5);
+
+      const doorDistanceZ = Math.abs(player.position.z - currentTrainDoorZ());
+      const atOpenDoorway = doorDistanceZ < trainDoorPassageHalfWidth;
+      const inDoorwayCrowd = doorDistanceZ < trainDoorwayCrowdHalfWidth && player.position.x < platformEdgeX + 0.65;
+      const canPassThroughDoor = atOpenDoorway && state.doorsOpen >= 0.65 && !failed;
+      if (player.position.x < platformEdgeX && !isPlayerInsideTrain() && !canPassThroughDoor) {
+        player.position.x = platformEdgeX;
+        player.userData.velocity.x = Math.max(0, player.userData.velocity.x);
+      }
+
+      if (player.position.x < trainInteriorDoorX) {
+        // ドアを越えた直後も密集した乗客に当たり続けるようにし、
+        // 入口付近だけ急にすり抜けやすくならないよう通路幅だけを制限する。
+        player.position.z = THREE.MathUtils.clamp(player.position.z, currentTrainDoorZ() - trainInteriorPlayerHalfZ, currentTrainDoorZ() + trainInteriorPlayerHalfZ);
+      }
+
+      const enteringThroughDoor = canPassThroughDoor || inDoorwayCrowd;
+      const xBeforeCrowdContact = player.position.x;
+      let contactCount = 0;
+      for (const p of queuePeople) {
+        const platformStrength = enteringThroughDoor ? 0.27 * platformCrowdPushDamping : 0.24;
+        if (pushApart(player, p, enteringThroughDoor ? 0.58 : 0.54, platformStrength)) contactCount++;
+      }
+      for (const p of latePassengers) {
+        const platformStrength = enteringThroughDoor ? 0.25 * platformCrowdPushDamping : 0.2;
+        if (pushApart(player, p, enteringThroughDoor ? 0.56 : 0.5, platformStrength)) contactCount++;
+      }
+      for (const p of packedPeople) {
+        if (!p.visible) continue;
+        const onboardPriority = (insideTrain || inDoorwayCrowd) ? onboardContactPriority : 0;
+        const packedRadius = insideTrain || inDoorwayCrowd ? 0.6 + onboardPriority : 0.5;
+        const packedStrength = insideTrain || inDoorwayCrowd ? 0.2 + onboardPriority : 0.14;
+        if (pushApart(player, p, packedRadius, packedStrength)) contactCount++;
+      }
+      contactCount += applyTrainWallContactPriority(inDoorwayCrowd) ? 1 : 0;
+      if (contactCount > 0) {
+        if (inDoorwayCrowd && !isPlayerFullyInsideTrain() && player.position.x < xBeforeCrowdContact) {
+          // 後ろから来た乗客との接触だけで車内へ押し込まれすぎないよう、
+          // ドア付近では「押されて入る」成分を弱める。
+          player.position.x = THREE.MathUtils.lerp(player.position.x, xBeforeCrowdContact, 0.68);
+          player.userData.velocity.x = Math.max(player.userData.velocity.x, -0.18);
+        }
+        const jamSlowdown = inDoorwayCrowd ? 0.1 : 0;
+        player.userData.velocity.multiplyScalar(Math.max(0.34, 1 - contactCount * (0.08 + jamSlowdown)));
+      }
+    }
+
+    function applyTrainWallContactPriority(inDoorwayCrowd) {
+      if (!inDoorwayCrowd || isPlayerFullyInsideTrain()) return false;
+      const doorZ = currentTrainDoorZ();
+      const doorwayDepth = THREE.MathUtils.clamp((platformEdgeX - player.position.x) / (platformEdgeX - trainInteriorDoorX), 0, 1);
+      if (doorwayDepth <= 0) return false;
+
+      // 車内側（既に乗っている乗客と車両の壁）をほんの少し優位にして、
+      // ホーム側の密集だけで一気に車内へ押し込まれる挙動を抑える。
+      const centeredInDoor = 1 - THREE.MathUtils.clamp(Math.abs(player.position.z - doorZ) / trainDoorwayCrowdHalfWidth, 0, 1);
+      const wallPressure = trainWallContactPriority * doorwayDepth * centeredInDoor;
+      if (wallPressure <= 0.0001) return false;
+
+      player.position.x += wallPressure;
+      player.userData.velocity.x = Math.max(player.userData.velocity.x, -0.12);
+      return true;
+    }
+
+    function resolveCrowdContacts() {
+      if (boarded || failed) return;
+      const movingPassengers = queuePeople.concat(latePassengers);
+      resolvePassengerGroup(movingPassengers, 0.47, 0.58);
+
+      const visiblePacked = packedPeople.filter((p) => p.visible);
+      resolvePassengerGroup(visiblePacked, 0.5, 0.42);
+      for (const passenger of movingPassengers) {
+        for (const packed of visiblePacked) {
+          resolvePassengerPair(passenger, packed, 0.52, 0.25, 0.14);
+        }
+      }
+
+      const doorDistanceZ = Math.abs(player.position.z - currentTrainDoorZ());
+      const playerInDoorwayCrowd = doorDistanceZ < trainDoorwayCrowdHalfWidth && player.position.x < platformEdgeX + 0.65;
+      for (const passenger of movingPassengers) {
+        const platformPlayerShare = playerInDoorwayCrowd ? 0.24 * platformCrowdPushDamping : 0.24;
+        const platformPassengerShare = playerInDoorwayCrowd ? 0.22 + onboardContactPriority * 0.5 : 0.22;
+        applyPassengerContact(passenger, 0.54, platformPassengerShare, platformPlayerShare);
+      }
+      for (const passenger of visiblePacked) {
+        const packedRadius = (insideTrain || playerInDoorwayCrowd) ? 0.56 + onboardContactPriority : 0.5;
+        const packedPlayerShare = insideTrain ? 0.28 + onboardContactPriority : (playerInDoorwayCrowd ? 0.16 + onboardContactPriority : 0.16);
+        applyPassengerContact(passenger, packedRadius, 0.16, packedPlayerShare);
+      }
+      for (const passenger of movingPassengers) {
+        constrainPassengerToTrainInterior(passenger);
+      }
+      for (const passenger of visiblePacked) {
+        constrainPassengerToTrainInterior(passenger);
+      }
+      constrainPlayer();
+    }
+
+    function resolvePassengerGroup(passengers, radius, strength) {
+      for (let i = 0; i < passengers.length; i++) {
+        for (let j = i + 1; j < passengers.length; j++) {
+          resolvePassengerPair(passengers[i], passengers[j], radius, strength, strength);
+        }
+      }
+    }
+
+    function resolvePassengerPair(a, b, radius, aShare, bShare) {
+      const dx = a.position.x - b.position.x;
+      const dz = a.position.z - b.position.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist <= 0.001 || dist >= radius) return false;
+      const overlap = radius - dist;
+      const nx = dx / dist;
+      const nz = dz / dist;
+      a.position.x += nx * overlap * aShare;
+      a.position.z += nz * overlap * aShare;
+      b.position.x -= nx * overlap * bShare;
+      b.position.z -= nz * overlap * bShare;
+      return true;
+    }
+
+    function blockPassengerBehindPlayer(passenger, gap, laneWidth) {
+      if (failed || state.phase === 'closing' || state.phase === 'boarded') return;
+      const previousX = passenger.userData.prevX ?? passenger.position.x;
+      const previousZ = passenger.userData.prevZ ?? passenger.position.z;
+      const wasInSameLane = Math.abs(previousZ - player.position.z) < laneWidth;
+      const isInSameLane = Math.abs(passenger.position.z - player.position.z) < laneWidth;
+      const segmentX = passenger.position.x - previousX;
+      const segmentZ = passenger.position.z - previousZ;
+      const segmentLenSq = segmentX * segmentX + segmentZ * segmentZ;
+      const closestT = segmentLenSq > 0.0001
+        ? THREE.MathUtils.clamp(((player.position.x - previousX) * segmentX + (player.position.z - previousZ) * segmentZ) / segmentLenSq, 0, 1)
+        : 1;
+      const closestX = previousX + segmentX * closestT;
+      const closestZ = previousZ + segmentZ * closestT;
+      const sweptThroughPlayer = Math.hypot(closestX - player.position.x, closestZ - player.position.z) < gap;
+      const passengerWasBehind = previousX >= player.position.x + gap * 0.35;
+      const passengerIsBehind = passenger.position.x >= player.position.x;
+      const crossedThroughPlayer = passengerWasBehind && passenger.position.x < player.position.x + gap;
+      const crowdingFromBehind = passengerIsBehind && passenger.position.x < player.position.x + gap;
+
+      if ((wasInSameLane || isInSameLane || sweptThroughPlayer) && (crossedThroughPlayer || crowdingFromBehind || sweptThroughPlayer)) {
+        passenger.position.x = Math.min(platformWallX - 0.45, player.position.x + gap);
+        passenger.position.z = THREE.MathUtils.lerp(passenger.position.z, player.position.z, 0.35);
+        passenger.userData.blockedByPlayer = true;
+      } else {
+        passenger.userData.blockedByPlayer = false;
+      }
+    }
+
+    function applyPassengerContact(passenger, radius, passengerShare, playerShare) {
+      const dx = player.position.x - passenger.position.x;
+      const dz = player.position.z - passenger.position.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist <= 0.001 || dist >= radius) return false;
+
+      const overlap = radius - dist;
+      const nx = dx / dist;
+      const nz = dz / dist;
+      passenger.position.x -= nx * overlap * passengerShare;
+      passenger.position.z -= nz * overlap * passengerShare;
+      player.position.x += nx * overlap * playerShare;
+      player.position.z += nz * overlap * playerShare;
+      player.userData.velocity.multiplyScalar(0.82);
+      return true;
+    }
+
+    function pushApart(a, b, radius, strength) {
+      const dx = a.position.x - b.position.x;
+      const dz = a.position.z - b.position.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > 0.001 && dist < radius) {
+        const push = (radius - dist) * strength;
+        a.position.x += (dx / dist) * push;
+        a.position.z += (dz / dist) * push;
+        return true;
+      }
+      return false;
+    }
+
+    function animatePlayer(delta, amount) {
+      player.position.y = Math.sin(elapsed * 10) * 0.025 * amount;
+      const limbs = player.userData.limbs;
+      if (limbs && limbs.arms[0] && limbs.legs[0]) {
+        const swing = Math.sin(elapsed * 9) * 0.22 * amount;
+        limbs.legs[0].rotation.x = swing;
+        limbs.legs[1].rotation.x = -swing;
+        limbs.arms[0].rotation.x = -swing;
+        limbs.arms[1].rotation.x = swing;
+      }
+    }
+
+    function updateAutoView(delta) {
+      const lookTarget = tmpVec.set(-5.85, 0, currentTrainDoorZ());
+      if (boarded) {
+        lookTarget.set(player.position.x, 0, player.position.z + 8);
+      } else if (insideTrain || player.position.x < -5.05) {
+        lookTarget.set(trainInteriorWallX + 0.75, 0, player.position.z + 4);
+      } else if (failed) {
+        lookTarget.set(platformEdgeX + 0.9, 0, currentTrainDoorZ());
+      }
+      const dx = lookTarget.x - player.position.x;
+      const dz = lookTarget.z - player.position.z;
+      if (Math.hypot(dx, dz) > 0.001) {
+        yaw = lerpAngle(yaw, Math.atan2(dx, dz), 1 - Math.exp(-delta * 3.6));
+      }
+      pitch = THREE.MathUtils.lerp(pitch, 0.04, 1 - Math.exp(-delta * 4));
+    }
+
+    function lerpAngle(from, to, amount) {
+      const delta = Math.atan2(Math.sin(to - from), Math.cos(to - from));
+      return from + delta * amount;
+    }
+
+    function updateCamera() {
+      const distance = 4.9;
+      const height = 2.25;
+      const offset = new THREE.Vector3(
+        -Math.sin(yaw) * Math.cos(pitch) * distance,
+        height + Math.sin(-pitch) * 1.4,
+        -Math.cos(yaw) * Math.cos(pitch) * distance
+      );
+      camera.position.copy(player.position).add(offset);
+      camera.position.y = Math.max(camera.position.y, 1.4);
+      if (camera.position.x < -6.9) camera.position.x = -6.9;
+      if (camera.position.x > platformWallX - 0.12) camera.position.x = platformWallX - 0.12;
+      camera.lookAt(tmpVec.copy(player.position).add(new THREE.Vector3(0, 2.15, 0)));
+    }
+
+    function updateCoordinates() {
+      coordsEl.innerHTML = `X: ${player.position.x.toFixed(2)}<br>Y: ${player.position.y.toFixed(2)}<br>Z: ${player.position.z.toFixed(2)}`;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = Math.min(clock.getDelta(), 0.045);
+      if (started) elapsed += delta;
+      updatePhase();
+      updateTrain(delta);
+      updateQueue(delta);
+      updateLatePassengers(delta);
+      updateAutoView(delta);
+      if (started && !boarded && !failed) movePlayer(delta);
+      resolveCrowdContacts();
+      updateCamera();
+      updateCoordinates();
+      renderer.render(scene, camera);
+    }
+
+    function showRestartButton() {
+      restartButton.classList.add('visible');
+    }
+
+    function beginGame() {
+      if (started) return;
+      restartButton.classList.remove('visible');
+      started = true;
+      startScreen.style.opacity = '0';
+      startScreen.style.pointerEvents = 'none';
+      setTimeout(() => startScreen.remove(), 450);
+    }
+
+    startScreen.addEventListener('click', beginGame);
+    startScreen.addEventListener('touchstart', beginGame, { passive: true });
+    restartButton.addEventListener('click', () => window.location.reload());
+
+    window.addEventListener('keydown', (event) => {
+      keys.add(event.code);
+      if (event.code === 'Space') beginGame();
+    });
+    window.addEventListener('keyup', (event) => keys.delete(event.code));
+
+    if (window.nipplejs) {
+      const joystickSize = Math.max(86, Math.min(118, window.innerWidth * 0.28));
+      const joystickBottomOffset = `${Math.round(joystickSize / 2)}px`;
+      const joystick = nipplejs.create({
+        zone: document.getElementById('joystick-zone'),
+        mode: 'static',
+        position: { left: '50%', bottom: joystickBottomOffset },
+        color: '#facc15',
+        size: joystickSize
+      });
+      joystick.on('move', (_evt, data) => {
+        const force = Math.min(data.force || 0, 1);
+        const angle = data.angle ? data.angle.radian : 0;
+        const screenX = Math.cos(angle) * force;
+        const screenY = Math.sin(angle) * force;
+        mobileMove.x = screenX;
+        mobileMove.y = screenY;
+      });
+      joystick.on('end', () => {
+        mobileMove.x = 0;
+        mobileMove.y = 0;
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+  </script>
+</body>
+</html>
