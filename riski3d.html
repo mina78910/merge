@@ -2055,11 +2055,13 @@
             return mesh;
         }
 
+        const freeSeatTableHeight = 0.72;
+
         function createFreeSeatTable() {
             const group = new THREE.Group();
             const tableWidth = 1.35;
             const tableDepth = 1.35;
-            const tableHeight = 0.72;
+            const tableHeight = freeSeatTableHeight;
             const topThickness = 0.06;
             const topMat = new THREE.MeshStandardMaterial({ color: 0x8a8173, roughness: 0.62 });
             const legMat = new THREE.MeshStandardMaterial({ color: 0x6f685e, roughness: 0.72, metalness: 0.05 });
@@ -2237,14 +2239,20 @@
 
         function createWoodMarbleCounter() {
             const group = new THREE.Group();
-            const counterWidth = 3.0;
+            // 座標の取り違えを避けるため、要望値をワールド座標ベースで明示する。
+            const counterMinX = -5.0;
+            const counterMaxX = 2.0;
+            const counterWidth = counterMaxX - counterMinX;
             const counterDepth = 1.0;
-            const counterHeight = 3.0;
+            const counterHeight = 1.22; // フリー席テーブル高(0.72)の約1.7倍
+            const counterTopThickness = 0.08;
+            const counterCenterX = (counterMinX + counterMaxX) / 2;
+            const counterCenterZ = 1.0;
             const woodTex = createWoodTexture();
-            woodTex.repeat.set(1.5, 2.0);
+            woodTex.repeat.set(3.5, 1.35);
             const woodMat = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.58, metalness: 0.03 });
             const marbleTex = createBlackMarbleTexture();
-            marbleTex.repeat.set(2.2, 0.8);
+            marbleTex.repeat.set(4.8, 0.8);
             const marbleMat = new THREE.MeshStandardMaterial({
                 map: marbleTex,
                 color: 0x111111,
@@ -2252,13 +2260,14 @@
                 metalness: 0.08
             });
 
-            const base = new THREE.Mesh(new THREE.BoxGeometry(counterWidth, counterHeight - 0.08, counterDepth), woodMat);
-            base.position.y = (counterHeight - 0.08) / 2;
+            const baseHeight = counterHeight - counterTopThickness;
+            const base = new THREE.Mesh(new THREE.BoxGeometry(counterWidth, baseHeight, counterDepth), woodMat);
+            base.position.y = baseHeight / 2;
             setMeshShadow(base, true);
             group.add(base);
 
-            const top = new THREE.Mesh(new THREE.BoxGeometry(counterWidth + 0.18, 0.08, counterDepth + 0.14), marbleMat);
-            top.position.y = counterHeight;
+            const top = new THREE.Mesh(new THREE.BoxGeometry(counterWidth + 0.18, counterTopThickness, counterDepth + 0.14), marbleMat);
+            top.position.y = baseHeight + counterTopThickness / 2;
             setMeshShadow(top, true);
             group.add(top);
 
@@ -2268,14 +2277,14 @@
             group.add(toeKick);
 
             const panelLineMat = new THREE.MeshStandardMaterial({ color: 0x5b3924, roughness: 0.68 });
-            [-0.5, 0.5].forEach((x) => {
-                const divider = new THREE.Mesh(new THREE.BoxGeometry(0.035, counterHeight - 0.32, 0.025), panelLineMat);
-                divider.position.set(x, (counterHeight - 0.08) / 2 + 0.08, counterDepth / 2 + 0.016);
+            [-counterWidth / 4, 0, counterWidth / 4].forEach((x) => {
+                const divider = new THREE.Mesh(new THREE.BoxGeometry(0.035, baseHeight - 0.18, 0.025), panelLineMat);
+                divider.position.set(x, baseHeight / 2 + 0.08, counterDepth / 2 + 0.016);
                 setMeshShadow(divider);
                 group.add(divider);
             });
 
-            group.position.set(-3.5, 0, roomCenterZ);
+            group.position.set(counterCenterX, 0, counterCenterZ);
             scene.add(group);
         }
 
@@ -2289,7 +2298,7 @@
             { x: 2.0, z: roomCenterZ + 2.7, rotation: -Math.PI / 4 }
         ].forEach(({ x, z, rotation }) => createFreeSeatSet(x, z, rotation));
 
-        // x=-5〜-2、Z幅約1ポイント、Y軸約3ポイントの木目調カウンター。天板は黒大理石。
+        // x=-5〜+2、z=+1、Z幅約1ポイント、高さ約1.22ポイントの木目調カウンター。天板は黒大理石。
         createWoodMarbleCounter();
 
         function createWallDeskStation(x, z, facingAngle) {
