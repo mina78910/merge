@@ -2486,11 +2486,7 @@
             scene.add(rowGroup);
         }
 
-        for (let x = -21.6; x <= 21.6; x += 3.6) { 
-            // 観音扉（alcoveCenterX = 4.8）正面のデスク列をスキップ
-            if (Math.abs(x - 3.6) < 0.1 || Math.abs(x - 7.2) < 0.1) continue;
-            createDeskRow(x, 0, 4);
-        }
+        // パソコン付きのメインデスク列は配置しない。
 
         // デスクを抜いた中央フリースペース（x = 5.4付近）にフリー席セットを4つ、ダイヤモンド状に配置
         createFreeSeatSet(5.4, -2.65, Math.PI / 4);
@@ -2535,14 +2531,8 @@
             scene.add(stationGroup);
         }
 
-        const deskOffset = 2.8; 
-        const mossWallDeskZ = -roomDepth / 2 + 1.8;
-        for (let x = -20; x <= 20; x += 10) { 
-            createWallDeskStation(x - deskOffset, mossWallDeskZ, 0);
-            if (x + deskOffset < 21) {
-                createWallDeskStation(x + deskOffset, mossWallDeskZ, 0);
-            }
-        }
+        const deskOffset = 2.8;
+        // パソコン付きの壁際デスクも配置しない。
 
         const mossWallTeleconferenceBoothDepth = 1.18;
         const mossWallTeleconferenceBoothZ = backWallZ + 0.1 + mossWallTeleconferenceBoothDepth / 2;
@@ -3254,35 +3244,7 @@
 
         const peoplePlacements = [];
 
-        // モニター付きデスク: 既存チェア座標から自動生成し、97席中88席（約90.7%）を埋める。
-        // デスク天板中心ではなく椅子座面中心に置くことで、机やモニターへのめり込みを避ける。
-        const mainDeskRows = [-21.6, -18.0, -14.4, -10.8, -7.2, -3.6, 0.0, 10.8, 14.4, 18.0, 21.6];
-        const mainDeskUnitLength = 1.4;
-        const mainDeskUnits = 4;
-        const mainDeskTotalLength = mainDeskUnits * mainDeskUnitLength;
-        const faceToFaceStagger = 0.22;
-        const skippedMainDeskSeatIndices = new Set([5, 16, 27, 38, 49, 60, 71, 82]);
-        let mainDeskSeatIndex = 0;
-        mainDeskRows.forEach((deskX) => {
-            for (let i = 0; i < mainDeskUnits; i++) {
-                const zOffset = (i * mainDeskUnitLength) - (mainDeskTotalLength / 2) + (mainDeskUnitLength / 2);
-                [
-                    { x: deskX + 0.8, z: zOffset + faceToFaceStagger, rotation: -Math.PI / 2 },
-                    { x: deskX - 0.8, z: zOffset - faceToFaceStagger, rotation: Math.PI / 2 }
-                ].forEach((seat) => {
-                    if (!skippedMainDeskSeatIndices.has(mainDeskSeatIndex)) {
-                        peoplePlacements.push({ ...seat, pose: 'seated' });
-                    }
-                    mainDeskSeatIndex++;
-                });
-            }
-        });
-
-        const wallMonitorDeskSeats = [-22.8, -17.2, -12.8, -7.2, -2.8, 2.8, 7.2, 12.8, 17.2]
-            .map((x) => ({ x, z: mossWallDeskZ - 0.65, rotation: 0, pose: 'seated' }));
-        wallMonitorDeskSeats.forEach((seat, index) => {
-            if (index !== 5) peoplePlacements.push(seat);
-        });
+        // パソコン付きデスクを除去したため、該当デスク席の着席人物も配置しない。
 
         peoplePlacements.push(
             // ブレイク用の机＆4椅子: 人数は据え置き、椅子の背もたれと反対側（テーブル側）へ向きを反転
