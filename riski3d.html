@@ -489,8 +489,14 @@
         // ==========================================
         // 3. 空間のベース構築
         // ==========================================
-        const roomWidth = 50; 
-        const roomDepth = 14; 
+        // X方向は左右を7ポイントずつ縮小し、Z方向はマイナス側だけ10ポイント拡張する。
+        const roomWidth = 36;
+        const roomDepth = 14;
+        const roomBackExtension = 10;
+        const roomFrontZ = roomDepth / 2;
+        const roomBackZ = -roomDepth / 2 - roomBackExtension;
+        const roomFullDepth = roomFrontZ - roomBackZ;
+        const roomCenterZ = (roomFrontZ + roomBackZ) / 2;
         const ceilingLowerAmount = 0.5;
         const roomHeight = 5 - ceilingLowerAmount;
         const wallFixtureHeightBoost = 0.6;
@@ -814,13 +820,14 @@
         }
 
         const floorWoodTex = createWoodTexture();
-        floorWoodTex.repeat.set(roomWidth / 2, roomDepth / 2);
+        floorWoodTex.repeat.set(roomWidth / 2, roomFullDepth / 2);
         const wallWoodTex = createWoodTexture();
         wallWoodTex.repeat.set(3, 2);
-        const floorGeo = new THREE.PlaneGeometry(roomWidth, roomDepth);
+        const floorGeo = new THREE.PlaneGeometry(roomWidth, roomFullDepth);
         const floorMat = new THREE.MeshStandardMaterial({ map: floorWoodTex, roughness: 0.55, metalness: 0.0 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
+        floor.position.z = roomCenterZ;
         floor.receiveShadow = true;
         scene.add(floor);
 
@@ -840,7 +847,7 @@
             createWall(0.2, height, depth, centerX, height / 2, startZ + depth / 2, color);
         }
 
-        const backWallZ = -roomDepth / 2;
+        const backWallZ = roomBackZ;
         // モスグリーンの壁は撤去し、床から天井まで全面ガラス張りにする。
         const windowTopHeight = roomHeight;
         const windowBottomHeight = 0;
@@ -872,21 +879,17 @@
         bottomFrame.position.set(0, windowBottomHeight, backWallZ);
         scene.add(bottomFrame);
         
-        for(let x = -roomWidth/2; x <= roomWidth/2; x += 3.333) {
-            const vFrame = new THREE.Mesh(new THREE.BoxGeometry(0.05, windowHeight, 0.24), frameMat);
-            vFrame.position.set(x, windowBottomHeight + windowHeight / 2, backWallZ);
-            scene.add(vFrame);
-        }
+        // ガラス面側の柱・縦桟は除去し、全面をそのままガラス張りにする。
 
-        createWall(0.2, roomHeight, roomDepth, roomWidth / 2, roomHeight/2, 0);  
+        createWall(0.2, roomHeight, roomFullDepth, roomWidth / 2, roomHeight / 2, roomCenterZ);
         
         // 会議室を除去し、x=-25側は木目調の壁でふさぐ。
-        createWall(0.2, roomHeight, roomDepth, -roomWidth / 2, roomHeight / 2, 0);
+        createWall(0.2, roomHeight, roomFullDepth, -roomWidth / 2, roomHeight / 2, roomCenterZ);
 
         const breakWidth = 10; 
-        const breakDepth = roomDepth / 2; 
+        const breakDepth = -roomBackZ;
         const breakX = -roomWidth / 2 - breakWidth / 2; 
-        const breakZ = -roomDepth / 4; 
+        const breakZ = roomBackZ + breakDepth / 2;
         
         const cityView = new THREE.Mesh(
             new THREE.PlaneGeometry(breakDepth, roomHeight),
@@ -919,7 +922,7 @@
         });
 
         const windowFrameMat = new THREE.MeshStandardMaterial({ color: 0xe5ebef, roughness: 0.35 });
-        for (let z = -roomDepth / 2; z <= 0.01; z += breakDepth / 3) {
+        for (let z = roomBackZ; z <= 0.01; z += breakDepth / 3) {
             const frame = new THREE.Mesh(new THREE.BoxGeometry(0.12, roomHeight, 0.06), windowFrameMat);
             frame.position.set(-roomWidth / 2 - breakWidth + 0.02, roomHeight / 2, z);
             scene.add(frame);
@@ -935,11 +938,11 @@
             new THREE.PlaneGeometry(breakWidth, roomHeight),
             new THREE.MeshBasicMaterial({ map: createCityWindowTexture(), side: THREE.DoubleSide })
         );
-        breakBackCityView.position.set(breakX, roomHeight / 2, -roomDepth / 2 - 0.08);
+        breakBackCityView.position.set(breakX, roomHeight / 2, roomBackZ - 0.08);
         scene.add(breakBackCityView);
 
         const breakBackGlass = new THREE.Mesh(new THREE.BoxGeometry(breakWidth, roomHeight, 0.05), breakGlassMat);
-        breakBackGlass.position.set(breakX, roomHeight / 2, -roomDepth / 2);
+        breakBackGlass.position.set(breakX, roomHeight / 2, roomBackZ);
         scene.add(breakBackGlass);
 
         const alcoveCeilingTex = createWoodTexture();
@@ -1948,9 +1951,7 @@
             scene.add(pillarGroup);
         }
 
-        for (let i = -20; i <= 20; i += 10) { 
-            createPillar(i, -roomDepth / 2 + 1.2); 
-        }
+        // ガラス面側の柱は配置しない。
 
         // ==========================================
         // 5. 各種家具モデル生成（デスク用・カフェ用）
@@ -3241,7 +3242,7 @@
                 const wallOffset = 1.5; 
                 let boundXMin = -roomWidth / 2 + wallOffset; 
                 const boundXMax = roomWidth / 2 - 2.0;
-                const boundZMin = -roomDepth / 2 + 1.8; 
+                const boundZMin = roomBackZ + 1.8;
                 
                 if (camera.position.x < -23.5) {
                     if (camera.position.z > -0.5) camera.position.z = -0.5;
