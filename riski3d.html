@@ -2288,6 +2288,85 @@
             scene.add(group);
         }
 
+
+        function createRaisedLatticePlatform() {
+            const group = new THREE.Group();
+            const platformMinX = 9.0;
+            const platformMaxX = 14.0;
+            const platformMinZ = -10.0;
+            const platformMaxZ = 0.0;
+            const platformWidth = platformMaxX - platformMinX;
+            const platformHeight = 0.45;
+            const platformCenterX = (platformMinX + platformMaxX) / 2;
+            const platformCenterZ = (platformMinZ + platformMaxZ) / 2;
+            const stepCount = 3;
+            const stepDepth = 0.55;
+            const stepHeight = platformHeight / stepCount;
+            const deckStartZ = platformMaxZ - stepDepth * stepCount;
+
+            const deckTex = createWoodTexture();
+            deckTex.repeat.set(platformWidth / 1.2, (deckStartZ - platformMinZ) / 1.2);
+            const deckMat = new THREE.MeshStandardMaterial({ map: deckTex, roughness: 0.58, metalness: 0.02 });
+            const riserMat = new THREE.MeshStandardMaterial({ color: 0x4a2d1a, roughness: 0.72 });
+            const latticeMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.42, metalness: 0.35 });
+
+            const deckDepth = deckStartZ - platformMinZ;
+            const deck = new THREE.Mesh(new THREE.BoxGeometry(platformWidth, platformHeight, deckDepth), deckMat);
+            deck.position.set(platformCenterX, platformHeight / 2, platformMinZ + deckDepth / 2);
+            setMeshShadow(deck, true);
+            group.add(deck);
+
+            for (let i = 0; i < stepCount; i++) {
+                const currentHeight = stepHeight * (i + 1);
+                const stepZ = platformMaxZ - stepDepth * (i + 0.5);
+                const step = new THREE.Mesh(new THREE.BoxGeometry(platformWidth, currentHeight, stepDepth), i === stepCount - 1 ? deckMat : riserMat);
+                step.position.set(platformCenterX, currentHeight / 2, stepZ);
+                setMeshShadow(step, true);
+                group.add(step);
+            }
+
+            const postSize = 0.08;
+            const fenceHeight = 1.15;
+            const fenceBaseY = platformHeight;
+            const postGeo = new THREE.BoxGeometry(postSize, fenceHeight, postSize);
+            const railXGeo = new THREE.BoxGeometry(platformWidth + postSize, 0.045, 0.045);
+            const railZGeo = new THREE.BoxGeometry(0.045, 0.045, platformMaxZ - platformMinZ + postSize);
+            const railYs = [fenceBaseY + 0.28, fenceBaseY + 0.62, fenceBaseY + 0.96];
+
+            function addPost(x, z) {
+                const post = new THREE.Mesh(postGeo, latticeMat);
+                post.position.set(x, fenceBaseY + fenceHeight / 2, z);
+                setMeshShadow(post);
+                group.add(post);
+            }
+
+            for (let x = platformMinX; x <= platformMaxX + 0.001; x += 1.0) {
+                addPost(x, platformMinZ);
+                addPost(x, platformMaxZ);
+            }
+            for (let z = platformMinZ + 1.0; z < platformMaxZ - 0.001; z += 1.0) {
+                addPost(platformMinX, z);
+                addPost(platformMaxX, z);
+            }
+
+            railYs.forEach((y) => {
+                [platformMinZ, platformMaxZ].forEach((z) => {
+                    const rail = new THREE.Mesh(railXGeo, latticeMat);
+                    rail.position.set(platformCenterX, y, z);
+                    setMeshShadow(rail);
+                    group.add(rail);
+                });
+                [platformMinX, platformMaxX].forEach((x) => {
+                    const rail = new THREE.Mesh(railZGeo, latticeMat);
+                    rail.position.set(x, y, platformCenterZ);
+                    setMeshShadow(rail);
+                    group.add(rail);
+                });
+            });
+
+            scene.add(group);
+        }
+
         // 部屋中央に移動したフリー席: 4セットから6セットに増やし、拡張後の部屋中心に寄せて配置
         [
             { x: -0.8, z: roomCenterZ - 2.7, rotation: Math.PI / 4 },
@@ -2300,6 +2379,9 @@
 
         // x=-5〜+2、z=+1、Z幅約1ポイント、高さ約1.22ポイントの木目調カウンター。天板は黒大理石。
         createWoodMarbleCounter();
+
+        // x=9〜14、z=-10〜0に3段程度の高台エリアを作り、黒い格子で囲う。
+        createRaisedLatticePlatform();
 
         function createWallDeskStation(x, z, facingAngle) {
             const stationGroup = new THREE.Group();
