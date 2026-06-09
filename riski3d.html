@@ -659,14 +659,25 @@
             canvas.height = 1024;
             const ctx = canvas.getContext('2d');
 
-            // 4階の窓越しに見える都内大通り沿いの向かいビル。
-            // 道路面は見えない角度なので、低い位置までビル外壁で埋めて白飛びを抑える。
+            // 17階の窓越しに見える都内の眺望。地上階の道路ではなく、
+            // 遠景の空と中高層ビル群が見える高さにして開放感を出す。
             const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            sky.addColorStop(0, '#d7e4ee');
-            sky.addColorStop(0.52, '#c4d5e1');
-            sky.addColorStop(1, '#b4c4cf');
+            sky.addColorStop(0, '#cfe3f5');
+            sky.addColorStop(0.45, '#dcecf7');
+            sky.addColorStop(0.72, '#eef4f8');
+            sky.addColorStop(1, '#cbd7df');
             ctx.fillStyle = sky;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+            for (const cloud of [
+                [210, 170, 155, 34], [520, 120, 210, 42], [1120, 190, 250, 48], [1600, 135, 190, 38]
+            ]) {
+                const [x, y, w, h] = cloud;
+                ctx.beginPath();
+                ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
 
             function drawBuilding({ x, y, w, h, body, side, frame, glass, floors, cols, inset = 26 }) {
                 const facade = ctx.createLinearGradient(x, y, x + w, y + h);
@@ -732,6 +743,31 @@
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.10)';
                     ctx.fillRect(x + 8, slabY + 7, w - 16, 3);
                 }
+            }
+
+            function drawDistantTower(x, y, w, h, color, windowColor) {
+                const towerGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+                towerGrad.addColorStop(0, color);
+                towerGrad.addColorStop(1, '#8da0ac');
+                ctx.fillStyle = towerGrad;
+                ctx.fillRect(x, y, w, h);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+                ctx.fillRect(x + w * 0.08, y, w * 0.08, h);
+                ctx.fillStyle = windowColor;
+                const rows = Math.max(4, Math.floor(h / 62));
+                for (let row = 0; row < rows; row++) {
+                    const wy = y + 24 + row * 48;
+                    if (wy > y + h - 28) break;
+                    for (let wx = x + 20; wx < x + w - 28; wx += 36) {
+                        ctx.fillRect(wx, wy, 16, 13);
+                    }
+                }
+            }
+
+            for (let i = 0; i < 18; i++) {
+                const x = i * 126 - 60;
+                const h = 210 + ((i * 73) % 190);
+                drawDistantTower(x, canvas.height - h + 30, 96 + (i % 3) * 22, h, i % 2 ? '#9aa9b2' : '#aab4ba', 'rgba(232, 242, 248, 0.28)');
             }
 
             drawBuilding({
@@ -803,24 +839,22 @@
         }
 
         const backWallZ = -roomDepth / 2;
-        const originalWindowBottomHeight = 3.6 - ceilingLowerAmount;
-        const originalWindowTopHeight = 4.6 - ceilingLowerAmount;
-        const originalWindowHeight = originalWindowTopHeight - originalWindowBottomHeight;
-        // モスグリーン面のハイサイド窓は高さを保ったまま上端を天井高に揃える
+        // モスグリーンの壁は撤去し、床から天井まで全面ガラス張りにする。
         const windowTopHeight = roomHeight;
-        const windowBottomHeight = windowTopHeight - originalWindowHeight;
+        const windowBottomHeight = 0;
         const windowHeight = windowTopHeight - windowBottomHeight;
-        
-        createWall(roomWidth, windowBottomHeight, 0.2, 0, windowBottomHeight / 2, backWallZ, 0x98ab83);
-        const wallAboveWindowHeight = roomHeight - windowTopHeight;
-        if (wallAboveWindowHeight > 0.01) {
-            createWall(roomWidth, wallAboveWindowHeight, 0.2, 0, windowTopHeight + wallAboveWindowHeight / 2, backWallZ, 0x98ab83);
-        }
-        
+
+        const backCityView = new THREE.Mesh(
+            new THREE.PlaneGeometry(roomWidth, roomHeight),
+            new THREE.MeshBasicMaterial({ map: createCityWindowTexture(), side: THREE.DoubleSide })
+        );
+        backCityView.position.set(0, roomHeight / 2, backWallZ - 0.08);
+        scene.add(backCityView);
+
         const glassGeo = new THREE.BoxGeometry(roomWidth, windowHeight, 0.05);
-        const glassMat = new THREE.MeshStandardMaterial({ 
-            color: 0xffffff, transparent: true, opacity: 0.8,
-            emissive: 0xffffff, emissiveIntensity: 0.7, roughness: 0.1, metalness: 0.2
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: 0xd8f0ff, transparent: true, opacity: 0.24,
+            emissive: 0x9fd3ff, emissiveIntensity: 0.05, roughness: 0.04, metalness: 0.18
         });
         const glass = new THREE.Mesh(glassGeo, glassMat);
         glass.position.set(0, windowBottomHeight + windowHeight / 2, backWallZ);
@@ -906,7 +940,17 @@
             scene.add(frame);
         }
         createWall(breakWidth, roomHeight, 0.2, breakX, roomHeight/2, 0);
-        createWall(breakWidth, roomHeight, 0.2, breakX, roomHeight/2, -roomDepth/2, 0x98ab83); 
+
+        const breakBackCityView = new THREE.Mesh(
+            new THREE.PlaneGeometry(breakWidth, roomHeight),
+            new THREE.MeshBasicMaterial({ map: createCityWindowTexture(), side: THREE.DoubleSide })
+        );
+        breakBackCityView.position.set(breakX, roomHeight / 2, -roomDepth / 2 - 0.08);
+        scene.add(breakBackCityView);
+
+        const breakBackGlass = new THREE.Mesh(new THREE.BoxGeometry(breakWidth, roomHeight, 0.05), breakGlassMat);
+        breakBackGlass.position.set(breakX, roomHeight / 2, -roomDepth / 2);
+        scene.add(breakBackGlass);
 
         const mountainMural = new THREE.Mesh(
             new THREE.PlaneGeometry(breakWidth, roomHeight),
@@ -2591,7 +2635,7 @@
             }
             scene.add(lockerGroup);
         }
-        createLockerBank(lockerBankStartX, 15, roomDepth / 2 - 0.1);
+        // ロッカー列は配置しない。
 
         // ==========================================
         // 8. ブレイクエリア（右奥の壁際）の配置
@@ -3553,7 +3597,7 @@
                 if(camera.position.x > boundXMax) camera.position.x = boundXMax; 
                 if(camera.position.z < boundZMin) camera.position.z = boundZMin; 
                 
-                const zLockerBound = roomDepth / 2 - 2.0; 
+                const zFrontRoomBound = roomDepth / 2 - 0.35;
                 const zAlcoveBound = roomDepth / 2 + alcoveDepth - 1.0; 
                 const zLeftNicheBound = roomDepth / 2 + leftNicheDepth - 0.4;
                 const zNewHallBound = entranceEndZ - ENTRANCE_LAYOUT.walkBackInset;
@@ -3645,18 +3689,18 @@
                     if (camera.position.z > zLeftNicheBound) camera.position.z = zLeftNicheBound;
                 } else if (inNewHallMouth) {
                     if (camera.position.z > zNewHallBound) camera.position.z = zNewHallBound;
-                } else if (camera.position.z > zLockerBound) {
+                } else if (camera.position.z > zFrontRoomBound) {
                     // 廊下・玄関などメインルーム外で壁の外側へ押し出されると、
-                    // 以前は zLockerBound へ直接戻していたため、メインルームへ瞬間移動したように見えていた。
+                    // 前面境界へ直接戻すと、メインルームへ瞬間移動したように見えることがある。
                     // すでにメインルーム外にいる場合は直前の有効位置へ戻し、壁に押し当て続けても場所が飛ばないようにする。
-                    if (previousPosition.z > zLockerBound) {
+                    if (previousPosition.z > zFrontRoomBound) {
                         // ドア枠の角を斜めに抜けるとき、X が先に通路判定から外れても
                         // Z が室内側へ戻る動きなら残す。両軸を直前位置へ戻すと、
                         // X=-12.36 / Z=5.60 付近で -X + -Z 入力時に壁へ吸い付いたように止まる。
                         const returningToMainRoom = camera.position.z < previousPosition.z;
                         camera.position.x = previousPosition.x;
                         if (returningToMainRoom) {
-                            camera.position.z = Math.max(camera.position.z, zLockerBound);
+                            camera.position.z = Math.max(camera.position.z, zFrontRoomBound);
                             velocity.x = 0;
                         } else {
                             camera.position.z = previousPosition.z;
@@ -3664,7 +3708,7 @@
                             velocity.z = 0;
                         }
                     } else {
-                        camera.position.z = zLockerBound;
+                        camera.position.z = zFrontRoomBound;
                     }
                 }
             }
