@@ -2367,6 +2367,123 @@
             scene.add(group);
         }
 
+
+        function createCafeSignTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 160;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#f5e7ce';
+            ctx.font = 'bold 74px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('CAFE', canvas.width / 2, 76);
+            ctx.strokeStyle = '#b08a52';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createCafeCounterInWall() {
+            const group = new THREE.Group();
+            // Z=4 の壁面に、x=-9〜-4 くらいのカフェ受け渡し窓をくり抜く。
+            const wallZ = 4.0;
+            const openingMinX = -9.0;
+            const openingMaxX = -4.0;
+            const wallMinX = -10.6;
+            const wallMaxX = -2.8;
+            const wallThickness = 0.22;
+            const openingBottomY = 0.95;
+            const openingTopY = 2.8;
+            const wallMat = new THREE.MeshStandardMaterial({ map: createWoodTexture(), roughness: 0.58, metalness: 0.02 });
+            const trimMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.38, metalness: 0.32 });
+            const counterWoodMat = new THREE.MeshStandardMaterial({ map: createWoodTexture(), roughness: 0.56, metalness: 0.02 });
+            const counterTopMat = new THREE.MeshStandardMaterial({ map: createBlackMarbleTexture(), color: 0x111111, roughness: 0.22, metalness: 0.08 });
+
+            function addWallSegment(width, height, x, y) {
+                if (width <= 0.01 || height <= 0.01) return;
+                const segment = new THREE.Mesh(new THREE.BoxGeometry(width, height, wallThickness), wallMat);
+                segment.position.set(x, y, wallZ);
+                setMeshShadow(segment, true);
+                group.add(segment);
+            }
+
+            const leftWidth = openingMinX - wallMinX;
+            addWallSegment(leftWidth, roomHeight, wallMinX + leftWidth / 2, roomHeight / 2);
+            const rightWidth = wallMaxX - openingMaxX;
+            addWallSegment(rightWidth, roomHeight, openingMaxX + rightWidth / 2, roomHeight / 2);
+            const openingWidth = openingMaxX - openingMinX;
+            addWallSegment(openingWidth, openingBottomY, openingMinX + openingWidth / 2, openingBottomY / 2);
+            const headerHeight = roomHeight - openingTopY;
+            addWallSegment(openingWidth, headerHeight, openingMinX + openingWidth / 2, openingTopY + headerHeight / 2);
+
+            const frameThickness = 0.08;
+            const frameDepth = 0.28;
+            const frameCenterX = openingMinX + openingWidth / 2;
+            const frameCenterY = openingBottomY + (openingTopY - openingBottomY) / 2;
+            [openingMinX, openingMaxX].forEach((x) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(frameThickness, openingTopY - openingBottomY, frameDepth), trimMat);
+                frame.position.set(x, frameCenterY, wallZ - 0.01);
+                setMeshShadow(frame);
+                group.add(frame);
+            });
+            [openingBottomY, openingTopY].forEach((y) => {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(openingWidth + frameThickness, frameThickness, frameDepth), trimMat);
+                frame.position.set(frameCenterX, y, wallZ - 0.01);
+                setMeshShadow(frame);
+                group.add(frame);
+            });
+
+            const counterHeight = 0.95;
+            const counterDepth = 0.78;
+            const counterBase = new THREE.Mesh(new THREE.BoxGeometry(openingWidth + 0.15, counterHeight - 0.08, counterDepth), counterWoodMat);
+            counterBase.position.set(frameCenterX, (counterHeight - 0.08) / 2, wallZ - counterDepth / 2 + 0.08);
+            setMeshShadow(counterBase, true);
+            group.add(counterBase);
+            const counterTop = new THREE.Mesh(new THREE.BoxGeometry(openingWidth + 0.35, 0.08, counterDepth + 0.16), counterTopMat);
+            counterTop.position.set(frameCenterX, counterHeight, wallZ - counterDepth / 2 + 0.08);
+            setMeshShadow(counterTop, true);
+            group.add(counterTop);
+
+            const sign = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.55, 0.48),
+                new THREE.MeshStandardMaterial({ map: createCafeSignTexture(), roughness: 0.5 })
+            );
+            sign.position.set(frameCenterX, openingTopY + 0.45, wallZ - wallThickness / 2 - 0.012);
+            group.add(sign);
+
+            const apronMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.65 });
+            const shirtMat = new THREE.MeshStandardMaterial({ color: 0xf5f0e8, roughness: 0.72 });
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xd7a57b, roughness: 0.68 });
+            const hairMat = new THREE.MeshStandardMaterial({ color: 0x1b120c, roughness: 0.78 });
+            const barista = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.8, 8), shirtMat);
+            body.position.y = 0.95;
+            barista.add(body);
+            const apron = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.52, 0.035), apronMat);
+            apron.position.set(0, 0.88, -0.23);
+            barista.add(apron);
+            const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.18, 0), skinMat);
+            head.position.y = 1.46;
+            barista.add(head);
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), hairMat);
+            hair.position.y = 1.56;
+            barista.add(hair);
+            [-1, 1].forEach((side) => {
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.045, 0.42, 6), skinMat);
+                arm.position.set(side * 0.24, 1.05, -0.08);
+                arm.rotation.z = side * 0.42;
+                barista.add(arm);
+            });
+            barista.position.set(frameCenterX, 0, wallZ + 0.36);
+            barista.rotation.y = Math.PI;
+            group.add(barista);
+
+            scene.add(group);
+        }
+
         // 部屋中央に移動したフリー席: 4セットから6セットに増やし、拡張後の部屋中心に寄せて配置
         [
             { x: -0.8, z: roomCenterZ - 2.7, rotation: Math.PI / 4 },
@@ -2382,6 +2499,9 @@
 
         // x=9〜14、z=-10〜0に3段程度の高台エリアを作り、黒い格子で囲う。
         createRaisedLatticePlatform();
+
+        // z=4 の壁をカフェカウンター化し、壁内側に店員を配置する。
+        createCafeCounterInWall();
 
         function createWallDeskStation(x, z, facingAngle) {
             const stationGroup = new THREE.Group();
