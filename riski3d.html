@@ -494,7 +494,6 @@
         const ceilingLowerAmount = 0.5;
         const roomHeight = 5 - ceilingLowerAmount;
         const wallFixtureHeightBoost = 0.6;
-        const baseMeetingDoorHeight = 2.35;
 
         function createCarpetTexture() {
             const size = 512;
@@ -814,9 +813,12 @@
             return texture;
         }
 
-        const carpetTex = createCarpetTexture();
+        const floorWoodTex = createWoodTexture();
+        floorWoodTex.repeat.set(roomWidth / 2, roomDepth / 2);
+        const wallWoodTex = createWoodTexture();
+        wallWoodTex.repeat.set(3, 2);
         const floorGeo = new THREE.PlaneGeometry(roomWidth, roomDepth);
-        const floorMat = new THREE.MeshStandardMaterial({ map: carpetTex, roughness: 1.0, metalness: 0.0 });
+        const floorMat = new THREE.MeshStandardMaterial({ map: floorWoodTex, roughness: 0.55, metalness: 0.0 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.receiveShadow = true;
@@ -824,7 +826,7 @@
 
         function createWall(w, h, d, x, y, z, color = 0xd0d8e8) {
             const geo = new THREE.BoxGeometry(w, h, d);
-            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 1.0 });
+            const mat = new THREE.MeshStandardMaterial({ map: wallWoodTex, color: 0xf4d7aa, roughness: 0.58 });
             const wall = new THREE.Mesh(geo, mat);
             wall.position.set(x, y, z);
             wall.receiveShadow = true;
@@ -878,20 +880,8 @@
 
         createWall(0.2, roomHeight, roomDepth, roomWidth / 2, roomHeight/2, 0);  
         
-        // x=-25側の壁は、追加会議室ドア用に z=2 付近だけ開口を残して分割
-        const sideWallDoorZ = 2.0;
-        const sideWallDoorWidth = 1.4;
-        const sideWallDoorHeight = baseMeetingDoorHeight + wallFixtureHeightBoost;
-        const sideWallDoorStart = sideWallDoorZ - sideWallDoorWidth / 2;
-        const sideWallDoorEnd = sideWallDoorZ + sideWallDoorWidth / 2;
-        [[0, sideWallDoorStart], [sideWallDoorEnd, roomDepth / 2]].forEach(([startZ, endZ]) => {
-            const segmentDepth = endZ - startZ;
-            if (segmentDepth > 0.01) {
-                createWall(0.2, roomHeight, segmentDepth, -roomWidth / 2, roomHeight / 2, startZ + segmentDepth / 2);
-            }
-        });
-        const sideWallDoorHeaderHeight = roomHeight - sideWallDoorHeight;
-        createWall(0.2, sideWallDoorHeaderHeight, sideWallDoorWidth, -roomWidth / 2, sideWallDoorHeight + sideWallDoorHeaderHeight / 2, sideWallDoorZ);
+        // 会議室を除去し、x=-25側は木目調の壁でふさぐ。
+        createWall(0.2, roomHeight, roomDepth, -roomWidth / 2, roomHeight / 2, 0);
 
         const breakWidth = 10; 
         const breakDepth = roomDepth / 2; 
@@ -952,15 +942,9 @@
         breakBackGlass.position.set(breakX, roomHeight / 2, -roomDepth / 2);
         scene.add(breakBackGlass);
 
-        const mountainMural = new THREE.Mesh(
-            new THREE.PlaneGeometry(breakWidth, roomHeight),
-            new THREE.MeshStandardMaterial({ map: createMountainMuralTexture(), roughness: 1.0, side: THREE.DoubleSide })
-        );
-        mountainMural.position.set(breakX, roomHeight / 2, -0.105);
-        mountainMural.receiveShadow = true;
-        scene.add(mountainMural);
-        
-        const alcoveCeiling = new THREE.Mesh(new THREE.PlaneGeometry(breakWidth, breakDepth), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, emissive: 0x111111 }));
+        const alcoveCeilingTex = createWoodTexture();
+        alcoveCeilingTex.repeat.set(breakWidth / 2, breakDepth / 2);
+        const alcoveCeiling = new THREE.Mesh(new THREE.PlaneGeometry(breakWidth, breakDepth), new THREE.MeshStandardMaterial({ map: alcoveCeilingTex, roughness: 0.55, emissive: 0x080604 }));
         alcoveCeiling.rotation.x = Math.PI / 2;
         alcoveCeiling.position.set(breakX, roomHeight - 0.05, breakZ);
         alcoveCeiling.receiveShadow = true;
@@ -1023,32 +1007,9 @@
         const lockerBankStartX = newDoorEnd + ENTRANCE_LAYOUT.lockerGapFromDoor;
         const sharedNicheEntranceWallX = leftNicheEnd + 0.1;
 
-        const meetingDoorWidth = newDoorWidth;
-        const meetingDoorHeight = baseMeetingDoorHeight + wallFixtureHeightBoost;
-        const meetingDoorGap = 0.6;
-        const meetingDoor2Offset = newDoorWidth * 2;
-        const meetingDoor1X = leftNicheStart - meetingDoorGap - meetingDoorWidth / 2;
-        const meetingDoor2X = meetingDoor1X - meetingDoorWidth - meetingDoor2Offset;
-        const meetingDoor1Start = meetingDoor1X - meetingDoorWidth / 2;
-        const meetingDoor1End = meetingDoor1X + meetingDoorWidth / 2;
-        const meetingDoor2Start = meetingDoor2X - meetingDoorWidth / 2;
-        const meetingDoor2End = meetingDoor2X + meetingDoorWidth / 2;
-
-        const frontWallSegments = [
-            [-roomWidth / 2, meetingDoor2Start],
-            [meetingDoor2End, meetingDoor1Start],
-            [meetingDoor1End, leftNicheStart]
-        ];
-        frontWallSegments.forEach(([start, end]) => {
-            const segmentWidth = end - start;
-            if (segmentWidth > 0.01) {
-                createWall(segmentWidth, roomHeight, 0.2, start + segmentWidth / 2, roomHeight / 2, roomDepth / 2);
-            }
-        });
-        const meetingDoorHeaderHeight = roomHeight - meetingDoorHeight;
-        [meetingDoor1X, meetingDoor2X].forEach((doorX) => {
-            createWall(meetingDoorWidth, meetingDoorHeaderHeight, 0.2, doorX, meetingDoorHeight + meetingDoorHeaderHeight / 2, roomDepth / 2);
-        });
+        // 会議室ドアは除去し、前面左側を木目調の壁でふさぐ。
+        const frontWallWidth = leftNicheStart - (-roomWidth / 2);
+        createWall(frontWallWidth, roomHeight, 0.2, -roomWidth / 2 + frontWallWidth / 2, roomHeight / 2, roomDepth / 2);
 
         const entranceInsetGlassBottomY = 0.66;
         const entranceInsetGlassTopY = newDoorHeight;
@@ -1160,12 +1121,12 @@
         createXWallSegment(sharedNicheEntranceWallX, entranceInsetGlass.verticalEndZ, leftNicheBackZ);
         createWall(leftNicheWidth + 0.4, roomHeight, 0.2, leftNicheCenterX, roomHeight / 2, leftNicheBackZ + 0.1, 0xe0e0e0);
 
-        const leftNicheTex = carpetTex.clone();
+        const leftNicheTex = floorWoodTex.clone();
         leftNicheTex.needsUpdate = true;
         leftNicheTex.repeat.set(leftNicheWidth / 4, leftNicheDepth / 4);
         const leftNicheFloor = new THREE.Mesh(
             new THREE.PlaneGeometry(leftNicheWidth, leftNicheDepth),
-            new THREE.MeshStandardMaterial({ map: leftNicheTex, roughness: 1.0 })
+            new THREE.MeshStandardMaterial({ map: leftNicheTex, roughness: 0.55 })
         );
         leftNicheFloor.rotation.x = -Math.PI / 2;
         leftNicheFloor.position.set(leftNicheCenterX, 0.003, roomDepth / 2 + leftNicheDepth / 2);
@@ -1176,292 +1137,7 @@
         leftNicheLight.position.set(leftNicheCenterX, roomHeight - 0.35, roomDepth / 2 + leftNicheDepth / 2);
         scene.add(leftNicheLight);
 
-        function createMeetingRoomDoor(x, labelText) {
-            const doorGroup = new THREE.Group();
-            const meetingDoorZ = roomDepth / 2 - 0.12;
-            const meetingDoorMat = new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.12, metalness: 0.15 });
-            const meetingFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
-            const meetingMetalMat = new THREE.MeshStandardMaterial({ color: 0xb9b2a6, metalness: 0.7, roughness: 0.25 });
-
-            const slab = new THREE.Mesh(new THREE.BoxGeometry(meetingDoorWidth, meetingDoorHeight, 0.08), meetingDoorMat);
-            slab.position.set(x, meetingDoorHeight / 2, meetingDoorZ);
-            slab.castShadow = true;
-            slab.receiveShadow = true;
-            doorGroup.add(slab);
-
-            const frameThickness = 0.08;
-            const frameDepth = 0.12;
-            const leftFrame = new THREE.Mesh(new THREE.BoxGeometry(frameThickness, meetingDoorHeight + frameThickness, frameDepth), meetingFrameMat);
-            leftFrame.position.set(x - meetingDoorWidth / 2 - frameThickness / 2, (meetingDoorHeight + frameThickness) / 2, meetingDoorZ - 0.01);
-            doorGroup.add(leftFrame);
-            const rightFrame = leftFrame.clone();
-            rightFrame.position.x = x + meetingDoorWidth / 2 + frameThickness / 2;
-            doorGroup.add(rightFrame);
-            const topFrame = new THREE.Mesh(new THREE.BoxGeometry(meetingDoorWidth + frameThickness * 2, frameThickness, frameDepth), meetingFrameMat);
-            topFrame.position.set(x, meetingDoorHeight + frameThickness / 2, meetingDoorZ - 0.01);
-            doorGroup.add(topFrame);
-
-            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.18), meetingMetalMat);
-            handle.rotation.z = Math.PI / 2;
-            handle.position.set(x + meetingDoorWidth / 2 - 0.22, 1.05, meetingDoorZ - 0.06);
-            doorGroup.add(handle);
-            const handleBase = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.025), meetingMetalMat);
-            handleBase.position.set(x + meetingDoorWidth / 2 - 0.28, 1.05, meetingDoorZ - 0.055);
-            doorGroup.add(handleBase);
-
-            const signCanvas = document.createElement('canvas');
-            signCanvas.width = 256;
-            signCanvas.height = 96;
-            const signCtx = signCanvas.getContext('2d');
-            signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
-            signCtx.fillStyle = '#000000';
-            signCtx.font = 'bold 42px sans-serif';
-            signCtx.textAlign = 'center';
-            signCtx.textBaseline = 'middle';
-            signCtx.fillText(labelText, signCanvas.width / 2, signCanvas.height / 2);
-            const signTexture = new THREE.CanvasTexture(signCanvas);
-            const sign = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.9, 0.34),
-                new THREE.MeshStandardMaterial({ map: signTexture, transparent: true, roughness: 0.6, side: THREE.DoubleSide })
-            );
-            sign.position.set(x, 1.5, meetingDoorZ - 0.065);
-            sign.scale.x = -1;
-            doorGroup.add(sign);
-
-            scene.add(doorGroup);
-        }
-
-        function createSideWallMeetingDoor(labelText = 'value') {
-            const sideDoorX = -roomWidth / 2 + 0.12;
-            const sideDoorZ = 2.0;
-            const sideDoorMat = new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.12, metalness: 0.15 });
-            const sideFrameMat = new THREE.MeshStandardMaterial({ color: 0x7b6a55, roughness: 0.45 });
-            const sideMetalMat = new THREE.MeshStandardMaterial({ color: 0xb9b2a6, metalness: 0.7, roughness: 0.25 });
-            const sideDoorGroup = new THREE.Group();
-
-            const slab = new THREE.Mesh(new THREE.BoxGeometry(0.08, meetingDoorHeight, meetingDoorWidth), sideDoorMat);
-            slab.position.set(sideDoorX, meetingDoorHeight / 2, sideDoorZ);
-            slab.castShadow = true;
-            slab.receiveShadow = true;
-            sideDoorGroup.add(slab);
-
-            const frameThickness = 0.08;
-            const frameDepth = 0.12;
-            const frontFrame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, meetingDoorHeight + frameThickness, frameThickness), sideFrameMat);
-            frontFrame.position.set(sideDoorX + 0.01, (meetingDoorHeight + frameThickness) / 2, sideDoorZ - meetingDoorWidth / 2 - frameThickness / 2);
-            sideDoorGroup.add(frontFrame);
-            const backFrame = frontFrame.clone();
-            backFrame.position.z = sideDoorZ + meetingDoorWidth / 2 + frameThickness / 2;
-            sideDoorGroup.add(backFrame);
-            const topFrame = new THREE.Mesh(new THREE.BoxGeometry(frameDepth, frameThickness, meetingDoorWidth + frameThickness * 2), sideFrameMat);
-            topFrame.position.set(sideDoorX + 0.01, meetingDoorHeight + frameThickness / 2, sideDoorZ);
-            sideDoorGroup.add(topFrame);
-
-            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.18), sideMetalMat);
-            handle.rotation.z = Math.PI / 2;
-            handle.position.set(sideDoorX + 0.06, 1.05, sideDoorZ + meetingDoorWidth / 2 - 0.22);
-            sideDoorGroup.add(handle);
-
-            const signCanvas = document.createElement('canvas');
-            signCanvas.width = 256;
-            signCanvas.height = 96;
-            const signCtx = signCanvas.getContext('2d');
-            signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
-            signCtx.fillStyle = '#000000';
-            signCtx.font = 'bold 42px sans-serif';
-            signCtx.textAlign = 'center';
-            signCtx.textBaseline = 'middle';
-            signCtx.fillText(labelText, signCanvas.width / 2, signCanvas.height / 2);
-            const sign = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.9, 0.34),
-                new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(signCanvas), transparent: true, roughness: 0.6, side: THREE.DoubleSide })
-            );
-            sign.rotation.y = Math.PI / 2;
-            sign.position.set(sideDoorX + 0.055, 1.5, sideDoorZ);
-            sideDoorGroup.add(sign);
-
-            scene.add(sideDoorGroup);
-        }
-
-        function createSideWallMeetingRoomInterior() {
-            const sideRoomWidth = 3.0;
-            const sideRoomDepth = 2.5;
-            const sideRoomHeight = roomHeight;
-            const sideRoomCenterX = -roomWidth / 2 - sideRoomWidth / 2;
-            const sideRoomCenterZ = 2.0;
-            const roomFloorTex = carpetTex.clone();
-            roomFloorTex.needsUpdate = true;
-            roomFloorTex.repeat.set(sideRoomWidth / 4, sideRoomDepth / 4);
-            const roomFloor = new THREE.Mesh(
-                new THREE.PlaneGeometry(sideRoomWidth, sideRoomDepth),
-                new THREE.MeshStandardMaterial({ map: roomFloorTex, roughness: 1.0 })
-            );
-            roomFloor.rotation.x = -Math.PI / 2;
-            roomFloor.position.set(sideRoomCenterX, 0.004, sideRoomCenterZ);
-            roomFloor.receiveShadow = true;
-            scene.add(roomFloor);
-
-            createWall(sideRoomWidth, sideRoomHeight, 0.2, sideRoomCenterX, sideRoomHeight / 2, sideRoomCenterZ - sideRoomDepth / 2 - 0.1, 0xe8edf3);
-            createWall(sideRoomWidth, sideRoomHeight, 0.2, sideRoomCenterX, sideRoomHeight / 2, sideRoomCenterZ + sideRoomDepth / 2 + 0.1, 0xe8edf3);
-            createWall(0.2, sideRoomHeight, sideRoomDepth + 0.4, sideRoomCenterX - sideRoomWidth / 2 - 0.1, sideRoomHeight / 2, sideRoomCenterZ, 0xe8edf3);
-
-            const tableMat = new THREE.MeshStandardMaterial({ color: 0xd6b38c, roughness: 0.45 });
-            const table = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.9), tableMat);
-            table.position.set(sideRoomCenterX, 0.72, sideRoomCenterZ);
-            table.castShadow = true;
-            table.receiveShadow = true;
-            scene.add(table);
-
-            const chairMat = new THREE.MeshStandardMaterial({ color: 0xb783bd, roughness: 0.55 });
-            [[0, -0.75, 0], [0, 0.75, Math.PI], [-0.75, 0, -Math.PI / 2], [0.75, 0, Math.PI / 2]].forEach(([cx, cz, ry]) => {
-                const chair = new THREE.Group();
-                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.08, 0.38), chairMat);
-                seat.position.y = 0.45;
-                chair.add(seat);
-                const back = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.5, 0.08), chairMat);
-                back.position.set(0, 0.7, -0.19);
-                chair.add(back);
-                chair.position.set(sideRoomCenterX + cx, 0, sideRoomCenterZ + cz);
-                chair.rotation.y = ry;
-                scene.add(chair);
-            });
-
-            const roomLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
-            roomLight.position.set(sideRoomCenterX, sideRoomHeight - 0.25, sideRoomCenterZ);
-            scene.add(roomLight);
-        }
-
-        function createMeetingRoomInterior(x, accentColor) {
-            const meetingRoomWidth = meetingDoorWidth + 1.0;
-            const meetingRoomDepth = frontExtensionDepth;
-            const meetingRoomHeight = roomHeight;
-            const meetingRoomCenterZ = roomDepth / 2 + meetingRoomDepth / 2;
-            const roomFloorTex = carpetTex.clone();
-            roomFloorTex.needsUpdate = true;
-            roomFloorTex.repeat.set(meetingRoomWidth / 4, meetingRoomDepth / 4);
-            const roomFloor = new THREE.Mesh(
-                new THREE.PlaneGeometry(meetingRoomWidth, meetingRoomDepth),
-                new THREE.MeshStandardMaterial({ map: roomFloorTex, roughness: 1.0 })
-            );
-            roomFloor.rotation.x = -Math.PI / 2;
-            roomFloor.position.set(x, 0.004, meetingRoomCenterZ);
-            roomFloor.receiveShadow = true;
-            scene.add(roomFloor);
-
-            createWall(0.2, meetingRoomHeight, meetingRoomDepth, x - meetingRoomWidth / 2 - 0.1, meetingRoomHeight / 2, meetingRoomCenterZ, 0xe8edf3);
-            createWall(0.2, meetingRoomHeight, meetingRoomDepth, x + meetingRoomWidth / 2 + 0.1, meetingRoomHeight / 2, meetingRoomCenterZ, 0xe8edf3);
-            createWall(meetingRoomWidth + 0.4, meetingRoomHeight, 0.2, x, meetingRoomHeight / 2, roomDepth / 2 + meetingRoomDepth + 0.1, 0xe8edf3);
-
-            const tableMat = new THREE.MeshStandardMaterial({ color: 0xd6b38c, roughness: 0.45 });
-            const table = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.08, 1.0), tableMat);
-            table.position.set(x, 0.72, meetingRoomCenterZ + 0.15);
-            table.castShadow = true;
-            table.receiveShadow = true;
-            scene.add(table);
-            const legMat = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.2, roughness: 0.35 });
-            [[-0.55, -0.35], [0.55, -0.35], [-0.55, 0.35], [0.55, 0.35]].forEach(([lx, lz]) => {
-                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.72, 0.06), legMat);
-                leg.position.set(x + lx, 0.36, meetingRoomCenterZ + 0.15 + lz);
-                leg.castShadow = true;
-                scene.add(leg);
-            });
-
-            const chairMat = new THREE.MeshStandardMaterial({ color: accentColor, roughness: 0.55 });
-            [[0, -0.85, 0], [0, 0.85, Math.PI], [-0.95, 0.15, -Math.PI / 2], [0.95, 0.15, Math.PI / 2]].forEach(([cx, cz, ry]) => {
-                const chair = new THREE.Group();
-                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.42), chairMat);
-                seat.position.y = 0.45;
-                chair.add(seat);
-                const back = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.55, 0.08), chairMat);
-                back.position.set(0, 0.72, -0.21);
-                chair.add(back);
-                chair.position.set(x + cx, 0, meetingRoomCenterZ + 0.15 + cz);
-                chair.rotation.y = ry;
-                scene.add(chair);
-            });
-
-            const roomLight = new THREE.PointLight(0xfff5e6, 0.35, 5);
-            roomLight.position.set(x, meetingRoomHeight - 0.25, meetingRoomCenterZ);
-            scene.add(roomLight);
-        }
-
-        function createTeleconferenceBox(boothX = -roomWidth / 2 + 1.25 / 2 + 0.03, boothZ = roomDepth / 2 - 1.18 / 2 - 0.03, rotationY = 0) {
-            const boothWidth = 1.25;
-            const boothDepth = 1.18;
-            const boothHeight = baseMeetingDoorHeight * 1.5;
-            const boothWoodTex = createWoodTexture();
-            boothWoodTex.repeat.set(1.4, 3.0);
-            const lightWoodMat = new THREE.MeshStandardMaterial({ map: boothWoodTex, color: 0xf2d8b8, roughness: 0.48 });
-            const darkBrownMat = new THREE.MeshStandardMaterial({ color: 0x5a351f, roughness: 0.7 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0xd8f4ff, transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0.12 });
-
-            const boothGroup = new THREE.Group();
-            boothGroup.position.set(boothX, 0, boothZ);
-            boothGroup.rotation.y = rotationY;
-
-            const panelThickness = 0.06;
-            const backPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, boothHeight, panelThickness), lightWoodMat);
-            backPanel.position.set(0, boothHeight / 2, boothDepth / 2 - panelThickness / 2);
-            backPanel.castShadow = true;
-            backPanel.receiveShadow = true;
-            boothGroup.add(backPanel);
-
-            const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), lightWoodMat);
-            leftPanel.position.set(-boothWidth / 2 + panelThickness / 2, boothHeight / 2, 0);
-            leftPanel.castShadow = true;
-            leftPanel.receiveShadow = true;
-            boothGroup.add(leftPanel);
-
-            const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(panelThickness, boothHeight, boothDepth), lightWoodMat);
-            rightPanel.position.set(boothWidth / 2 - panelThickness / 2, boothHeight / 2, 0);
-            rightPanel.castShadow = true;
-            rightPanel.receiveShadow = true;
-            boothGroup.add(rightPanel);
-
-            const topPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, panelThickness, boothDepth), darkBrownMat);
-            topPanel.position.set(0, boothHeight - panelThickness / 2, 0);
-            topPanel.castShadow = true;
-            boothGroup.add(topPanel);
-
-            const basePanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth, 0.05, boothDepth), darkBrownMat);
-            basePanel.position.set(0, 0.025, 0);
-            basePanel.receiveShadow = true;
-            boothGroup.add(basePanel);
-
-            const frontPanel = new THREE.Mesh(new THREE.BoxGeometry(boothWidth - panelThickness * 2, boothHeight - 0.28, 0.045), lightWoodMat);
-            frontPanel.position.set(0, (boothHeight - 0.28) / 2 + 0.12, -boothDepth / 2 + 0.035);
-            frontPanel.castShadow = true;
-            frontPanel.receiveShadow = true;
-            boothGroup.add(frontPanel);
-
-            const windowPane = new THREE.Mesh(new THREE.BoxGeometry(boothWidth * 0.48, boothHeight * 0.32, 0.02), glassMat);
-            windowPane.position.set(0, boothHeight * 0.63, -boothDepth / 2 + 0.065);
-            boothGroup.add(windowPane);
-
-            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.26), new THREE.MeshStandardMaterial({ color: 0xbba27a, metalness: 0.7, roughness: 0.25 }));
-            handle.position.set(boothWidth / 2 + 0.025, 1.1, -boothDepth / 2 + 0.26);
-            boothGroup.add(handle);
-
-            const stool = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.42, 24), darkBrownMat);
-            stool.position.set(0, 0.21, 0.03);
-            stool.castShadow = true;
-            boothGroup.add(stool);
-
-            const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.05, 0.24), darkBrownMat);
-            shelf.position.set(0, 0.88, boothDepth / 2 - 0.18);
-            shelf.castShadow = true;
-            boothGroup.add(shelf);
-
-            const monitor = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.22, 0.025), new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.4 }));
-            monitor.position.set(0, 1.05, boothDepth / 2 - 0.32);
-            boothGroup.add(monitor);
-
-            const boothLight = new THREE.PointLight(0xffd7a8, 0.22, 2.0);
-            boothLight.position.set(0, boothHeight - 0.28, 0);
-            boothGroup.add(boothLight);
-
-            scene.add(boothGroup);
-        }
+        // 会議室とテレカンボックスのモデル生成は不要になったため削除。
 
         function createTrashLabelTexture(bgColor, iconText, subText) {
             const canvas = document.createElement('canvas');
@@ -1482,7 +1158,7 @@
 
         function createPetBottleTrashBin() {
             const stationGroup = new THREE.Group();
-            // x=-25 / z=5 付近で、テレカンボックス側の壁を背にして室内側を向ける
+            // x=-25 / z=5 付近の木目壁を背にして室内側を向ける
             stationGroup.position.set(-25.0, 0, 5.0);
             stationGroup.rotation.y = -Math.PI / 2;
 
@@ -1555,13 +1231,7 @@
             scene.add(stationGroup);
         }
 
-        createMeetingRoomInterior(meetingDoor1X, 0x4f8fd8);
-        createMeetingRoomInterior(meetingDoor2X, 0x85a947);
-        createMeetingRoomDoor(meetingDoor1X, 'curious');
-        createMeetingRoomDoor(meetingDoor2X, 'share');
-        createSideWallMeetingRoomInterior();
-        createSideWallMeetingDoor('value');
-        createTeleconferenceBox();
+        // 会議室とテレカンボックスは配置しない。
         createPetBottleTrashBin();
         
         const wall2Width = alcoveStart - newDoorEnd;
@@ -1612,13 +1282,13 @@
         const elevatorHallCenterX = (elevatorHallLeftX + elevatorHallRightX) / 2;
         const elevatorHallCenterZ = (elevatorHallBackZ + elevatorHallFrontZ) / 2;
 
-        function createSharedCarpetPatch(width, depth, centerX, centerZ, yOffset = 0.007) {
-            const patchTex = carpetTex.clone();
+        function createSharedWoodPatch(width, depth, centerX, centerZ, yOffset = 0.007) {
+            const patchTex = floorWoodTex.clone();
             patchTex.needsUpdate = true;
             patchTex.repeat.set(width / 4, depth / 4);
             const patch = new THREE.Mesh(
                 new THREE.PlaneGeometry(width, depth),
-                new THREE.MeshStandardMaterial({ map: patchTex, roughness: 1.0 })
+                new THREE.MeshStandardMaterial({ map: patchTex, roughness: 0.55 })
             );
             patch.rotation.x = -Math.PI / 2;
             patch.position.set(centerX, yOffset, centerZ);
@@ -1716,9 +1386,11 @@
             return texture;
         }
 
+        const entranceWoodTex = createWoodTexture();
+        entranceWoodTex.repeat.set(entranceWidth / 2, entranceDepth / 2);
         const newHallFloor = new THREE.Mesh(
             new THREE.PlaneGeometry(entranceWidth, entranceDepth),
-            new THREE.MeshStandardMaterial({ map: createEntranceFloorTexture(), roughness: 0.95 })
+            new THREE.MeshStandardMaterial({ map: entranceWoodTex, roughness: 0.55 })
         );
         newHallFloor.rotation.x = -Math.PI / 2;
         newHallFloor.position.set(entranceCenterX, 0.006, entranceCenterZ);
@@ -1903,10 +1575,10 @@
         createWall(0.2, alcoveHeight, alcoveDepth, alcoveEnd + 0.1, alcoveHeight / 2, roomDepth / 2 + alcoveDepth / 2); 
         // 奥の壁は取り払い、観音開きドアから廊下1へ通り抜けられるようにする。
 
-        const patchTex = carpetTex.clone();
+        const patchTex = floorWoodTex.clone();
         patchTex.needsUpdate = true;
         patchTex.repeat.set(alcoveWidth / 4, alcoveDepth / 4);
-        const patchMat = new THREE.MeshStandardMaterial({ map: patchTex, roughness: 1.0 });
+        const patchMat = new THREE.MeshStandardMaterial({ map: patchTex, roughness: 0.55 });
         const patchFloor = new THREE.Mesh(new THREE.PlaneGeometry(alcoveWidth, alcoveDepth), patchMat);
         patchFloor.rotation.x = -Math.PI / 2;
         patchFloor.position.set(alcoveCenterX, 0.001, roomDepth / 2 + alcoveDepth / 2);
@@ -1917,14 +1589,14 @@
         alcoveLight.position.set(alcoveCenterX, alcoveHeight - 0.2, roomDepth / 2 + alcoveDepth / 2);
         scene.add(alcoveLight);
 
-        // 廊下1：中央ドアから Z=15 付近の突き当たりまで。床はメインルームと同じカーペット。
-        createSharedCarpetPatch(corridorWidth, corridorEndZ - corridorDoorZ, corridorCenterX, (corridorDoorZ + corridorEndZ) / 2);
+        // 廊下1：中央ドアから Z=15 付近の突き当たりまで。床はメインルームと同じ木目。
+        createSharedWoodPatch(corridorWidth, corridorEndZ - corridorDoorZ, corridorCenterX, (corridorDoorZ + corridorEndZ) / 2);
         createWall(0.2, corridorHeight, corridorTurnStartZ - corridorDoorZ, corridorLeftX - 0.1, corridorHeight / 2, (corridorDoorZ + corridorTurnStartZ) / 2, corridorWallColor);
         createWall(0.2, corridorHeight, corridorTurnStartZ - corridorDoorZ, corridorRightX + 0.1, corridorHeight / 2, (corridorDoorZ + corridorTurnStartZ) / 2, corridorWallColor);
         createWall(corridorWidth + 0.4, corridorHeight, 0.2, corridorCenterX, corridorHeight / 2, corridorEndZ + 0.1, corridorWallColor);
 
         // 廊下2：突き当たり手前で横に折れ、既存玄関へ接続する周回ルート。
-        createSharedCarpetPatch(crossCorridorWidth, crossCorridorDepth, crossCorridorCenterX, crossCorridorCenterZ, 0.008);
+        createSharedWoodPatch(crossCorridorWidth, crossCorridorDepth, crossCorridorCenterX, crossCorridorCenterZ, 0.008);
         // Z=13 の壁は X=-8〜2 を開口し、エレベーターホールへ接続する。
         createWall(elevatorHallLeftX - crossCorridorMinX, corridorHeight, 0.2, (crossCorridorMinX + elevatorHallLeftX) / 2, corridorHeight / 2, corridorTurnStartZ - 0.1, corridorWallColor);
         createWall(corridorLeftX - elevatorHallRightX, corridorHeight, 0.2, (elevatorHallRightX + corridorLeftX) / 2, corridorHeight / 2, corridorTurnStartZ - 0.1, corridorWallColor);
@@ -1933,8 +1605,8 @@
         createWall(crossCorridorMaxX - corridorRightX, corridorHeight, 0.2, (corridorRightX + crossCorridorMaxX) / 2, corridorHeight / 2, corridorEndZ + 0.1, corridorWallColor);
         createWall(0.2, corridorHeight, crossCorridorDepth, crossCorridorMaxX + 0.1, corridorHeight / 2, crossCorridorCenterZ, corridorWallColor);
 
-        // エレベーターホール：横廊下と同じグレー系カーペット床で Z=9.5 まで広げる。
-        createSharedCarpetPatch(elevatorHallWidth, elevatorHallDepth, elevatorHallCenterX, elevatorHallCenterZ, 0.009);
+        // エレベーターホール：横廊下と同じ木目床で Z=9.5 まで広げる。
+        createSharedWoodPatch(elevatorHallWidth, elevatorHallDepth, elevatorHallCenterX, elevatorHallCenterZ, 0.009);
         createWall(0.2, corridorHeight, elevatorHallDepth, elevatorHallLeftX - 0.1, corridorHeight / 2, elevatorHallCenterZ, corridorWallColor);
         createWall(0.2, corridorHeight, elevatorHallDepth, elevatorHallRightX + 0.1, corridorHeight / 2, elevatorHallCenterZ, corridorWallColor);
         createWall(elevatorHallWidth + 0.4, corridorHeight, 0.2, elevatorHallCenterX, corridorHeight / 2, elevatorHallBackZ - 0.1, corridorWallColor);
@@ -1955,7 +1627,9 @@
         elevatorLight.position.set(elevatorHallCenterX, corridorHeight - 0.45, elevatorHallCenterZ);
         scene.add(elevatorLight);
 
-        const corridorCeilingMat = new THREE.MeshStandardMaterial({ color: 0xf2f1ec, roughness: 0.9, emissive: 0x080807 });
+        const corridorCeilingTex = createWoodTexture();
+        corridorCeilingTex.repeat.set(3, 3);
+        const corridorCeilingMat = new THREE.MeshStandardMaterial({ map: corridorCeilingTex, roughness: 0.55, emissive: 0x080604 });
         const corridorCeiling1 = new THREE.Mesh(new THREE.PlaneGeometry(corridorWidth, corridorEndZ - corridorDoorZ), corridorCeilingMat);
         corridorCeiling1.rotation.x = Math.PI / 2;
         corridorCeiling1.position.set(corridorCenterX, corridorHeight - 0.04, (corridorDoorZ + corridorEndZ) / 2);
@@ -2026,22 +1700,16 @@
         const mainCeilingDepth = mainCeilingMaxZ - mainCeilingMinZ;
         const mainCeilingCenterZ = (mainCeilingMinZ + mainCeilingMaxZ) / 2;
         const ceilingPlaneGeo = new THREE.PlaneGeometry(roomWidth, mainCeilingDepth);
-        const ceilingPlaneMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, emissive: 0x222222 });
+        const ceilingWoodTex = createWoodTexture();
+        ceilingWoodTex.repeat.set(roomWidth / 2, mainCeilingDepth / 2);
+        const ceilingPlaneMat = new THREE.MeshStandardMaterial({ map: ceilingWoodTex, roughness: 0.55, emissive: 0x080604 });
         const ceilingPlane = new THREE.Mesh(ceilingPlaneGeo, ceilingPlaneMat);
         ceilingPlane.rotation.x = Math.PI / 2;
         ceilingPlane.position.z = mainCeilingCenterZ;
         ceilingPlane.receiveShadow = true;
         ceilingGroup.add(ceilingPlane);
 
-        const gridMat = new THREE.LineBasicMaterial({ color: 0xeeeeee, transparent: true, opacity: 0.3 });
-        const gridWidthUnits = roomWidth / 2.0; 
-        const gridDepthUnits = Math.round(mainCeilingDepth / 1.5);
-        const ceilingGrid = new THREE.GridHelper(roomWidth, gridWidthUnits, 0xcccccc, 0xcccccc);
-        ceilingGrid.position.y = -0.01; 
-        ceilingGrid.position.z = mainCeilingCenterZ;
-        ceilingGrid.scale.set(1, 1, mainCeilingDepth / roomWidth);
-        ceilingGrid.material = gridMat;
-        ceilingGroup.add(ceilingGrid);
+        // 天井面は木目をそのまま見せるため、白いグリッドは重ねない。
 
         function createCeilingLight(x, z) {
             const lightGroup = new THREE.Group();
@@ -2578,9 +2246,7 @@
         const deskOffset = 2.8;
         // パソコン付きの壁際デスクも配置しない。
 
-        const mossWallTeleconferenceBoothDepth = 1.18;
-        const mossWallTeleconferenceBoothZ = backWallZ + 0.1 + mossWallTeleconferenceBoothDepth / 2;
-        createTeleconferenceBox(20 + deskOffset, mossWallTeleconferenceBoothZ, Math.PI);
+        // 窓際のテレカンボックスも配置しない。
 
         // ==========================================
        // 7. ロッカーの配置
@@ -3578,19 +3244,9 @@
                 const boundZMin = -roomDepth / 2 + 1.8; 
                 
                 if (camera.position.x < -23.5) {
-                    const sideMeetingRoomWalkLeft = -roomWidth / 2 - 2.65;
-                    const sideMeetingRoomWalkEndZ = sideWallDoorEnd + 0.55;
-                    const inSideMeetingRoomApproach = camera.position.x >= sideMeetingRoomWalkLeft
-                        && camera.position.z > -0.5;
-
-                    if (inSideMeetingRoomApproach) {
-                        if (camera.position.z > sideMeetingRoomWalkEndZ) camera.position.z = sideMeetingRoomWalkEndZ;
-                        boundXMin = sideMeetingRoomWalkLeft;
-                    } else {
-                        if (camera.position.z > -0.5) camera.position.z = -0.5;
-                        if (camera.position.z < -6.5) camera.position.z = -6.5;
-                        boundXMin = -34.0;
-                    }
+                    if (camera.position.z > -0.5) camera.position.z = -0.5;
+                    if (camera.position.z < -6.5) camera.position.z = -6.5;
+                    boundXMin = -34.0;
                 }
 
                 if(camera.position.x < boundXMin) camera.position.x = boundXMin;
