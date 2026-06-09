@@ -585,6 +585,40 @@
             return texture;
         }
 
+        function createBlackMarbleTexture() {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, size, size);
+
+            for (let i = 0; i < 120; i++) {
+                const startX = Math.random() * size;
+                const startY = Math.random() * size;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                for (let j = 0; j < 5; j++) {
+                    ctx.lineTo(
+                        startX + (Math.random() - 0.5) * 260,
+                        startY + j * 34 + (Math.random() - 0.5) * 70
+                    );
+                }
+                const alpha = Math.random() * 0.22 + 0.08;
+                ctx.strokeStyle = `rgba(210, 210, 205, ${alpha})`;
+                ctx.lineWidth = Math.random() * 2.1 + 0.35;
+                ctx.stroke();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
         function createMountainMuralTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 2048;
@@ -2201,11 +2235,62 @@
 
         // パソコン付きのメインデスク列は配置しない。
 
-        // デスクを抜いた中央フリースペース（x = 5.4付近）にフリー席セットを4つ、ダイヤモンド状に配置
-        createFreeSeatSet(5.4, -2.65, Math.PI / 4);
-        createFreeSeatSet(3.0, 0.0, -Math.PI / 4);
-        createFreeSeatSet(7.8, 0.0, Math.PI / 4);
-        createFreeSeatSet(5.4, 2.65, -Math.PI / 4);
+        function createWoodMarbleCounter() {
+            const group = new THREE.Group();
+            const counterWidth = 3.0;
+            const counterDepth = 1.0;
+            const counterHeight = 3.0;
+            const woodTex = createWoodTexture();
+            woodTex.repeat.set(1.5, 2.0);
+            const woodMat = new THREE.MeshStandardMaterial({ map: woodTex, roughness: 0.58, metalness: 0.03 });
+            const marbleTex = createBlackMarbleTexture();
+            marbleTex.repeat.set(2.2, 0.8);
+            const marbleMat = new THREE.MeshStandardMaterial({
+                map: marbleTex,
+                color: 0x111111,
+                roughness: 0.22,
+                metalness: 0.08
+            });
+
+            const base = new THREE.Mesh(new THREE.BoxGeometry(counterWidth, counterHeight - 0.08, counterDepth), woodMat);
+            base.position.y = (counterHeight - 0.08) / 2;
+            setMeshShadow(base, true);
+            group.add(base);
+
+            const top = new THREE.Mesh(new THREE.BoxGeometry(counterWidth + 0.18, 0.08, counterDepth + 0.14), marbleMat);
+            top.position.y = counterHeight;
+            setMeshShadow(top, true);
+            group.add(top);
+
+            const toeKick = new THREE.Mesh(new THREE.BoxGeometry(counterWidth - 0.28, 0.18, counterDepth + 0.03), new THREE.MeshStandardMaterial({ color: 0x2d1c12, roughness: 0.74 }));
+            toeKick.position.set(0, 0.09, 0.02);
+            setMeshShadow(toeKick);
+            group.add(toeKick);
+
+            const panelLineMat = new THREE.MeshStandardMaterial({ color: 0x5b3924, roughness: 0.68 });
+            [-0.5, 0.5].forEach((x) => {
+                const divider = new THREE.Mesh(new THREE.BoxGeometry(0.035, counterHeight - 0.32, 0.025), panelLineMat);
+                divider.position.set(x, (counterHeight - 0.08) / 2 + 0.08, counterDepth / 2 + 0.016);
+                setMeshShadow(divider);
+                group.add(divider);
+            });
+
+            group.position.set(-3.5, 0, roomCenterZ);
+            scene.add(group);
+        }
+
+        // 部屋中央に移動したフリー席: 4セットから6セットに増やし、拡張後の部屋中心に寄せて配置
+        [
+            { x: -0.8, z: roomCenterZ - 2.7, rotation: Math.PI / 4 },
+            { x: 2.0, z: roomCenterZ - 2.7, rotation: -Math.PI / 4 },
+            { x: -0.8, z: roomCenterZ, rotation: -Math.PI / 4 },
+            { x: 2.0, z: roomCenterZ, rotation: Math.PI / 4 },
+            { x: -0.8, z: roomCenterZ + 2.7, rotation: Math.PI / 4 },
+            { x: 2.0, z: roomCenterZ + 2.7, rotation: -Math.PI / 4 }
+        ].forEach(({ x, z, rotation }) => createFreeSeatSet(x, z, rotation));
+
+        // x=-5〜-2、Z幅約1ポイント、Y軸約3ポイントの木目調カウンター。天板は黒大理石。
+        createWoodMarbleCounter();
 
         function createWallDeskStation(x, z, facingAngle) {
             const stationGroup = new THREE.Group();
@@ -2958,10 +3043,13 @@
         // パソコン付きデスクを除去したため、該当デスク席の着席人物も配置しない。
 
         peoplePlacements.push(
-            // ブレイク用の机＆4椅子: 人数は据え置き、椅子の背もたれと反対側（テーブル側）へ向きを反転
-            { x: 6.11, z: -2.05, rotation: Math.PI / 4 + 0.03 + Math.PI, pose: 'seated' },
-            { x: 3.59, z: -0.68, rotation: Math.PI - 0.04 - Math.PI / 4 + Math.PI, pose: 'seated' },
-            { x: 8.41, z: -0.68, rotation: Math.PI / 4 + Math.PI / 2 + 0.05 + Math.PI, pose: 'seated' },
+            // 部屋中央に増設したフリー席に合わせ、着席人物も中央側へ移動
+            { x: -0.19, z: roomCenterZ - 3.38, rotation: Math.PI / 4 + Math.PI / 2 + 0.05 + Math.PI, pose: 'seated' },
+            { x: 1.29, z: roomCenterZ - 3.32, rotation: -Math.PI / 4 - Math.PI / 2 - 0.03 + Math.PI, pose: 'seated' },
+            { x: -1.40, z: roomCenterZ + 0.71, rotation: -Math.PI / 4 + 0.03 + Math.PI, pose: 'seated' },
+            { x: 1.32, z: roomCenterZ - 0.59, rotation: Math.PI / 4 + Math.PI - 0.04 + Math.PI, pose: 'seated' },
+            { x: -0.19, z: roomCenterZ + 2.02, rotation: Math.PI / 4 + Math.PI / 2 + 0.05 + Math.PI, pose: 'seated' },
+            { x: 1.29, z: roomCenterZ + 2.08, rotation: -Math.PI / 4 - Math.PI / 2 - 0.03 + Math.PI, pose: 'seated' },
             // ソファ席: 既存のソファ座面位置に合わせる
             { x: 24.2, z: 2.18, rotation: Math.PI, pose: 'seated' },
             { x: 24.2, z: 0.8, rotation: 0, pose: 'seated' },
