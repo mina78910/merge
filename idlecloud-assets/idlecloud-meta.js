@@ -95,9 +95,10 @@ const meta = {
         fields: [
             { name: 'workId', label: '作品', type: 'lookup', target: 'work' },
             { name: 'idolId', label: 'アイドル', type: 'lookup', target: 'idol' },
+            { name: 'groupId', label: 'グループ', type: 'lookup', target: 'group' },
             { name: 'role', label: '役割', type: 'text' }
         ],
-        listFields: ['id', 'workId', 'idolId', 'role']
+        listFields: ['id', 'workId', 'idolId', 'groupId', 'role']
     },
     liveCast: {
         label: 'ライブ出演', icon: '🎤', color: '#C2185B',

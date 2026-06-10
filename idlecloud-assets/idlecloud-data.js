@@ -426,7 +426,45 @@ const db = {
         { id: 47, workId: 48, idolId: 39, role: "MC" },
         { id: 48, workId: 48, idolId: 40, role: "MC" },
         { id: 49, workId: 132, idolId: 66, role: "歌唱" },
-        { id: 50, workId: 135, idolId: 73, role: "歌唱" }
+        { id: 50, workId: 135, idolId: 73, role: "歌唱" },
+        { id: 51, workId: 1, groupId: 1, role: "歌唱（グループ）" },
+        { id: 52, workId: 2, groupId: 1, role: "歌唱（グループ）" },
+        { id: 53, workId: 13, groupId: 1, role: "歌唱（グループ）" },
+        { id: 54, workId: 14, groupId: 1, role: "歌唱（グループ）" },
+        { id: 55, workId: 15, groupId: 1, role: "歌唱（グループ）" },
+        { id: 56, workId: 16, groupId: 1, role: "歌唱（グループ）" },
+        { id: 57, workId: 17, groupId: 1, role: "歌唱（グループ）" },
+        { id: 58, workId: 18, groupId: 1, role: "歌唱（グループ）" },
+        { id: 59, workId: 19, groupId: 1, role: "歌唱（グループ）" },
+        { id: 60, workId: 20, groupId: 1, role: "歌唱（グループ）" },
+        { id: 61, workId: 21, groupId: 1, role: "歌唱（グループ）" },
+        { id: 62, workId: 3, groupId: 2, role: "歌唱（グループ）" },
+        { id: 63, workId: 4, groupId: 2, role: "歌唱（グループ）" },
+        { id: 64, workId: 22, groupId: 2, role: "歌唱（グループ）" },
+        { id: 65, workId: 23, groupId: 2, role: "歌唱（グループ）" },
+        { id: 66, workId: 24, groupId: 2, role: "歌唱（グループ）" },
+        { id: 67, workId: 25, groupId: 2, role: "歌唱（グループ）" },
+        { id: 68, workId: 26, groupId: 2, role: "歌唱（グループ）" },
+        { id: 69, workId: 9, groupId: 3, role: "歌唱（グループ）" },
+        { id: 70, workId: 27, groupId: 3, role: "歌唱（グループ）" },
+        { id: 71, workId: 28, groupId: 3, role: "歌唱（グループ）" },
+        { id: 72, workId: 29, groupId: 3, role: "歌唱（グループ）" },
+        { id: 73, workId: 30, groupId: 3, role: "歌唱（グループ）" },
+        { id: 74, workId: 10, groupId: 6, role: "歌唱（グループ）" },
+        { id: 75, workId: 8, groupId: 8, role: "歌唱（グループ）" },
+        { id: 76, workId: 132, groupId: 12, role: "歌唱（グループ）" },
+        { id: 77, workId: 135, groupId: 13, role: "出演（グループ）" },
+        { id: 78, workId: 136, groupId: 14, role: "歌唱（グループ）" },
+        { id: 79, workId: 137, groupId: 14, role: "歌唱（グループ）" },
+        { id: 80, workId: 138, groupId: 14, role: "歌唱（グループ）" },
+        { id: 81, workId: 140, groupId: 15, role: "歌唱（グループ）" },
+        { id: 82, workId: 141, groupId: 15, role: "歌唱（グループ）" },
+        { id: 83, workId: 142, groupId: 16, role: "歌唱（グループ）" },
+        { id: 84, workId: 143, groupId: 16, role: "歌唱（グループ）" },
+        { id: 85, workId: 144, groupId: 16, role: "歌唱（グループ）" },
+        { id: 86, workId: 7, groupId: 17, role: "歌唱（グループ）" },
+        { id: 87, workId: 145, groupId: 17, role: "歌唱（グループ）" },
+        { id: 88, workId: 146, groupId: 17, role: "歌唱（グループ）" }
     ],
     live: [
         { id: 1, name: "ARASHI Anniversary Tour 5×20", date: "2019-12-25", venueId: 1 },
@@ -507,4 +545,4 @@ const db = {
     ]
 };
 
-let counters = { agency: 3, group: 18, idol: 95, affiliation: 97, groupHistory: 7, work: 147, participation: 51, live: 15, venue: 11, liveCast: 19, event: 28 };
+let counters = { agency: 3, group: 18, idol: 95, affiliation: 97, groupHistory: 7, work: 147, participation: 89, live: 15, venue: 11, liveCast: 19, event: 28 };

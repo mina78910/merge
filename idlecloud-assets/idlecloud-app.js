@@ -88,7 +88,10 @@ const app = {
         if (record.description) return record.description;
         if (objName === 'affiliation') return `${this.getLookupName('idol', record.idolId)} × ${this.getLookupName('group', record.groupId)}`;
         if (objName === 'groupHistory') return `${record.oldName || '-'} → ${record.newName || '-'}`;
-        if (objName === 'participation') return `${this.getLookupName('work', record.workId)} / ${this.getLookupName('idol', record.idolId)}`;
+        if (objName === 'participation') {
+            const participantName = record.groupId ? this.getLookupName('group', record.groupId) : this.getLookupName('idol', record.idolId);
+            return `${this.getLookupName('work', record.workId)} / ${participantName}`;
+        }
         if (objName === 'liveCast') return `${this.getLookupName('live', record.liveId)} / ${this.getLookupName('group', record.groupId)}`;
         return `ID:${record.id}`;
     },
@@ -355,11 +358,12 @@ const app = {
         }
         else if(this.currentTab === 'group') {
             this.buildRelatedList(container, 'affiliation', '在籍タレント・所属メンバー', function(r) { return r.groupId === id; }, ['idolId', 'status', 'role']);
+            this.buildRelatedList(container, 'participation', 'グループ名義の作品/番組参加実績', function(r) { return r.groupId === id; }, ['workId', 'role']);
             this.buildRelatedList(container, 'groupHistory', '改名履歴・名称変遷', function(r) { return r.groupId === id; }, ['oldName', 'newName', 'changeDate']);
             this.buildRelatedList(container, 'liveCast', '出演ライブ履歴', function(r) { return r.groupId === id; }, ['liveId']);
         }
         else if(this.currentTab === 'work') {
-            this.buildRelatedList(container, 'participation', '作品/番組 参加キャスト', function(r) { return r.workId === id; }, ['idolId', 'role']);
+            this.buildRelatedList(container, 'participation', '作品/番組 参加キャスト', function(r) { return r.workId === id; }, ['idolId', 'groupId', 'role']);
             
         }
         else if(this.currentTab === 'venue') {
@@ -377,6 +381,7 @@ const app = {
             if (rec) {
                 this.buildRelatedList(container, 'work', '関連作品', function(r) { return r.id === rec.workId; }, ['title', 'type', 'publisher']);
                 this.buildRelatedList(container, 'idol', '関連アイドル', function(r) { return r.id === rec.idolId; }, ['name', 'status', 'agencyId']);
+                this.buildRelatedList(container, 'group', '関連グループ', function(r) { return r.id === rec.groupId; }, ['name', 'debutDate', 'status']);
             }
         }
         else if(this.currentTab === 'groupHistory') {
@@ -678,6 +683,9 @@ const app = {
             let isFullWidth = (f.type === 'text' || f.type === 'lookup' || f.type === 'polymorphic' || f.type === 'textarea') ? 'full-width' : '';
             
             formHtml += `<div class="form-group ${isFullWidth}"><label>${f.label}</label>`;
+            if (this.currentTab === 'participation' && f.name === 'idolId') {
+                formHtml += `<div style="font-size:11px; color:#747474; margin-bottom:4px;">入力規則: アイドルまたはグループのどちらか一方だけを選択してください。</div>`;
+            }
             
             if (f.type === 'select') {
                 formHtml += `<select id="form-${f.name}" class="input-field">`;
@@ -734,13 +742,7 @@ const app = {
 
     saveRecord: function() {
         const m = meta[this.currentTab];
-        let record = {};
-        
-        if (this.editMode === 'edit') {
-            record = db[this.currentTab].find(function(r) { return r.id === app.editId; });
-        } else {
-            record = { id: counters[this.currentTab]++ };
-        }
+        const formValues = {};
 
         for (let i = 0; i < m.fields.length; i++) {
             const f = m.fields[i];
@@ -748,10 +750,19 @@ const app = {
             if (f.type === 'number' || f.type === 'lookup') {
                 val = val ? parseInt(val, 10) : '';
             }
-            record[f.name] = val;
+            formValues[f.name] = val;
         }
 
-        if (this.editMode === 'new') {
+        if (!this.validateRecord(formValues)) {
+            return;
+        }
+
+        let record = {};
+        if (this.editMode === 'edit') {
+            record = db[this.currentTab].find(function(r) { return r.id === app.editId; });
+            Object.assign(record, formValues);
+        } else {
+            record = Object.assign({ id: counters[this.currentTab]++ }, formValues);
             if (!db[this.currentTab]) db[this.currentTab] = [];
             db[this.currentTab].push(record);
         }
@@ -762,6 +773,18 @@ const app = {
         } else {
             this.showDetail(record.id);
         }
+    },
+
+    validateRecord: function(record) {
+        if (this.currentTab === 'participation') {
+            const hasIdol = !!record.idolId;
+            const hasGroup = !!record.groupId;
+            if (hasIdol === hasGroup) {
+                alert('作品参加の入力規則: 「アイドル」または「グループ」のどちらか一方だけを選択してください。');
+                return false;
+            }
+        }
+        return true;
     },
 
     deleteRecord: function(id) {
@@ -798,7 +821,7 @@ const app = {
             <div class="explanation">
                 <strong>💡 学習ポイント：中間オブジェクトとカスタムレポート機能</strong><br>
                 ・<b>カスタムレポート機能：</b> 新設されたレポートタブでは、オブジェクト単位のデータ抽出（SOQLクエリの擬似再現）を体験可能です。「特定のカラーのアイドル」「特定の放送局のドラマ作品」などを条件指定し、動的にデータを集計表示できます。<br>
-                ・作品とアイドルの関係は、作品参加オブジェクトでN:Nの参加実績として管理します。
+                ・作品とアイドル/グループの関係は、作品参加オブジェクトでN:Nの参加実績として管理します。作品参加では「アイドル」または「グループ」のどちらか一方だけを選択する入力規則を想定しています。
             </div>
 
             <div class="er-grid">
@@ -843,7 +866,8 @@ const app = {
                     <div class="entity-header int">🎵 作品参加 (N:N 中間)</div>
                     <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
                     <div class="f-row fk"><span>workId</span><span class="f-type">FK ➔ 作品</span></div>
-                    <div class="f-row fk"><span>idolId</span><span class="f-type">FK ➔ アイドル</span></div>
+                    <div class="f-row fk"><span>idolId</span><span class="f-type">FK ➔ アイドル (排他)</span></div>
+                    <div class="f-row fk"><span>groupId</span><span class="f-type">FK ➔ グループ (排他)</span></div>
                     <div class="f-row"><span>role</span><span class="f-type">Text</span></div>
                 </div>
                 
