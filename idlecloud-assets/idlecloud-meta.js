@@ -37,10 +37,9 @@ const meta = {
             { name: 'title', label: 'タイトル / 番組名', type: 'text' },
             { name: 'type', label: '種別', type: 'select', options: ['シングル', 'アルバム', '映像作品', '映画', 'ドラマ', 'バラエティ', 'ラジオ', '音楽番組', '報道'] },
             { name: 'publisher', label: 'レーベル / 放送局', type: 'text' },
-            { name: 'ownerRecord', label: '所有者(メイン)', type: 'polymorphic', targets: ['idol', 'group'] },
             { name: 'releaseDate', label: '発売日 / 開始日', type: 'date' }
         ],
-        listFields: ['id', 'title', 'type', 'publisher', 'ownerRecord', 'releaseDate']
+        listFields: ['id', 'title', 'type', 'publisher', 'releaseDate']
     },
     live: {
         label: 'ライブ', icon: '🎸', color: '#E25858',
