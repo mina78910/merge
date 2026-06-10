@@ -376,14 +376,6 @@ const app = {
                 this.buildRelatedList(container, 'group', '関連グループ', function(r) { return r.id === rec.groupId; }, ['name', 'debutDate', 'status']);
             }
         }
-        else if(this.currentTab === 'participation') {
-            const rec = db.participation.find(function(r) { return r.id === id; });
-            if (rec) {
-                this.buildRelatedList(container, 'work', '関連作品', function(r) { return r.id === rec.workId; }, ['title', 'type', 'publisher']);
-                this.buildRelatedList(container, 'idol', '関連アイドル', function(r) { return r.id === rec.idolId; }, ['name', 'status', 'agencyId']);
-                this.buildRelatedList(container, 'group', '関連グループ', function(r) { return r.id === rec.groupId; }, ['name', 'debutDate', 'status']);
-            }
-        }
         else if(this.currentTab === 'groupHistory') {
             const rec = db.groupHistory.find(function(r) { return r.id === id; });
             if (rec) this.buildRelatedList(container, 'group', '関連グループ', function(r) { return r.id === rec.groupId; }, ['name', 'debutDate', 'status']);
