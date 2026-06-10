@@ -111,7 +111,10 @@ const meta = {
     settings: { label: '設定 (ER図)', icon: '⚙️', color: '#747474', listFields: [] }
 };
 
-// UI表示用のタブ定義 (所属管理オブジェクトは非表示化を継続)
+// UI表示用のタブ定義
 const TABS = ['dashboard', 'agency', 'idol', 'group', 'work', 'live', 'venue', 'event', 'report', 'settings'];
+
+// タブバーの「＝」メニュー内に折りたたむ補助/中間オブジェクト
+const OVERFLOW_TABS = ['affiliation', 'groupHistory', 'participation', 'liveCast'];
 
 // --- 3. アプリケーション制御コア ---

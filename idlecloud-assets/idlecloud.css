@@ -33,6 +33,12 @@ header { background-color: var(--header-bg); border-bottom: 2px solid var(--bran
 .nav-tabs li { padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: bold; color: var(--text-sub); transition: all 0.2s; white-space: nowrap; font-size: 13px;}
 .nav-tabs li:hover { background-color: #F3F2F2; color: var(--brand-color); }
 .nav-tabs li.active { border-bottom-color: var(--brand-color); color: var(--text-main); background-color: var(--surface-color); }
+.nav-tabs .nav-menu { position: relative; overflow: visible; padding: 0; }
+.nav-menu-trigger { display: block; padding: 10px 20px; font-size: 18px; line-height: 1; }
+.nav-menu-dropdown { position: fixed; top: 86px; right: 12px; display: none; min-width: 220px; padding: 6px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-md); z-index: 200; }
+.nav-menu:hover .nav-menu-dropdown, .nav-menu:focus-within .nav-menu-dropdown { display: block; }
+.nav-menu-item { display: block; width: 100%; padding: 9px 12px; border: 0; border-radius: var(--border-radius); background: transparent; color: var(--text-sub); cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; text-align: left; white-space: nowrap; }
+.nav-menu-item:hover, .nav-menu-item.active { background: #F3F2F2; color: var(--brand-color); }
 
 /* メメインコンテナ */
 main { flex: 1; overflow-y: auto; padding: 20px; }
@@ -170,6 +176,9 @@ tr:hover td { background-color: #FAFAF9; }
     .logo { font-size: 1.05rem; }
     .nav-tabs { padding-left: 0; }
     .nav-tabs li { flex: 0 0 auto; padding: 10px 14px; font-size: 12px; }
+    .nav-tabs .nav-menu { padding: 0; }
+    .nav-menu-trigger { padding: 10px 14px; }
+    .nav-menu-dropdown { top: 98px; left: auto; right: 8px; min-width: 210px; }
 
     main { padding: 12px; }
     .container { width: 100%; }

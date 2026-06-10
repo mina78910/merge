@@ -24,6 +24,18 @@ const app = {
             const isActive = (tab === this.currentTab) ? 'active' : '';
             html += `<li class="${isActive}" onclick="app.switchTab('${tab}')">${meta[tab].label}</li>`;
         }
+
+        const overflowTabs = (typeof OVERFLOW_TABS !== 'undefined') ? OVERFLOW_TABS : [];
+        if (overflowTabs.length > 0) {
+            const isOverflowActive = overflowTabs.indexOf(this.currentTab) > -1 ? 'active' : '';
+            html += `<li class="nav-menu ${isOverflowActive}" aria-label="その他オブジェクト"><span class="nav-menu-trigger">＝</span><div class="nav-menu-dropdown">`;
+            for (let i = 0; i < overflowTabs.length; i++) {
+                const tab = overflowTabs[i];
+                const itemActive = (tab === this.currentTab) ? 'active' : '';
+                html += `<button type="button" class="nav-menu-item ${itemActive}" onclick="app.switchTab('${tab}')">${meta[tab].icon || '📄'} ${meta[tab].label}</button>`;
+            }
+            html += `</div></li>`;
+        }
         nav.innerHTML = html;
     },
 

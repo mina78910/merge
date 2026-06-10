@@ -27,10 +27,10 @@
 | `live` | ライブ | ライブ/公演マスタ | 表示 |
 | `venue` | 会場 | ライブ会場マスタ | 表示 |
 | `event` | イベント | 歴史イベント・時系列メモ | 表示 |
-| `affiliation` | 所属管理 | アイドルとグループの N:N 中間オブジェクト | 非表示/関連リスト |
-| `groupHistory` | グループ名変更履歴 | グループの改名履歴 | 非表示/関連リスト |
-| `participation` | 作品参加 | アイドルと作品の N:N 中間オブジェクト | 非表示/関連リスト |
-| `liveCast` | ライブ出演 | グループとライブの中間オブジェクト | 非表示/関連リスト |
+| `affiliation` | 所属管理 | アイドルとグループの N:N 中間オブジェクト | 「＝」メニュー/関連リスト |
+| `groupHistory` | グループ名変更履歴 | グループの改名履歴 | 「＝」メニュー/関連リスト |
+| `participation` | 作品参加 | アイドルと作品の N:N 中間オブジェクト | 「＝」メニュー/関連リスト |
+| `liveCast` | ライブ出演 | グループとライブの中間オブジェクト | 「＝」メニュー/関連リスト |
 | `dashboard` | ダッシュボード | KPI/集計表示 | 表示 |
 | `report` | レポート | カスタムレポート検索 | 表示 |
 | `settings` | 設定 (ER図) | ER図/設計確認 | 表示 |
@@ -210,7 +210,7 @@ work.ownerRecord ──> idol または group（ポリモーフィック参照�
 dashboard, agency, idol, group, work, live, venue, event, report, settings
 ```
 
-`affiliation`, `groupHistory`, `participation`, `liveCast` は、独立タブではなく詳細画面の関連リストとして表示する想定です。
+`affiliation`, `groupHistory`, `participation`, `liveCast` は、通常のタブバーには常時表示せず、タブバー右側の「＝」メニューに折りたたんで表示します。各オブジェクトはリストビューと詳細ページを持ち、詳細画面の関連リストからも遷移できます。
 
 ---
 
