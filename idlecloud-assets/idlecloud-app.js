@@ -6,6 +6,7 @@ window.onerror = function(message, source, lineno, colno, error) {
 const app = {
     currentTab: 'dashboard',
     currentDetailId: null,
+    detailHistory: [],
     sortCol: 'id',
     sortAsc: true,
 
@@ -51,6 +52,7 @@ const app = {
     },
 
     switchTab: function(tab) {
+        this.resetDetailHistory();
         if (tab === 'settings') {
             this.openSettingsWindow();
             return;
@@ -144,6 +146,7 @@ const app = {
     // リストビュー
     // ==========================================
     showList: function() {
+        this.resetDetailHistory();
         const m = meta[this.currentTab];
         if (!m || !m.listFields || m.listFields.length === 0) return;
 
@@ -297,6 +300,24 @@ const app = {
         document.getElementById('detail-info').innerHTML = infoHtml;
 
         this.renderRelatedLists(id);
+        this.updateRecordBackButton();
+    },
+
+    updateRecordBackButton: function() {
+        const backButton = document.getElementById('detail-back-button');
+        if (!backButton) return;
+        backButton.style.display = this.detailHistory.length > 0 ? 'inline-flex' : 'none';
+    },
+
+    resetDetailHistory: function() {
+        this.detailHistory = [];
+        this.updateRecordBackButton();
+    },
+
+    goBackRecord: function() {
+        const previous = this.detailHistory.pop();
+        if (!previous) return;
+        this.jumpToDetail(previous.tab, previous.id);
     },
 
     jumpToDetail: function(targetObj, id) {
@@ -312,6 +333,12 @@ const app = {
     },
 
     changeTabAndShowDetail: function(targetObj, id) {
+        const detailView = document.getElementById('view-detail');
+        const isDetailToDetail = detailView && detailView.classList.contains('active') && this.currentDetailId !== null;
+        const isSameRecord = isDetailToDetail && this.currentTab === targetObj && this.currentDetailId === id;
+        if (isDetailToDetail && !isSameRecord) {
+            this.detailHistory.push({ tab: this.currentTab, id: this.currentDetailId });
+        }
         this.jumpToDetail(targetObj, id);
     },
 

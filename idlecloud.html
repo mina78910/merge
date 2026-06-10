@@ -108,7 +108,10 @@
             </div>
 
             <div id="view-detail" class="view-section">
-                <div class="breadcrumb" onclick="app.showList()">← <span id="breadcrumb-text">一覧へ戻る</span></div>
+                <div class="detail-navigation">
+                    <button type="button" class="detail-back-button" id="detail-back-button" onclick="app.goBackRecord()">← 前のレコードへ戻る</button>
+                    <div class="breadcrumb" onclick="app.showList()">← <span id="breadcrumb-text">一覧へ戻る</span></div>
+                </div>
                 <div class="detail-page-layout">
                     <div class="card highlights-panel">
                         <div class="hp-left">
