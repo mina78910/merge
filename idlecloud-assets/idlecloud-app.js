@@ -351,27 +351,16 @@ const app = {
         }
         else if(this.currentTab === 'idol') {
             this.buildRelatedList(container, 'affiliation', '所属グループ履歴', function(r) { return r.idolId === id; }, ['groupId', 'status', 'role', 'isConcurrent']);
-            this.buildRelatedList(container, 'work', '所有・メイン 作品/番組', function(r) { return r.ownerRecord === `idol_${id}`; }, ['title', 'type', 'publisher']);
             this.buildRelatedList(container, 'participation', '作品/番組 出演・参加実績', function(r) { return r.idolId === id; }, ['workId', 'role']);
         }
         else if(this.currentTab === 'group') {
             this.buildRelatedList(container, 'affiliation', '在籍タレント・所属メンバー', function(r) { return r.groupId === id; }, ['idolId', 'status', 'role']);
-            this.buildRelatedList(container, 'work', 'グループ名義 作品/番組', function(r) { return r.ownerRecord === `group_${id}`; }, ['title', 'type', 'publisher']);
             this.buildRelatedList(container, 'groupHistory', '改名履歴・名称変遷', function(r) { return r.groupId === id; }, ['oldName', 'newName', 'changeDate']);
             this.buildRelatedList(container, 'liveCast', '出演ライブ履歴', function(r) { return r.groupId === id; }, ['liveId']);
         }
         else if(this.currentTab === 'work') {
             this.buildRelatedList(container, 'participation', '作品/番組 参加キャスト', function(r) { return r.workId === id; }, ['idolId', 'role']);
             
-            var workRec = db.work.find(function(r) { return r.id === id; });
-            if (workRec && workRec.ownerRecord) {
-                var parts = workRec.ownerRecord.split('_');
-                if (parts.length === 2 && parts[0] === 'group') {
-                    var gId = parseInt(parts[1], 10);
-                    var gName = app.getLookupName('group', gId);
-                    this.buildRelatedList(container, 'affiliation', gName + ' 所属タレント一覧 (所有グループ連動)', function(r) { return r.groupId === gId; }, ['idolId', 'status', 'role']);
-                }
-            }
         }
         else if(this.currentTab === 'venue') {
             this.buildRelatedList(container, 'live', '会場開催ライブ一覧', function(r) { return r.venueId === id; }, ['name', 'date']);
@@ -386,7 +375,7 @@ const app = {
         else if(this.currentTab === 'participation') {
             const rec = db.participation.find(function(r) { return r.id === id; });
             if (rec) {
-                this.buildRelatedList(container, 'work', '関連作品', function(r) { return r.id === rec.workId; }, ['title', 'type', 'ownerRecord']);
+                this.buildRelatedList(container, 'work', '関連作品', function(r) { return r.id === rec.workId; }, ['title', 'type', 'publisher']);
                 this.buildRelatedList(container, 'idol', '関連アイドル', function(r) { return r.id === rec.idolId; }, ['name', 'status', 'agencyId']);
             }
         }
@@ -442,8 +431,6 @@ const app = {
                         val = this.getLookupLink('work', val);
                     } else if(col === 'liveId') {
                         val = this.getLookupLink('live', val);
-                    } else if(col === 'ownerRecord') {
-                        val = this.getPolymorphicDisplay(val);
                     } else if(col === 'status') {
                         val = this.getBadgeHtml(val);
                     } else if(col === 'isConcurrent') {
@@ -511,8 +498,6 @@ const app = {
                 let targetVal = record[field];
                 if (field === 'agencyId' || field === 'venueId') {
                     targetVal = app.getLookupName(field === 'agencyId' ? 'agency' : 'venue', targetVal);
-                } else if (field === 'ownerRecord') {
-                    targetVal = app.getPolymorphicNameOnly(targetVal);
                 }
                 targetVal = String(targetVal).toLowerCase();
 
@@ -811,9 +796,9 @@ const app = {
         <body>
             <h1>☁️ アイドルcloud オブジェクト ERモデル設計図</h1>
             <div class="explanation">
-                <strong>💡 学習ポイント：ポリモーフィック参照とカスタムレポート機能</strong><br>
+                <strong>💡 学習ポイント：中間オブジェクトとカスタムレポート機能</strong><br>
                 ・<b>カスタムレポート機能：</b> 新設されたレポートタブでは、オブジェクト単位のデータ抽出（SOQLクエリの擬似再現）を体験可能です。「特定のカラーのアイドル」「特定の放送局のドラマ作品」などを条件指定し、動的にデータを集計表示できます。<br>
-                ・作品マスタの <code>ownerRecord</code> は、<b>アイドル</b> または <b>グループ</b> のどちらかを参照できるポリモーフィック（多態性）項目です。
+                ・作品とアイドルの関係は、作品参加オブジェクトでN:Nの参加実績として管理します。
             </div>
 
             <div class="er-grid">
@@ -852,7 +837,6 @@ const app = {
                     <div class="f-row pk"><span>id</span><span class="f-type">PK (Number)</span></div>
                     <div class="f-row"><span>title</span><span class="f-type">Text</span></div>
                     <div class="f-row"><span>type</span><span class="f-type">Picklist</span></div>
-                    <div class="f-row fk" style="background:#EBF3FC;"><span>ownerRecord</span><span class="f-type">ポリモーフィック FK</span></div>
                 </div>
 
                 <div class="entity-box">
