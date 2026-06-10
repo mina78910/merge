@@ -5,7 +5,7 @@ const db = {
         { id: 2, name: "STARTO ENTERTAINMENT", foundedYear: 2024, location: "東京都" }
     ],
     group: [
-        { id: 1, name: "嵐", debutDate: "1999-11-03", status: "活動休止" },
+        { id: 1, name: "嵐", debutDate: "1999-11-03", status: "活動終了" },
         { id: 2, name: "SixTONES", debutDate: "2020-01-22", status: "活動中" },
         { id: 3, name: "Snow Man", debutDate: "2020-01-22", status: "活動中" },
         { id: 4, name: "SUPER EIGHT", debutDate: "2004-08-25", status: "活動中" },

@@ -27,7 +27,7 @@ const meta = {
         fields: [
             { name: 'name', label: 'グループ名', type: 'text' },
             { name: 'debutDate', label: 'デビュー日', type: 'date' },
-            { name: 'status', label: '活動ステータス', type: 'select', options: ['活動中', '活動休止', '解散'] }
+            { name: 'status', label: '活動ステータス', type: 'select', options: ['活動中', '活動休止', '活動終了', '解散'] }
         ],
         listFields: ['id', 'name', 'debutDate', 'status']
     },
