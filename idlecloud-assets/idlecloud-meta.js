@@ -81,6 +81,33 @@ const meta = {
         ],
         listFields: ['id', 'idolId', 'groupId', 'status', 'isConcurrent']
     },
+    groupHistory: {
+        label: 'グループ名変更履歴', icon: '📜', color: '#8E6E53',
+        fields: [
+            { name: 'groupId', label: 'グループ', type: 'lookup', target: 'group' },
+            { name: 'oldName', label: '旧名称', type: 'text' },
+            { name: 'newName', label: '新名称', type: 'text' },
+            { name: 'changeDate', label: '変更日', type: 'date' }
+        ],
+        listFields: ['id', 'groupId', 'oldName', 'newName', 'changeDate']
+    },
+    participation: {
+        label: '作品参加', icon: '🎵', color: '#2E7D32',
+        fields: [
+            { name: 'workId', label: '作品', type: 'lookup', target: 'work' },
+            { name: 'idolId', label: 'アイドル', type: 'lookup', target: 'idol' },
+            { name: 'role', label: '役割', type: 'text' }
+        ],
+        listFields: ['id', 'workId', 'idolId', 'role']
+    },
+    liveCast: {
+        label: 'ライブ出演', icon: '🎤', color: '#C2185B',
+        fields: [
+            { name: 'liveId', label: 'ライブ', type: 'lookup', target: 'live' },
+            { name: 'groupId', label: 'グループ', type: 'lookup', target: 'group' }
+        ],
+        listFields: ['id', 'liveId', 'groupId']
+    },
     settings: { label: '設定 (ER図)', icon: '⚙️', color: '#747474', listFields: [] }
 };
 

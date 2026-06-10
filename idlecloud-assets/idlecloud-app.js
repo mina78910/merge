@@ -64,7 +64,33 @@ const app = {
         const targetDb = db[targetObj];
         if (!targetDb) return '-';
         const record = targetDb.find(function(r) { return r.id == id; });
-        return record ? (record.name || record.title || `ID:${id}`) : '-';
+        return record ? this.getRecordDisplayName(targetObj, record) : '-';
+    },
+
+    getRecordDisplayName: function(objName, record) {
+        if (!record) return '-';
+        if (record.name) return record.name;
+        if (record.title) return record.title;
+        if (record.description) return record.description;
+        if (objName === 'affiliation') return `${this.getLookupName('idol', record.idolId)} × ${this.getLookupName('group', record.groupId)}`;
+        if (objName === 'groupHistory') return `${record.oldName || '-'} → ${record.newName || '-'}`;
+        if (objName === 'participation') return `${this.getLookupName('work', record.workId)} / ${this.getLookupName('idol', record.idolId)}`;
+        if (objName === 'liveCast') return `${this.getLookupName('live', record.liveId)} / ${this.getLookupName('group', record.groupId)}`;
+        return `ID:${record.id}`;
+    },
+
+    getRecordLink: function(objName, record, label) {
+        if (!record || !meta[objName]) return label || '-';
+        const displayLabel = label || this.getRecordDisplayName(objName, record);
+        return `<span class="action-link" onclick="app.changeTabAndShowDetail('${objName}', ${record.id})">${displayLabel}</span>`;
+    },
+
+    getLookupLink: function(targetObj, id) {
+        const targetDb = db[targetObj];
+        if (!id || !targetDb || !meta[targetObj]) return this.getLookupName(targetObj, id);
+        const record = targetDb.find(function(r) { return r.id == id; });
+        if (!record) return '-';
+        return this.getRecordLink(targetObj, record);
     },
 
     getPolymorphicDisplay: function(val) {
@@ -78,7 +104,7 @@ const app = {
         const record = targetDb.find(function(r) { return r.id === targetId; });
         if (!record) return val;
         const name = record.name || record.title;
-        return `<span class="action-link" onclick="app.changeTabAndShowDetail('${targetObj}', ${targetId})">[${meta[targetObj].label}] ${name}</span>`;
+        return this.getRecordLink(targetObj, record, `[${meta[targetObj].label}] ${name}`);
     },
 
     getPolymorphicNameOnly: function(val) {
@@ -179,9 +205,9 @@ const app = {
                     let val = record[f];
                     
                     if (fieldMeta && fieldMeta.type === 'lookup') {
-                        val = this.getLookupName(fieldMeta.target, val);
+                        val = this.getLookupLink(fieldMeta.target, val);
                     } else if (fieldMeta && fieldMeta.type === 'polymorphic') {
-                        val = this.getPolymorphicNameOnly(val);
+                        val = this.getPolymorphicDisplay(val);
                     } else if (f === 'status') {
                         val = this.getBadgeHtml(val);
                     } else if (f === 'isConcurrent') {
@@ -191,7 +217,7 @@ const app = {
                     let displayVal = (val !== undefined && val !== null && val !== '') ? val : '-';
 
                     if (f === 'name' || f === 'title' || f === 'description') {
-                        tbodyHtml += `<td><span class="action-link" onclick="app.showDetail(${record.id})" style="font-weight:bold;">${displayVal}</span></td>`;
+                        tbodyHtml += `<td><span class="action-link" onclick="app.changeTabAndShowDetail('${this.currentTab}', ${record.id})" style="font-weight:bold;">${displayVal}</span></td>`;
                     } else {
                         tbodyHtml += `<td>${displayVal}</td>`;
                     }
@@ -247,7 +273,7 @@ const app = {
             const f = m.fields[i];
             let val = record[f.name];
             if (f.type === 'lookup') {
-                val = `<span class="action-link" onclick="app.jumpToDetail('${f.target}', ${record[f.name]})">${this.getLookupName(f.target, val)}</span>`;
+                val = this.getLookupLink(f.target, record[f.name]);
             } else if (f.type === 'polymorphic') {
                 val = this.getPolymorphicDisplay(record[f.name]);
             } else if(f.name === 'status') {
@@ -263,6 +289,7 @@ const app = {
 
     jumpToDetail: function(targetObj, id) {
         if(!id) return;
+        if (!db[targetObj] || !meta[targetObj]) return;
         if(TABS.indexOf(targetObj) > -1) {
             this.currentTab = targetObj;
             this.renderGlobalNav();
@@ -270,6 +297,10 @@ const app = {
             this.currentTab = targetObj;
         }
         this.showDetail(id);
+    },
+
+    changeTabAndShowDetail: function(targetObj, id) {
+        this.jumpToDetail(targetObj, id);
     },
 
     renderRelatedLists: function(id) {
@@ -306,6 +337,31 @@ const app = {
         else if(this.currentTab === 'venue') {
             this.buildRelatedList(container, 'live', '会場開催ライブ一覧', function(r) { return r.venueId === id; }, ['name', 'date']);
         }
+        else if(this.currentTab === 'affiliation') {
+            const rec = db.affiliation.find(function(r) { return r.id === id; });
+            if (rec) {
+                this.buildRelatedList(container, 'idol', '関連アイドル', function(r) { return r.id === rec.idolId; }, ['name', 'status', 'agencyId']);
+                this.buildRelatedList(container, 'group', '関連グループ', function(r) { return r.id === rec.groupId; }, ['name', 'debutDate', 'status']);
+            }
+        }
+        else if(this.currentTab === 'participation') {
+            const rec = db.participation.find(function(r) { return r.id === id; });
+            if (rec) {
+                this.buildRelatedList(container, 'work', '関連作品', function(r) { return r.id === rec.workId; }, ['title', 'type', 'ownerRecord']);
+                this.buildRelatedList(container, 'idol', '関連アイドル', function(r) { return r.id === rec.idolId; }, ['name', 'status', 'agencyId']);
+            }
+        }
+        else if(this.currentTab === 'groupHistory') {
+            const rec = db.groupHistory.find(function(r) { return r.id === id; });
+            if (rec) this.buildRelatedList(container, 'group', '関連グループ', function(r) { return r.id === rec.groupId; }, ['name', 'debutDate', 'status']);
+        }
+        else if(this.currentTab === 'liveCast') {
+            const rec = db.liveCast.find(function(r) { return r.id === id; });
+            if (rec) {
+                this.buildRelatedList(container, 'live', '関連ライブ', function(r) { return r.id === rec.liveId; }, ['name', 'date', 'venueId']);
+                this.buildRelatedList(container, 'group', '関連グループ', function(r) { return r.id === rec.groupId; }, ['name', 'debutDate', 'status']);
+            }
+        }
     },
 
     buildRelatedList: function(container, objName, title, filterFunc, displayCols) {
@@ -327,10 +383,10 @@ const app = {
             const label = f ? f.label : (col === 'groupId' ? 'グループ' : col === 'idolId' ? 'アイドル' : col === 'workId' ? '作品(番組)' : col === 'liveId' ? 'ライブ' : col);
             html += `<th>${label}</th>`;
         }
-        html += `</tr></thead><tbody>`;
+        html += `<th>詳細</th></tr></thead><tbody>`;
 
         if(data.length === 0) {
-            html += `<tr><td colspan="${displayCols.length}" style="text-align:center; color:#888;">関連レコードはありません</td></tr>`;
+            html += `<tr><td colspan="${displayCols.length + 1}" style="text-align:center; color:#888;">関連レコードはありません</td></tr>`;
         } else {
             for (let i = 0; i < data.length; i++) {
                 const record = data[i];
@@ -340,13 +396,13 @@ const app = {
                     let val = record[col];
                     
                     if (col === 'groupId') {
-                        val = `<span class="action-link" onclick="app.changeTabAndShowDetail('group', ${val})">${this.getLookupName('group', val)}</span>`;
+                        val = this.getLookupLink('group', val);
                     } else if(col === 'idolId') {
-                        val = `<span class="action-link" onclick="app.changeTabAndShowDetail('idol', ${val})">${this.getLookupName('idol', val)}</span>`;
+                        val = this.getLookupLink('idol', val);
                     } else if(col === 'workId') {
-                        val = `<span class="action-link" onclick="app.changeTabAndShowDetail('work', ${val})">${this.getLookupName('work', val)}</span>`;
+                        val = this.getLookupLink('work', val);
                     } else if(col === 'liveId') {
-                        val = `<span class="action-link" onclick="app.changeTabAndShowDetail('live', ${val})">${this.getLookupName('live', val)}</span>`;
+                        val = this.getLookupLink('live', val);
                     } else if(col === 'ownerRecord') {
                         val = this.getPolymorphicDisplay(val);
                     } else if(col === 'status') {
@@ -356,9 +412,12 @@ const app = {
                     }
 
                     let displayVal = (val !== undefined && val !== null && val !== '') ? val : '-';
+                    if ((col === 'name' || col === 'title' || col === 'description' || col === 'oldName' || col === 'newName') && meta[objName]) {
+                        displayVal = this.getRecordLink(objName, record, displayVal);
+                    }
                     html += `<td>${displayVal}</td>`;
                 }
-                html += `</tr>`;
+                html += `<td>${this.getRecordLink(objName, record, '詳細へ')}</td></tr>`;
             }
         }
         html += `</tbody></table></div>`;
@@ -444,9 +503,9 @@ const app = {
                     let cellVal = record[f];
 
                     if (fieldMeta && fieldMeta.type === 'lookup') {
-                        cellVal = this.getLookupName(fieldMeta.target, cellVal);
+                        cellVal = this.getLookupLink(fieldMeta.target, cellVal);
                     } else if (fieldMeta && fieldMeta.type === 'polymorphic') {
-                        cellVal = this.getPolymorphicNameOnly(cellVal);
+                        cellVal = this.getPolymorphicDisplay(cellVal);
                     } else if (f === 'status') {
                         cellVal = this.getBadgeHtml(cellVal);
                     } else if (f === 'isConcurrent') {
@@ -456,7 +515,7 @@ const app = {
                     let displayVal = (cellVal !== undefined && cellVal !== null && cellVal !== '') ? cellVal : '-';
                     
                     if (f === 'name' || f === 'title' || f === 'description') {
-                        tbodyHtml += `<td><span class="action-link" onclick="app.showDetail(${record.id})" style="font-weight:bold;">${displayVal}</span></td>`;
+                        tbodyHtml += `<td><span class="action-link" onclick="app.changeTabAndShowDetail('${obj}', ${record.id})" style="font-weight:bold;">${displayVal}</span></td>`;
                     } else {
                         tbodyHtml += `<td>${displayVal}</td>`;
                     }

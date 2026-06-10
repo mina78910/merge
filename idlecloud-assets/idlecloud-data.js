@@ -220,7 +220,11 @@ const db = {
     ],
     groupHistory: [
         { id: 1, groupId: 4, oldName: "関ジャニ∞", newName: "SUPER EIGHT", changeDate: "2024-02-04" },
-        { id: 2, groupId: 9, oldName: "Sexy Zone", newName: "timelesz", changeDate: "2024-04-01" }
+        { id: 2, groupId: 9, oldName: "Sexy Zone", newName: "timelesz", changeDate: "2024-04-01" },
+        { id: 3, groupId: 10, oldName: "ジャニーズWEST", newName: "WEST.", changeDate: "2023-10-18" },
+        { id: 4, groupId: 13, oldName: "Aぇ! group (関西ジュニア)", newName: "Aぇ! group", changeDate: "2024-05-15" },
+        { id: 5, groupId: 8, oldName: "King & Prince (5人体制)", newName: "King & Prince (2人体制)", changeDate: "2023-05-23" },
+        { id: 6, groupId: 6, oldName: "KAT-TUN (6人体制)", newName: "KAT-TUN", changeDate: "2010-07-16" }
     ],
     // 作品マスタ (旧番組・メガ拡張データ追加完了)
     work: [
@@ -401,7 +405,28 @@ const db = {
         { id: 26, workId: 104, idolId: 32, role: "出演 (ベム)" },
         { id: 27, workId: 130, idolId: 61, role: "出演 (青木想太)" },
         { id: 28, workId: 131, idolId: 61, role: "出演 (金田一一)" },
-        { id: 29, workId: 47, idolId: 40, role: "出演 (金田一一)" }
+        { id: 29, workId: 47, idolId: 40, role: "出演 (金田一一)" },
+        { id: 30, workId: 1, idolId: 1, role: "歌唱" },
+        { id: 31, workId: 1, idolId: 2, role: "歌唱" },
+        { id: 32, workId: 1, idolId: 3, role: "歌唱" },
+        { id: 33, workId: 1, idolId: 4, role: "歌唱" },
+        { id: 34, workId: 1, idolId: 5, role: "歌唱" },
+        { id: 35, workId: 2, idolId: 6, role: "歌唱" },
+        { id: 36, workId: 2, idolId: 7, role: "歌唱" },
+        { id: 37, workId: 2, idolId: 8, role: "歌唱" },
+        { id: 38, workId: 2, idolId: 9, role: "歌唱" },
+        { id: 39, workId: 2, idolId: 10, role: "歌唱" },
+        { id: 40, workId: 2, idolId: 11, role: "歌唱" },
+        { id: 41, workId: 3, idolId: 12, role: "歌唱" },
+        { id: 42, workId: 3, idolId: 13, role: "歌唱" },
+        { id: 43, workId: 3, idolId: 14, role: "歌唱" },
+        { id: 44, workId: 3, idolId: 15, role: "歌唱" },
+        { id: 45, workId: 4, idolId: 27, role: "歌唱" },
+        { id: 46, workId: 4, idolId: 28, role: "歌唱" },
+        { id: 47, workId: 48, idolId: 39, role: "MC" },
+        { id: 48, workId: 48, idolId: 40, role: "MC" },
+        { id: 49, workId: 132, idolId: 66, role: "歌唱" },
+        { id: 50, workId: 135, idolId: 73, role: "歌唱" }
     ],
     live: [
         { id: 1, name: "ARASHI Anniversary Tour 5×20", date: "2019-12-25", venueId: 1 },
@@ -410,7 +435,14 @@ const db = {
         { id: 4, name: "King & Prince LIVE TOUR 2023 ~ピース~", date: "2023-08-27", venueId: 2 },
         { id: 5, name: "KinKi Kids Concert 2023-2024", date: "2023-12-16", venueId: 1 },
         { id: 6, name: "KAT-TUN LIVE TOUR 2023 Fantasia", date: "2023-05-03", venueId: 2 },
-        { id: 7, name: "アラフェス 2020 at 国立競技場", date: "2020-11-03", venueId: 7 }
+        { id: 7, name: "アラフェス 2020 at 国立競技場", date: "2020-11-03", venueId: 7 },
+        { id: 8, name: "WE ARE! Let's get the party STARTO!!", date: "2024-04-10", venueId: 1 },
+        { id: 9, name: "なにわ男子 LIVE TOUR 2024", date: "2024-08-10", venueId: 4 },
+        { id: 10, name: "WEST. DOME TOUR AWARD", date: "2024-07-14", venueId: 3 },
+        { id: 11, name: "Aぇ! group Debut Tour", date: "2024-06-01", venueId: 2 },
+        { id: 12, name: "Travis Japan World Tour Showcase", date: "2024-09-03", venueId: 8 },
+        { id: 13, name: "SUPER EIGHT 超アリーナツアー", date: "2024-10-01", venueId: 4 },
+        { id: 14, name: "timelesz episode 0", date: "2024-06-22", venueId: 9 }
     ],
     venue: [
         { id: 1, name: "東京ドーム", location: "東京都", capacity: 55000 },
@@ -419,7 +451,10 @@ const db = {
         { id: 4, name: "さいたまスーパーアリーナ", location: "埼玉県", capacity: 37000 },
         { id: 5, name: "福岡PayPayドーム", location: "福岡県", capacity: 38500 },
         { id: 6, name: "バンテリンドーム ナゴヤ", location: "愛知県", capacity: 40500 },
-        { id: 7, name: "国立競技場", location: "東京都", capacity: 68000 }
+        { id: 7, name: "国立競技場", location: "東京都", capacity: 68000 },
+        { id: 8, name: "台北アリーナ", location: "台湾", capacity: 15000 },
+        { id: 9, name: "大阪城ホール", location: "大阪府", capacity: 16000 },
+        { id: 10, name: "マリンメッセ福岡", location: "福岡県", capacity: 15000 }
     ],
     liveCast: [
         { id: 1, liveId: 1, groupId: 1 },
@@ -428,7 +463,18 @@ const db = {
         { id: 4, liveId: 4, groupId: 8 },
         { id: 5, liveId: 5, groupId: 17 },
         { id: 6, liveId: 6, groupId: 6 },
-        { id: 7, liveId: 7, groupId: 1 }
+        { id: 7, liveId: 7, groupId: 1 },
+        { id: 8, liveId: 8, groupId: 2 },
+        { id: 9, liveId: 8, groupId: 3 },
+        { id: 10, liveId: 8, groupId: 8 },
+        { id: 11, liveId: 8, groupId: 11 },
+        { id: 12, liveId: 8, groupId: 12 },
+        { id: 13, liveId: 8, groupId: 13 },
+        { id: 14, liveId: 9, groupId: 11 },
+        { id: 15, liveId: 10, groupId: 10 },
+        { id: 16, liveId: 11, groupId: 13 },
+        { id: 17, liveId: 12, groupId: 12 },
+        { id: 18, liveId: 14, groupId: 9 }
     ],
     event: [
         { id: 1, date: "1999-09-15", type: "結成", description: "嵐 結成" },
@@ -461,4 +507,4 @@ const db = {
     ]
 };
 
-let counters = { agency: 3, group: 18, idol: 90, affiliation: 92, groupHistory: 3, work: 147, participation: 30, live: 8, venue: 8, liveCast: 8, event: 28 };
+let counters = { agency: 3, group: 18, idol: 95, affiliation: 97, groupHistory: 7, work: 147, participation: 51, live: 15, venue: 11, liveCast: 19, event: 28 };
