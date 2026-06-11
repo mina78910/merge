@@ -53,14 +53,13 @@ const app = {
 
     switchTab: function(tab) {
         this.resetDetailHistory();
-        if (tab === 'settings') {
-            this.openSettingsWindow();
-            return;
-        }
         this.currentTab = tab;
         this.renderGlobalNav();
         
-        if (tab === 'dashboard') {
+        if (tab === 'settings') {
+            this.switchView('view-settings');
+            this.renderSettingsPage();
+        } else if (tab === 'dashboard') {
             this.switchView('view-dashboard');
             this.renderDashboard();
         } else if (tab === 'report') {
@@ -303,6 +302,15 @@ const app = {
         document.getElementById('detail-info').innerHTML = infoHtml;
 
         this.renderRelatedLists(id);
+        const detailMain = document.querySelector('#view-detail .detail-main-split');
+        const relatedContainer = document.getElementById('related-lists-container');
+        const hasRelatedLists = relatedContainer && relatedContainer.children.length > 0;
+        if (detailMain) {
+            detailMain.classList.toggle('no-related', !hasRelatedLists);
+        }
+        if (relatedContainer) {
+            relatedContainer.style.display = hasRelatedLists ? '' : 'none';
+        }
         this.updateRecordBackButton();
     },
 
@@ -788,27 +796,12 @@ const app = {
     // ==========================================
     // 設定画面 (Setup ER図)
     // ==========================================
-    openSettingsWindow: function() {
-        const html = `<!DOCTYPE html>
-        <html lang="ja">
-        <head>
-            <meta charset="UTF-8"><title>ER図・オブジェクト設計図 - アイドルcloud</title>
-            <style>
-                body { font-family: "Salesforce Sans", Arial, sans-serif; background: #F3F2F2; padding: 30px; color: #181818;}
-                h1 { color: #0176D3; margin-bottom: 20px; font-size: 22px;}
-                .explanation { background: #FFF9E6; padding: 15px; border-left: 4px solid #FFB700; margin-bottom: 25px; font-size: 13px; border-radius: 4px;}
-                .er-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-                .entity-box { background: white; border: 1px solid #DDDBDA; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; }
-                .entity-header { background: #0176D3; color: white; padding: 8px 12px; font-weight: bold; font-size: 13px; }
-                .entity-header.int { background: #546E7A; } 
-                .entity-header.hist { background: #7A5474; } 
-                .f-row { padding: 6px 12px; border-bottom: 1px solid #FAFAF9; font-size: 12px; display: flex; justify-content: space-between; }
-                .f-row.pk { font-weight: bold; background: #F4F6F9; }
-                .f-row.fk { color: #0176D3; font-style: italic; }
-                .f-type { color: #747474; font-size: 11px; }
-            </style>
-        </head>
-        <body>
+    renderSettingsPage: function() {
+        const container = document.getElementById('view-settings');
+        if (!container) return;
+
+        const html = `
+            <div class="settings-page">
             <h1>☁️ アイドルcloud オブジェクト ERモデル設計図</h1>
             <div class="explanation">
                 <strong>💡 学習ポイント：中間オブジェクトとカスタムレポート機能</strong><br>
@@ -878,13 +871,9 @@ const app = {
                     <div class="f-row fk"><span>venueId</span><span class="f-type">FK ➔ 会場</span></div>
                 </div>
             </div>
-        </body>
-        </html>`;
-        
-        const win = window.open("", "_blank", "width=1300,height=850");
-        win.document.write(html);
-        win.document.close();
-        this.renderGlobalNav(); 
+            </div>`;
+
+        container.innerHTML = html;
     }
 };
 
