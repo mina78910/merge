@@ -103,6 +103,19 @@ header p {
   opacity: 1;
 }
 
+.coming-soon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8e8f0, #eee8ff);
+  color: #6d28d9;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
 /* =========================
    CONTENT
 ========================= */
@@ -442,6 +455,87 @@ h2 {
 </header>
 
 <section class="games">
+
+  <div class="card">
+    <div class="slider">
+      <div class="coming-soon">画像coming soon</div>
+    </div>
+
+    <div class="content">
+      <div class="category">2026年6月19日リリース</div>
+      <div class="title-wrap">
+        <h2>Salesforceデジタル図解</h2>
+      </div>
+
+      <p class="desc">
+        一斉実行モードはカオス
+      </p>
+
+      <div class="meta">
+        PC版推奨
+      </div>
+
+      <a class="play"
+         href="https://mina78910.github.io/Salesforce-MVC"
+         target="_blank">
+         ▶ PLAY
+      </a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="slider">
+      <div class="coming-soon">画像coming soon</div>
+    </div>
+
+    <div class="content">
+      <div class="category">2026年6月17日リリース</div>
+      <div class="title-wrap">
+        <h2>Slack嵐</h2>
+      </div>
+
+      <p class="desc">
+        ※データは保存されません
+      </p>
+
+      <div class="meta">
+        データ保存なしで遊べます
+      </div>
+
+      <a class="play"
+         href="https://mina78910.github.io/Slack/"
+         target="_blank">
+         ▶ PLAY
+      </a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="slider">
+      <div class="coming-soon">画像coming soon</div>
+    </div>
+
+    <div class="content">
+      <div class="category">2026年6月16日リリース</div>
+      <div class="title-wrap">
+        <h2>MBTI認定試験</h2>
+      </div>
+
+      <p class="desc">
+        ※試験結果は記録していないので、スクショしてください
+      </p>
+
+      <div class="meta">
+        結果画面のスクショ推奨
+      </div>
+
+      <a class="play"
+         href="https://mina78910.github.io/mbti-certification/"
+         target="_blank">
+         ▶ PLAY
+      </a>
+    </div>
+  </div>
 
   <div class="card">
     <div class="slider">
@@ -798,6 +892,21 @@ h2 {
       <tbody>
         <!-- 今回の追加分を記載 (不要な場合は削除してください) -->
         <tr>
+          <td>2026/06/19</td>
+          <td>新作リリース</td>
+          <td>Salesforceデジタル図解をリリースしました。</td>
+        </tr>
+        <tr>
+          <td>2026/06/17</td>
+          <td>新作リリース</td>
+          <td>Slack嵐をリリースしました。</td>
+        </tr>
+        <tr>
+          <td>2026/06/16</td>
+          <td>新作リリース</td>
+          <td>MBTI認定試験をリリースしました。</td>
+        </tr>
+        <tr>
           <td>2026/06/10</td>
           <td>「アイドルCloud」<br>アップデート</td>
           <td>・スマホ対応<br>・関連リスト等からレコードリンクで遷移可能に<br>・所属事務所を「SMILE-UP.」から「STARTO ENTERTAINMENT」に変更<br>・アイドルObjに「備考」欄を追加<br>・活動ステータス「活動終了」「退所」を追加<br>・レコード数増加</td>
@@ -883,6 +992,9 @@ const sliders = document.querySelectorAll('.slider');
 sliders.forEach(slider => {
 
   const images = slider.querySelectorAll('img');
+  if (images.length === 0) {
+    return;
+  }
   let index = 0;
 
   setInterval(() => {
